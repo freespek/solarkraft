@@ -5,6 +5,13 @@ have an actual implementation of Solarkraft yet. Hence, we are manually
 producing the verification steps that will be done by Solarkraft automatically
 in the future.
 
+We have written four monitors that capture various aspects of the smart contract:
+
+ - [timelock_mon1.tla][] checks, whether the contract is initialized properly.
+ - [timelock_mon2.tla][] checks, whether the contract balance is changing properly.
+ - [timelock_mon3.tla][] checks, whether the `claimants` argument is respected.
+ - [timelock_mon4.tla][] checks, whether the time bound is respected.
+
 ## 1. Setting up the dev environment
 
 Follow the [setup][] guidelines from the Soroban tutorial.
@@ -56,7 +63,7 @@ Caused by:
 ## 4. Instrumenting the monitor
 
 To check the above transaction, Solakraft will instrument the monitor
-specification `timelock_mon1.tla`:
+specification [timelock_mon1.tla][]:
 
 ```tla
 ---- MODULE timelock_mon1_instrumented ----
@@ -83,7 +90,7 @@ initial state, as defined by `Init`.
 
 ## 5. Checking the instrumented specification
 
-Having produced the instrumented specification, Solakraft will invoke Apalache
+Having produced the [instrumented specification][], Solakraft will invoke Apalache
 to check feasibility of the instrumented specification. Solarkraft will do that
 via the Apalache server mode. For illustration purposes, we invoke the same
 check manually:
@@ -116,3 +123,9 @@ initialized"`, the contract has panicked with a low-level error message.
 [setup]: https://github.com/stellar/soroban-examples/blob/v20.0.0/timelock/src/lib.rs
 [soroban-examples]: https://github.com/stellar/soroban-examples/tree/v20.0.0
 [Apalache manual]: https://apalache.informal.systems/docs/apalache/index.html
+[timelock_mon1.tla]: ./timelock_mon1.tla
+[timelock_mon1_instrumented.tla]: ./timelock_mon1_instrumented.tla
+[instrumented specification]: ./timelock_mon1_instrumented.tla
+[timelock_mon2.tla]: ./timelock_mon2.tla
+[timelock_mon3.tla]: ./timelock_mon3.tla
+[timelock_mon4.tla]: ./timelock_mon4.tla
