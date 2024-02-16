@@ -1,7 +1,7 @@
 # Solarkraft
 
-Solarkraft is a runtime monitoring tool for [Soroban][], powered by TLA+ and
-[Apalache][].
+Solarkraft is a runtime monitoring tool for [Soroban][], powered by [TLA+][]
+and [Apalache][].
 
 This project is in the proposal stage. We will add more details later.
 In the meantime, you could check our [idea][] on how Solarkraft could find
