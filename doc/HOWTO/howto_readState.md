@@ -159,6 +159,7 @@ https://github.com/stellar/soroban-examples/blob/v20.2.0/increment/src/lib.rs
 [lab]:
 https://laboratory.stellar.org/#xdr-viewer?type=TransactionEnvelope&network=test
 
-[sdk]: https://stellar-sdk.readthedocs.io/en/latest/_modules/stellar_sdk/xdr/ledger_entry_data.html#LedgerEntryData
+[sdk]: https://stellar.github.io/js-stellar-sdk/SorobanDataBuilder.html#.fromXDR
+
 
 
