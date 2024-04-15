@@ -23,7 +23,7 @@
   "type": "module",
   "exports": "./dist/src/main.js",
   "bin": {
-    "tactical": "dist/src/main.js"
+    "solarkraft": "dist/src/main.js"
   },
   "files": [
     "README.md",
