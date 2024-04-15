@@ -22,3 +22,8 @@ Solarkraft inspects invocations of the timelock contract’s methods in the hist
 [Stellar Community Fund]: https://communityfund.stellar.org/
 [3-minute pitch]: https://www.youtube.com/watch?v=Ogdy4AHfMRA
 [timelock contract]: https://github.com/stellar/soroban-examples/tree/main/timelock
+
+
+## License
+
+[Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
