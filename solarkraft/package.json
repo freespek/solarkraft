@@ -34,7 +34,8 @@
     "e2e": "./test/e2e/run-tests.sh",
     "license": "source-licenser --config-file licenser-config.yaml .",
     "snapshot": "git archive --format=tar.gz -o solarkraft-`git rev-parse --short HEAD`.tar.gz --prefix=solarkraft/ HEAD",
-    "test": "mocha --loader=ts-node/esm test/**/*.test.ts"
+    "test": "mocha --loader=ts-node/esm test/**/*.test.ts",
+    "lint": "eslint src test"
   },
   "dependencies": {
     "@sweet-monads/either": "^3.3.1",
@@ -42,17 +43,19 @@
     "chalk": "^5.3.0",
     "json-bigint": "^1.0.0",
     "source-licenser": "^2.0.6",
-    "typescript": "^5.4.2",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@types/node": "^20.11.26",
     "chai": "^5.1.0",
     "copyfiles": "^2.4.1",
-    "eslint": "^8.56.0",
+    "eslint": "^8.57.0",
     "genversion": "^3.2.0",
     "mocha": "^10.3.0",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.6.0"
   },
   "engines": {
     "node": ">=18"
