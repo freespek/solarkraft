@@ -1,7 +1,25 @@
 {
   "name": "solarkraft",
   "version": "0.0.1",
+  "private": false,
   "description": "Solarkraft runtime monitoring for Soroban",
+  "keywords": [
+    "soroban",
+    "testing",
+    "runtime monitoring",
+    "smart contracts",
+    "audit"
+  ],
+  "homepage": "https://github.com/freespek/solarkraft#readme",
+  "bugs": {
+    "url": "https://github.com/freespek/solarkraft/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/freespek/solarkraft.git"
+  },
+  "license": "Apache-2.0",
+  "author": "Igor Konnov, Jure Kukovec, Andrey Kuprianov, Thomas Pani (https://github.com/freespek/solarkraft)",
   "type": "module",
   "exports": "./dist/src/main.js",
   "bin": {
@@ -11,61 +29,12 @@
     "README.md",
     "dist/**/*"
   ],
-  "engines": {
-    "node": ">=18"
-  },
   "scripts": {
     "compile": "genversion -e src/version.ts && tsc",
-    "test": "mocha --loader=ts-node/esm test/**/*.test.ts",
     "e2e": "./test/e2e/run-tests.sh",
-    "snapshot": "git archive --format=tar.gz -o solarkraft-`git rev-parse --short HEAD`.tar.gz --prefix=solarkraft/ HEAD"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/freespek/solarkraft.git"
-  },
-  "keywords": [
-    "soroban",
-    "testing",
-    "runtime monitoring",
-    "smart contracts",
-    "audit"
-  ],
-  "contributors": [
-    {
-      "name": "Igor Konnov",
-      "email": "igor@konnov.phd",
-      "url": "https://konnov.phd"
-    },
-    {
-      "name": "Jure Kukovec",
-      "email": "TODO@example.org",
-      "url": "https://github.com/Kukovec"
-    },
-    {
-      "name": "Andrey Kuprianov",
-      "email": "TODO@example.org",
-      "url": "https://github.com/andrey-kuprianov"
-    },
-    {
-      "name": "Thomas Pani",
-      "email": "office@thpani.net",
-      "url": "https://thpani.net/"
-    }
-  ],
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/freespek/solarkraft/issues"
-  },
-  "homepage": "https://github.com/freespek/solarkraft#readme",
-  "devDependencies": {
-    "@types/node": "^20.11.26",
-    "chai": "^5.1.0",
-    "copyfiles": "^2.4.1",
-    "eslint": "^8.56.0",
-    "genversion": "^3.2.0",
-    "mocha": "^10.3.0",
-    "ts-node": "^10.9.2"
+    "license": "source-licenser --config-file licenser-config.yaml .",
+    "snapshot": "git archive --format=tar.gz -o solarkraft-`git rev-parse --short HEAD`.tar.gz --prefix=solarkraft/ HEAD",
+    "test": "mocha --loader=ts-node/esm test/**/*.test.ts"
   },
   "dependencies": {
     "@sweet-monads/either": "^3.3.1",
@@ -75,5 +44,17 @@
     "source-licenser": "^2.0.6",
     "typescript": "^5.4.2",
     "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.26",
+    "chai": "^5.1.0",
+    "copyfiles": "^2.4.1",
+    "eslint": "^8.56.0",
+    "genversion": "^3.2.0",
+    "mocha": "^10.3.0",
+    "ts-node": "^10.9.2"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
