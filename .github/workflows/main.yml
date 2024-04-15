@@ -40,4 +40,4 @@ jobs:
       - name: install npm dependencies
         run: cd ./solarkraft && npm ci
       - name: check license
-        run: cd ./solarkraft && (npm run license | grep -v updated) || echo "use: npm run license"
+        run: cd ./solarkraft && (npm run license | grep -v updated) || echo "fix with 'npm run license'"
