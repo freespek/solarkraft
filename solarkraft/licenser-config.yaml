@@ -37,8 +37,10 @@ files:
 ignore:
 - ".git"
 - ".vscode"
+- dist
 - node_modules
 - test
+- "src/version.ts"
 
 # Default license text
 license: |
