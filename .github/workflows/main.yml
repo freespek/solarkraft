@@ -1,0 +1,43 @@
+on:
+  # Every pull request
+  pull_request:
+  push:
+    branches:
+      - main
+
+name: build
+
+jobs:
+  unit-tests:
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      fail-fast: false
+      matrix:
+        operating-system: [ubuntu-latest]
+        # macos is burning my free minutes way too fast
+        #operating-system: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: install npm dependencies
+        run: cd ./solarkraft && npm ci
+      - name: compile solarkraft
+        run: cd ./solarkraft && npm run compile
+      - name: unit tests
+        run: cd ./solarkraft && npm run test
+
+  license:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: install npm dependencies
+        run: cd ./solarkraft && npm ci
+      - name: check license
+        run: cd ./solarkraft && (npm run license | grep -v updated) || echo "use: npm run license"
