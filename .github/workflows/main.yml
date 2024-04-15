@@ -28,7 +28,7 @@ jobs:
       - name: unit tests
         run: cd ./solarkraft && npm run test
 
-  license:
+  lint-and-license:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -39,5 +39,7 @@ jobs:
           node-version: "20"
       - name: install npm dependencies
         run: cd ./solarkraft && npm ci
+      - name: eslint
+        run: cd ./solarkraft && npm run lint
       - name: check license
         run: cd ./solarkraft && (npm run license | grep -v updated) || echo "fix with 'npm run license'"
