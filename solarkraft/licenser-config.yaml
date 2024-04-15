@@ -246,7 +246,7 @@ substitutions:
     end: CURRENT_YEAR
   AUTHOR_NAME: "Igor Konnov, Jure Kukovec, Andrey Kuprianov, Thomas Pani"
   AUTHOR_WEB: https://github.com/freespek/solarkraft
-  DESCRIPTION: "Add license information to source files."
+  DESCRIPTION: "Solakraft: a runtime monitoring tool for Soroban, powered by TLA+ and Apalache"
   HOMEPAGE: https://github.com/freespek/solarkraft
   LICENSE_URL: https://github.com/freespek/solarkraft/blob/main/LICENSE
   SPDX: Apache-2.0
