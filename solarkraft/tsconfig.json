@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "lib": ["ES2021"],
+    "module": "Node16",
+    "esModuleInterop": true,
+    "moduleResolution": "Node16",
+    "sourceMap": true,
+    "outDir": "dist"
+  },
+  "lib": ["ES2021"],
+  "include": [ "src", "test" ],
+  "exclude": [ "node_modules" ]
+}
