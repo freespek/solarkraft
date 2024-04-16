@@ -32,6 +32,7 @@
   "scripts": {
     "compile": "genversion -e src/version.ts && tsc",
     "e2e": "./test/e2e/run-tests.sh",
+    "format": "prettier --config .prettierrc 'src/**/*.ts' 'test/**/*.ts' --write",
     "license": "source-licenser --config-file licenser-config.yaml .",
     "lint": "eslint src test",
     "prepare": "cd .. && husky solarkraft/.husky",
@@ -55,6 +56,7 @@
     "genversion": "^3.2.0",
     "husky": "^9.0.11",
     "mocha": "^10.3.0",
+    "prettier": "^3.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.6.0"
