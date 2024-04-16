@@ -36,7 +36,7 @@
     "snapshot": "git archive --format=tar.gz -o solarkraft-`git rev-parse --short HEAD`.tar.gz --prefix=solarkraft/ HEAD",
     "test": "mocha --loader=ts-node/esm test/**/*.test.ts",
     "lint": "eslint src test",
-    "prepare": "husky"
+    "prepare": "cd .. && husky solarkraft/.husky"
   },
   "dependencies": {
     "@sweet-monads/either": "^3.3.1",
