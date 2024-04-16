@@ -35,7 +35,8 @@
     "license": "source-licenser --config-file licenser-config.yaml .",
     "snapshot": "git archive --format=tar.gz -o solarkraft-`git rev-parse --short HEAD`.tar.gz --prefix=solarkraft/ HEAD",
     "test": "mocha --loader=ts-node/esm test/**/*.test.ts",
-    "lint": "eslint src test"
+    "lint": "eslint src test",
+    "format": "prettier --config .prettierrc 'src/**/*.ts' 'test/**/*.ts' --write"
   },
   "dependencies": {
     "@sweet-monads/either": "^3.3.1",
@@ -53,6 +54,7 @@
     "eslint": "^8.57.0",
     "genversion": "^3.2.0",
     "mocha": "^10.3.0",
+    "prettier": "^3.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.6.0"
