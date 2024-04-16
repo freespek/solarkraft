@@ -35,7 +35,8 @@
     "license": "source-licenser --config-file licenser-config.yaml .",
     "snapshot": "git archive --format=tar.gz -o solarkraft-`git rev-parse --short HEAD`.tar.gz --prefix=solarkraft/ HEAD",
     "test": "mocha --loader=ts-node/esm test/**/*.test.ts",
-    "lint": "eslint src test"
+    "lint": "eslint src test",
+    "prepare": "husky"
   },
   "dependencies": {
     "@sweet-monads/either": "^3.3.1",
@@ -52,6 +53,7 @@
     "copyfiles": "^2.4.1",
     "eslint": "^8.57.0",
     "genversion": "^3.2.0",
+    "husky": "^9.0.11",
     "mocha": "^10.3.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
