@@ -33,10 +33,10 @@
     "compile": "genversion -e src/version.ts && tsc",
     "e2e": "./test/e2e/run-tests.sh",
     "license": "source-licenser --config-file licenser-config.yaml .",
-    "snapshot": "git archive --format=tar.gz -o solarkraft-`git rev-parse --short HEAD`.tar.gz --prefix=solarkraft/ HEAD",
-    "test": "mocha --loader=ts-node/esm test/**/*.test.ts",
     "lint": "eslint src test",
-    "prepare": "cd .. && husky solarkraft/.husky"
+    "prepare": "cd .. && husky solarkraft/.husky",
+    "snapshot": "git archive --format=tar.gz -o solarkraft-`git rev-parse --short HEAD`.tar.gz --prefix=solarkraft/ HEAD",
+    "test": "mocha --loader=ts-node/esm test/**/*.test.ts"
   },
   "dependencies": {
     "@sweet-monads/either": "^3.3.1",

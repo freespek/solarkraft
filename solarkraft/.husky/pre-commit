@@ -1,2 +1,2 @@
 cd solarkraft
-npm test
+npm run lint && npm run license
