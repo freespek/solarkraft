@@ -1,2 +1,5 @@
 cd solarkraft
-npm run lint && npm run license
+set -e
+npm run lint
+npm run license
+npm run format
