@@ -28,10 +28,10 @@ jobs:
       - name: unit tests
         run: cd ./solarkraft && npm run test
 
-  lint-and-license:
+  housekeeping:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -43,3 +43,5 @@ jobs:
         run: cd ./solarkraft && npm run lint
       - name: check license
         run: cd ./solarkraft && (npm run license | grep -v updated) || echo "fix with 'npm run license'"
+      - name: check formatting
+        run: cd ./solarkraft && (npx prettier --config .prettierrc --check src/**/*.ts test/**/*.ts) || echo "fix with 'npm run format'"
