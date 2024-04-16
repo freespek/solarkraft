@@ -1,4 +1,4 @@
-interface Value {}
+interface Value { }
 
 /**  
  * Any of the follwing:
@@ -14,10 +14,10 @@ interface Value {}
 abstract class IntValue implements Value {
     val: bigint
     type: string
-    
+
     constructor(v: bigint) {
         this.val = v
-        if (!this.isValid()) { 
+        if (!this.isValid()) {
             throw new RangeError(`${v} lies outside the ${this.type} range.`)
         }
     }
@@ -30,8 +30,8 @@ export class IntValue_u32 extends IntValue {
     val: bigint
     type = "u32"
 
-    isValid(): boolean { 
-        return (0n <= this.val) && (this.val <= 2n**32n)
+    isValid(): boolean {
+        return (0n <= this.val) && (this.val <= 2n ** 32n)
     }
 }
 
@@ -40,8 +40,8 @@ export class IntValue_i32 extends IntValue {
     val: bigint
     type = "i32"
 
-    isValid(): boolean { 
-        return (-(2n**31n) <= this.val) && (this.val < (2n**31n))
+    isValid(): boolean {
+        return (-(2n ** 31n) <= this.val) && (this.val < (2n ** 31n))
     }
 }
 
@@ -50,8 +50,8 @@ export class IntValue_u64 extends IntValue {
     val: bigint
     type = "u64"
 
-    isValid(): boolean { 
-        return (0n <= this.val) && (this.val <= 2n**64n)
+    isValid(): boolean {
+        return (0n <= this.val) && (this.val <= 2n ** 64n)
     }
 }
 
@@ -60,8 +60,8 @@ export class IntValue_i64 extends IntValue {
     val: bigint
     type = "i64"
 
-    isValid(): boolean { 
-        return (-(2n**63n) <= this.val) && (this.val < (2n**63n))
+    isValid(): boolean {
+        return (-(2n ** 63n) <= this.val) && (this.val < (2n ** 63n))
     }
 }
 
@@ -70,8 +70,8 @@ export class IntValue_u128 extends IntValue {
     val: bigint
     type = "u128"
 
-    isValid(): boolean { 
-        return (0n <= this.val) && (this.val <= 2n**128n)
+    isValid(): boolean {
+        return (0n <= this.val) && (this.val <= 2n ** 128n)
     }
 }
 
@@ -80,8 +80,8 @@ export class IntValue_i128 extends IntValue {
     val: bigint
     type = "i128"
 
-    isValid(): boolean { 
-        return (-(2n**127n) <= this.val) && (this.val < (2n**127n))
+    isValid(): boolean {
+        return (-(2n ** 127n) <= this.val) && (this.val < (2n ** 127n))
     }
 }
 
@@ -119,7 +119,7 @@ export class AddrValue implements Value {
 
     constructor(v: string) {
         this.val = v
-        if (!this.regex.test(v)) { 
+        if (!this.regex.test(v)) {
             throw new TypeError(`Address must be exactly 56 uppercase alphanumeric characters, found: ${v}.`)
         }
     }
@@ -134,7 +134,7 @@ export class ArrValue implements Value {
 
     constructor(v: IntValue_u32[], l?: number) {
         this.val = v
-        if (typeof(l) !== 'undefined' && v.length !== l){
+        if (typeof (l) !== 'undefined' && v.length !== l) {
             throw new TypeError(`Array declared as fixed-length ${l}, but actual length is ${v.length}.`)
         }
     }
