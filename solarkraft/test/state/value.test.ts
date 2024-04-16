@@ -10,12 +10,12 @@ describe('Integer tests', () => {
         assert.throws( () => {new IntValue_i32(-(2n**31n) - 1n)}, RangeError )
         assert.throws( () => {new IntValue_i32(2n**31n)}, RangeError )
 
-        let x_u32 = new IntValue_u32(2n**20n)
+        const x_u32 = new IntValue_u32(2n**20n)
         assert(x_u32.isValid)
         assert(x_u32.type === "u32")
         assert(x_u32.val === 2n**20n)
 
-        let x_i32 = new IntValue_i32(-(2n**20n))
+        const x_i32 = new IntValue_i32(-(2n**20n))
         assert(x_i32.isValid)
         assert(x_i32.type === "i32")
         assert(x_i32.val === -(2n**20n))
@@ -27,12 +27,12 @@ describe('Integer tests', () => {
         assert.throws( () => {new IntValue_i64(-(2n**63n) - 1n)}, RangeError )
         assert.throws( () => {new IntValue_i64(2n**63n)}, RangeError )
 
-        let x_u64 = new IntValue_u64(2n**40n)
+        const x_u64 = new IntValue_u64(2n**40n)
         assert(x_u64.isValid)
         assert(x_u64.type === "u64")
         assert(x_u64.val === 2n**40n)
 
-        let x_i64 = new IntValue_i64(-(2n**40n))
+        const x_i64 = new IntValue_i64(-(2n**40n))
         assert(x_i64.isValid)
         assert(x_i64.type === "i64")
         assert(x_i64.val === -(2n**40n))
@@ -44,12 +44,12 @@ describe('Integer tests', () => {
         assert.throws( () => {new IntValue_i128(-(2n**127n) - 1n)}, RangeError )
         assert.throws( () => {new IntValue_i128(2n**127n)}, RangeError )
 
-        let x_u128 = new IntValue_u128(2n**80n)
+        const x_u128 = new IntValue_u128(2n**80n)
         assert(x_u128.isValid)
         assert(x_u128.type === "u128")
         assert(x_u128.val === 2n**80n)
 
-        let x_i128 = new IntValue_i128(-(2n**80n))
+        const x_i128 = new IntValue_i128(-(2n**80n))
         assert(x_i128.isValid)
         assert(x_i128.type === "i128")
         assert(x_i128.val === -(2n**80n))
@@ -62,7 +62,7 @@ describe('Stringlike tests', () => {
         
         assert.throws( () => {new SymValue('\u2615')}, TypeError )
 
-        let s = new SymValue("FOO")
+        const s = new SymValue("FOO")
         assert(s.val === 'FOO')
     })
 
@@ -73,7 +73,7 @@ describe('Stringlike tests', () => {
 
         assert.throws( () => {new AddrValue('FOO')}, TypeError )
 
-        let s = new AddrValue("ALICE000000000000000000000000000000000000000000000000000")
+        const s = new AddrValue("ALICE000000000000000000000000000000000000000000000000000")
         assert(s.val === "ALICE000000000000000000000000000000000000000000000000000")
     })
 })

@@ -101,7 +101,7 @@ export class SymValue implements Value {
     val: string
     num?: number
 
-    private regex: RegExp = /^[a-zA-Z0-9\_]{0,32}$/
+    private regex: RegExp = /^[a-zA-Z0-9_]{0,32}$/
 
     constructor(v: string) {
         this.val = v
