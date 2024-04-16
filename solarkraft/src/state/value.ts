@@ -1,4 +1,46 @@
-interface Value { }
+export type Value = {
+    type: string
+} & (IntValue | BoolValue | SymbValue | AddrValue)
+
+export function isValid(v: Value): boolean {
+    switch (v.type) {
+        case "u32": {
+            const val = (v as IntValue).val
+            return (0n <= val) && (val <= 2n ** 32n)
+        }
+        case "i32": {
+            const val = (v as IntValue).val
+            return (-(2n ** 31n) <= val) && (val < (2n ** 31n))
+        }
+        case "u64": {
+            const val = (v as IntValue).val
+            return (0n <= val) && (val <= 2n ** 64n)
+        }
+        case "i64": {
+            const val = (v as IntValue).val
+            return (-(2n ** 63n) <= val) && (val < (2n ** 63n))
+        }
+        case "u128": {
+            const val = (v as IntValue).val
+            return (0n <= val) && (val <= 2n ** 128n)
+        }
+        case "i128": {
+            const val = (v as IntValue).val
+            return (-(2n ** 127n) <= val) && (val < (2n ** 127n))
+        }
+        case "symb": {
+            const regex: RegExp = /^[a-zA-Z0-9_]{0,32}$/
+            return regex.test((v as SymbValue).val)
+        }
+        case "addr": {
+            const regex: RegExp = /^[A-Z0-9]{56}$/
+            return regex.test((v as AddrValue).val)
+        }
+        default:
+            return true
+
+    }
+}
 
 /**  
  * Any of the follwing:
@@ -11,133 +53,125 @@ interface Value { }
  * 
  * Example: 2u32 would be represented as { val: 2, type: "u32" }, whereas 2i32 would be { val: 2, type: "i32" }
 */
-abstract class IntValue implements Value {
+export type IntValue = {
     val: bigint
-    type: string
+} & (IntValue_u32 | IntValue_i32 | IntValue_u64 | IntValue_i64 | IntValue_u128 | IntValue_i128)
 
-    constructor(v: bigint) {
-        this.val = v
-        if (!this.isValid()) {
-            throw new RangeError(`${v} lies outside the ${this.type} range.`)
-        }
+
+function mkInt(type: string, val: bigint) {
+    const obj = { type: type, val: val } as Value
+    if (!isValid(obj)) {
+        throw new RangeError(`${val} lies outside the ${type} range.`)
     }
-
-    abstract isValid(): boolean
+    return obj
 }
 
-// u32
-export class IntValue_u32 extends IntValue {
-    val: bigint
-    type = "u32"
 
-    isValid(): boolean {
-        return (0n <= this.val) && (this.val <= 2n ** 32n)
-    }
+// u32
+export type IntValue_u32 = {
+    type: "u32"
+}
+
+export function u32(v: bigint): Value {
+    return mkInt("u32", v)
 }
 
 // i32
-export class IntValue_i32 extends IntValue {
-    val: bigint
-    type = "i32"
+export type IntValue_i32 = {
+    type: "i32"
+}
 
-    isValid(): boolean {
-        return (-(2n ** 31n) <= this.val) && (this.val < (2n ** 31n))
-    }
+export function i32(v: bigint): Value {
+    return mkInt("i32", v)
 }
 
 // u64
-export class IntValue_u64 extends IntValue {
-    val: bigint
-    type = "u64"
+export type IntValue_u64 = {
+    type: "u64"
+}
 
-    isValid(): boolean {
-        return (0n <= this.val) && (this.val <= 2n ** 64n)
-    }
+export function u64(v: bigint): Value {
+    return mkInt("u64", v)
 }
 
 // i64
-export class IntValue_i64 extends IntValue {
-    val: bigint
-    type = "i64"
+export type IntValue_i64 = {
+    type: "i64"
+}
 
-    isValid(): boolean {
-        return (-(2n ** 63n) <= this.val) && (this.val < (2n ** 63n))
-    }
+export function i64(v: bigint): Value {
+    return mkInt("i64", v)
 }
 
 // u128
-export class IntValue_u128 extends IntValue {
-    val: bigint
-    type = "u128"
+export type IntValue_u128 = {
+    type: "u128"
+}
 
-    isValid(): boolean {
-        return (0n <= this.val) && (this.val <= 2n ** 128n)
-    }
+export function u128(v: bigint): Value {
+    return mkInt("u128", v)
 }
 
 // i128
-export class IntValue_i128 extends IntValue {
-    val: bigint
-    type = "i128"
+export type IntValue_i128 = {
+    type: "i128"
+}
 
-    isValid(): boolean {
-        return (-(2n ** 127n) <= this.val) && (this.val < (2n ** 127n))
-    }
+export function i128(v: bigint): Value {
+    return mkInt("i128", v)
 }
 
 // true or false
-export class BoolValue implements Value {
+export type BoolValue = {
     val: boolean
+    type: "bool"
+}
 
-    constructor(v: boolean) {
-        this.val = v
-    }
+export function bool(v: boolean): Value {
+    return { type: "bool", val: v }
 }
 
 // Symbols are small efficient strings up to 32 characters in length and limited to a-z A-Z 0-9 _ that are encoded into 64-bit integers.
 // We store the string representation, and optionally the number.
 // TODO: determine _how_ the strings are encoded as numbers
-export class SymValue implements Value {
+export type SymbValue = {
     val: string
+    type: "symb"
     num?: number
+}
 
-    private regex: RegExp = /^[a-zA-Z0-9_]{0,32}$/
-
-    constructor(v: string) {
-        this.val = v
-        if (!this.regex.test(v)) {
-            throw new TypeError(`Symbols must be up to 32 alphanumeric characters or underscores, found: ${v}.`)
-        }
+export function symb(s: string): Value {
+    const obj = { type: "symb", val: s } as Value
+    if (!isValid(obj)) {
+        throw new TypeError(`Symbols must be up to 32 alphanumeric characters or underscores, found: ${s}.`)
     }
+    return obj
 }
 
 // Addresses are always length-56
-export class AddrValue implements Value {
+export type AddrValue = {
     val: string
+    type: "addr"
+}
 
-    private regex: RegExp = /^[A-Z0-9]{56}$/
-
-    constructor(v: string) {
-        this.val = v
-        if (!this.regex.test(v)) {
-            throw new TypeError(`Address must be exactly 56 uppercase alphanumeric characters, found: ${v}.`)
-        }
+export function addr(s: string): Value {
+    const obj = { type: "addr", val: s } as Value
+    if (!isValid(obj)) {
+        throw new TypeError(`Symbols must be up to 32 alphanumeric characters or underscores, found: ${s}.`)
     }
+    return obj
 }
 
 // Byte arrays (Bytes, BytesN)
 // The `len` field is present iff the length is fixed (i.e. for BytesN)
 // TODO: tests
-export class ArrValue implements Value {
+export type ArrValue = {
     val: IntValue_u32[]
+    type: "arr"
     len?: number
-
-    constructor(v: IntValue_u32[], l?: number) {
-        this.val = v
-        if (typeof (l) !== 'undefined' && v.length !== l) {
-            throw new TypeError(`Array declared as fixed-length ${l}, but actual length is ${v.length}.`)
-        }
-    }
+    // if (typeof (l) !== 'undefined' && v.length !== l) {
+    //     throw new TypeError(`Array declared as fixed-length ${l}, but actual length is ${v.length}.`)
+    // }
 }
 
 
