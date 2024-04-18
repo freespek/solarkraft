@@ -1,4 +1,4 @@
-# HOWTO: Set Up a Testnet and Deploy Custom Contracts
+# HOWTO: Set Up a Network and Deploy Custom Contracts
 
 ## Goals 
 This HOWTO details the steps required to set up a local Stellar network, deploy a custom Soroban contract, and invoke the contract via CLI. It complements the [official guide][guide].
@@ -11,7 +11,7 @@ Prerequisites:
 - you probably want to add `~/.cargo/bin` to your PATH
 
 ### Local Stellar Network
-Instead of building from source, Stellar provides a quickstart Docker image. You can call the below command from anywhere, and Docker will fetch the image.
+Instead of building from source, Stellar provides a quickstart Docker image. You can call the below command from anywhere, and Docker will fetch the image and run it in the background.
 ```sh
 docker run --rm -d \
     -p 8000:8000 \
@@ -20,9 +20,9 @@ docker run --rm -d \
     --testnet \
     --enable-soroban-rpc
 ```
-Note here that the [official guide][guide] would have you run this in interactive mode (`run ... -it ...`), but for just the network having it run in the background (`-d`) is less noisy and doesn't hijack the terminal.
+Note here that the [official guide][guide] would have you run the container in interactive mode (`run ... -it ...`), but for just the network having it run in the background (`-d`) is less noisy and doesn't hijack the terminal.
 
-The above snippet deploys a testnet (`--testnet`), if you want a standalone network, replace that flag with `--standalone`.
+The above snippet deploys a new node, which is connected to the global testnet (`--testnet`), if you want a standalone network, replace that flag with `--local` (in outdated documentation you may find `--standalone`, which is a synonym).
 
 ### Soroban CLI
 In order to interact with your docker image, you will need the [Soroban CLI][cli]. With `cargo`, all you need is:
@@ -75,12 +75,17 @@ soroban-sdk = { workspace = true }
 soroban-sdk = { version = "20.3.2", features = ["testutils"] }
 ```
 
-Write your contract code in `lib.rs`, and tests in `test.rs`.
+Write your contract code in `lib.rs`, and tests in `test.rs`. You can start by using one of our [example contracts](../../ContractExamples/contracts
+)
 Make sure all your tests work before deploying (with print outputs):
 ```sh
 cargo test -- --nocapture
 ```
 Once they do, running
+```sh
+rustup target add wasm32-unknown-unknown
+```
+then
 ```sh
 soroban contract build
 ```
