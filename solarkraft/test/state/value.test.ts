@@ -1,7 +1,8 @@
 import { assert } from 'chai'
 import { describe, it } from 'mocha'
 
-import { isValid, u32, i32, u64, i64, u128, i128, symb, addr } from '../../src/state/value.js'
+import { isValid, u32, i32, u64, i64, u128, i128, symb, addr, bytes, bytesN, vec, map, bool, Value, u32T, toArr, KeyValuePair, mapFromKV } from '../../src/state/value.js'
+import { AddrValue, ArrValue } from '../../src/state/value_old.js'
 
 describe('Integer tests', () => {
     it('asserts 32-bit integer constructors respect bounds', () => {
@@ -75,8 +76,107 @@ describe('Stringlike tests', () => {
     })
 })
 
-describe('Array tests', () => {
-    it('asserts something about arrays (TODO)', () => {
-        // todo
+describe('Collection tests', () => {
+    it('asserts array constructors properly assert length equality and child validity', () => {
+        const uintArr3 = [u32(1n), u32(2n), u32(3n)]
+        const invalidU32arr: u32T[] = [{ type: "u32", val: -1n }]
+
+        assert.throws(() => { bytes(invalidU32arr) }, TypeError) // child not valid
+        assert.throws(() => { bytesN(invalidU32arr) }, TypeError) // child not valid
+
+        const customVariable: Value = { type: "arr", val: [] }
+        const customFixed: Value = { type: "arr", val: [], len: 10 }
+
+        assert(isValid(customVariable))
+        assert(!isValid(customFixed))
+
+        const variableArr = bytes(uintArr3)
+        const fixedArr = bytesN(uintArr3)
+
+        assert(isValid(variableArr))
+        assert(isValid(fixedArr))
+
+        assert(variableArr.val === fixedArr.val)
+        assert(variableArr.val === uintArr3)
+        assert(variableArr.type === fixedArr.type)
+        assert(variableArr.type === "arr")
+
+        assert(!Object.keys(variableArr).includes("len"))
+        assert(fixedArr.len === uintArr3.length)
+    })
+
+    it('asserts vector constructors properly assert child validity', () => {
+        const homogeneousArr = [u64(0n), u64(0n), u64(0n)]
+        const heterogeneousArr = [bool(false), symb("fOo")]
+        const vecWithInvalid: Value[] = [{ type: "u64", val: -1n }]
+
+        assert.throws(() => { vec(vecWithInvalid) }, TypeError)
+
+        const homVec = vec(homogeneousArr)
+        const hetVec = vec(heterogeneousArr)
+
+        assert(homVec.val.length == homogeneousArr.length)
+        assert(hetVec.val.length == heterogeneousArr.length)
+    })
+
+    it('asserts basic map constructors properly assert child validity', () => {
+        const k0 = u32(0n)
+        const k1 = u32(1n)
+        const alice = addr("ALICE000000000000000000000000000000000000000000000000000")
+        const bob = addr("BOB00000000000000000000000000000000000000000000000000000")
+
+        const mapValid: Map<Value, Value> =
+            new Map()
+                .set(k0, alice)
+                .set(k1, bob)
+
+        const mapInvalidVal: Map<Value, Value> =
+            new Map().set(k0, { type: "addr", val: "ALICE" })
+        const mapInvalidKey: Map<Value, Value> =
+            new Map().set({ type: "u32", val: -1n }, bob)
+
+        assert.throws(() => { map(mapInvalidKey) }, TypeError)
+        assert.throws(() => { map(mapInvalidVal) }, TypeError)
+
+        const valdiMap = map(mapValid)
+        const asArr = toArr(valdiMap)
+
+        assert(asArr.length === 2)
+        assert(asArr[0].length === 2)
+        assert(asArr[1].length === 2)
+
+        assert(asArr[0][0] === k0)
+        assert(asArr[0][1] === alice)
+        assert(asArr[1][0] === k1)
+        assert(asArr[1][1] === bob)
+    })
+
+    it('asserts map array constructors properly assert child validity', () => {
+        const k0 = u32(0n)
+        const k1 = u32(1n)
+        const alice = addr("ALICE000000000000000000000000000000000000000000000000000")
+        const bob = addr("BOB00000000000000000000000000000000000000000000000000000")
+
+        const arrValid: KeyValuePair[] = [[k0, alice], [k1, bob]]
+
+        const arrInvalidVal: KeyValuePair[] = [[k0, { type: "addr", val: "ALICE" }]]
+        const arrInvalidKey: KeyValuePair[] = [[{ type: "u32", val: -1n }, bob]]
+        const arrInvalidDup: KeyValuePair[] = [[k0, alice], [k0, bob]]
+
+        assert.throws(() => { mapFromKV(arrInvalidVal) }, TypeError)
+        assert.throws(() => { mapFromKV(arrInvalidKey) }, TypeError)
+        assert.throws(() => { mapFromKV(arrInvalidDup) }, TypeError)
+
+        const valdiMap = mapFromKV(arrValid)
+        const asArr = toArr(valdiMap)
+
+        assert(asArr.length === arrValid.length)
+        assert(asArr[0].length === arrValid[0].length)
+        assert(asArr[1].length === arrValid[0].length)
+
+        assert(asArr[0][0] === arrValid[0][0])
+        assert(asArr[0][1] === arrValid[0][1])
+        assert(asArr[1][0] === arrValid[1][0])
+        assert(asArr[1][1] === arrValid[1][1])
     })
 })
