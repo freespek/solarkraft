@@ -2,7 +2,6 @@ import { assert } from 'chai'
 import { describe, it } from 'mocha'
 
 import { isValid, u32, i32, u64, i64, u128, i128, symb, addr, bytes, bytesN, vec, map, bool, Value, u32T, toArr, KeyValuePair, mapFromKV } from '../../src/state/value.js'
-import { AddrValue, ArrValue } from '../../src/state/value_old.js'
 
 describe('Integer tests', () => {
     it('asserts 32-bit integer constructors respect bounds', () => {

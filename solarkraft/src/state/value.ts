@@ -47,21 +47,21 @@ export function isValid(v: Value): boolean {
 
             if (lenMismatch) return false
 
-            for (let child of cast.val) {
+            for (const child of cast.val) {
                 if (!isValid(child)) return false
             }
             return true
         }
         // Vectors are valid iff their elements are all valid.
         case "vec": {
-            for (let child of (v as VecValue).val) {
+            for (const child of (v as VecValue).val) {
                 if (!isValid(child)) return false
             }
             return true
         }
         // Maps are valid iff their keys and values are all valid.
         case "map": {
-            for (let [key, value] of (v as MapValue).val) {
+            for (const [key, value] of (v as MapValue).val) {
                 if (!isValid(key) || !isValid(value)) return false
             }
             return true
@@ -247,9 +247,9 @@ export function map(v: Map<Value, Value>): MapValue {
 // Safe constructor for vec-typed `Value`s. Throws a `TypeError` if `v` contains an invalid key or value, or if it contains duplicate keys.
 export function mapFromKV(a: KeyValuePair[]): MapValue {
 
-    let partialMap = new Map()
+    const partialMap = new Map()
 
-    for (let [k, v] of a) {
+    for (const [k, v] of a) {
         if (partialMap.has(k)) {
             throw new TypeError(`Pairs must have unique keys, found duplicate ${k}`)
         }
