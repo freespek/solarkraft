@@ -21,6 +21,20 @@ Solarkraft is written in [TypeScript][]. It uses the standard development toolin
  - [prettier][] is the code formatter
  - [husky] is the hook manager that runs basic tests on git commits
 
+ ### 2.1 Dev containers
+
+To easily set up your dev environment, we provide VSCode [dev containers][].
+
+There is one for Solarkraft development in [`./solarkraft`](./solarkraft/.devcontainer/), and one for Soroban development in [`./ContractExamples`](./ContractExamples/.devcontainer/).
+
+To use the dev containers:
+
+0. Install [Docker](https://www.docker.com/).
+1. Open VSCode in the respective directory (e.g., `cd solarkraft/ && code .`).
+2. Install the [`Dev Containers` extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) by Microsoft (VSCode may also prompt you to do this).
+3. Build and open the container by selecting **Dev Containers: Reopen in Container** in the VSCode command palette (`Ctrl-Shift-P`, or `Cmd-Shift-P` on macOS).
+
+
 ## 3. Basic development commands
 
 1. On the first run, install the required npm packages:
@@ -60,17 +74,10 @@ We are still discovering an optimal setup. The Soroban instructions are given in
 seem to build well on MacOS, owing to [this
 issue](https://discord.com/channels/1179099813879492721/1196869246429429960/1229764850591469649).
 
-To work around the above problem, we are using [VSCode dev containers][]:
-
-> This simply takes the Rust dev container from Microsoft and installs soroban-cli and the appropriate wasm target.
->
-> If the quickstart Docker image is run outside the container, its RPC endpoint is available as
-> http://host.docker.internal:8000/soroban/rpc.
-
-Further, see [Dockerfile](.devcontainer/Dockerfile).
+To work around these problems, you can use our dev containers (see above), to get a reproducible dev environment.
 
 
-
+[dev containers]: https://code.visualstudio.com/docs/devcontainers/containers
 [TypeScript]: https://www.typescriptlang.org/
 [npm]: https://www.npmjs.com/
 [tsc]: https://www.typescriptlang.org/docs/handbook/compiler-options.html
