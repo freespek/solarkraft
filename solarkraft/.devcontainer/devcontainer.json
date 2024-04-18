@@ -1,4 +1,4 @@
-// A dev container for working with Soroban smart contracts.
+// A dev container for developing Solarkraft.
 // For format details, see https://aka.ms/devcontainer.json.
 {
 	"name": "Solarkraft",
