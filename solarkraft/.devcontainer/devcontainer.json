@@ -1,0 +1,24 @@
+// A dev container for working with Soroban smart contracts.
+// For format details, see https://aka.ms/devcontainer.json.
+{
+	"name": "Solarkraft",
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:20-bookworm",
+	"features": {
+		"ghcr.io/devcontainers/features/java:1": {},
+		"ghcr.io/stuartleeks/dev-container-features/shell-history:0": {},
+		"ghcr.io/devcontainers-contrib/features/bash-command:1": {
+			"command": "wget -qO- https://github.com/informalsystems/apalache/releases/download/v0.44.10/apalache.tgz | sudo tar xz -C /opt/"
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"vscodevim.vim"
+			],
+			"settings": {
+				"extensions.ignoreRecommendations": true, // don't show recommendations for extensions
+				"terminal.integrated.copyOnSelection": true
+			}
+		}
+	}
+}
