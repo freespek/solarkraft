@@ -53,12 +53,16 @@ export function isValid(v: Value): boolean {
  * 
  * Example: 2u32 would be represented as { val: 2, type: "u32" }, whereas 2i32 would be { val: 2, type: "i32" }
 */
+
+export type ValidIntT = "u32" | "i32" | "u64" | "i64" | "u128" | "i128"
+
 export type IntValue = {
     val: bigint
-} & (IntValue_u32 | IntValue_i32 | IntValue_u64 | IntValue_i64 | IntValue_u128 | IntValue_i128)
+    type: ValidIntT
+}
 
 
-function mkInt(type: string, val: bigint) {
+function mkInt(type: ValidIntT, val: bigint) {
     const obj = { type: type, val: val } as Value
     if (!isValid(obj)) {
         throw new RangeError(`${val} lies outside the ${type} range.`)
@@ -66,55 +70,24 @@ function mkInt(type: string, val: bigint) {
     return obj
 }
 
-
-// u32
-export type IntValue_u32 = {
-    type: "u32"
-}
-
 export function u32(v: bigint): Value {
     return mkInt("u32", v)
-}
-
-// i32
-export type IntValue_i32 = {
-    type: "i32"
 }
 
 export function i32(v: bigint): Value {
     return mkInt("i32", v)
 }
 
-// u64
-export type IntValue_u64 = {
-    type: "u64"
-}
-
 export function u64(v: bigint): Value {
     return mkInt("u64", v)
-}
-
-// i64
-export type IntValue_i64 = {
-    type: "i64"
 }
 
 export function i64(v: bigint): Value {
     return mkInt("i64", v)
 }
 
-// u128
-export type IntValue_u128 = {
-    type: "u128"
-}
-
 export function u128(v: bigint): Value {
     return mkInt("u128", v)
-}
-
-// i128
-export type IntValue_i128 = {
-    type: "i128"
 }
 
 export function i128(v: bigint): Value {
@@ -166,7 +139,7 @@ export function addr(s: string): Value {
 // The `len` field is present iff the length is fixed (i.e. for BytesN)
 // TODO: tests
 export type ArrValue = {
-    val: IntValue_u32[]
+    val: { type: "u32", val: bigint }[]
     type: "arr"
     len?: number
     // if (typeof (l) !== 'undefined' && v.length !== l) {
