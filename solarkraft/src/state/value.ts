@@ -1,3 +1,5 @@
+import { OrderedMap } from "immutable"
+
 export type Value = {
     type: string
 } & (IntValue | BoolValue | SymbValue | AddrValue | ArrValue | VecValue | MapValue)
@@ -6,65 +8,50 @@ export function isValid(v: Value): boolean {
     switch (v.type) {
         // Integers are valid iff their values lie within the [0, 2^n) or [-2^{n-1},2^{n-1}) intervals
         case "u32": {
-            const val = (v as IntValue).val
+            const val = v.val
             return (0n <= val) && (val < 2n ** 32n)
         }
         case "i32": {
-            const val = (v as IntValue).val
+            const val = v.val
             return (-(2n ** 31n) <= val) && (val < (2n ** 31n))
         }
         case "u64": {
-            const val = (v as IntValue).val
+            const val = v.val
             return (0n <= val) && (val < 2n ** 64n)
         }
         case "i64": {
-            const val = (v as IntValue).val
+            const val = v.val
             return (-(2n ** 63n) <= val) && (val < (2n ** 63n))
         }
         case "u128": {
-            const val = (v as IntValue).val
+            const val = v.val
             return (0n <= val) && (val < 2n ** 128n)
         }
         case "i128": {
-            const val = (v as IntValue).val
+            const val = v.val
             return (-(2n ** 127n) <= val) && (val < (2n ** 127n))
         }
         // Symbols are valid iff they have at most 32 alphanumeric or underscore characters
         case "symb": {
             const regex: RegExp = /^[a-zA-Z0-9_]{0,32}$/
-            return regex.test((v as SymbValue).val)
+            return regex.test(v.val)
         }
         // Addresses are valid iff they have _exactly_ 56 uppercase alphanumeric characters
         case "addr": {
             const regex: RegExp = /^[A-Z0-9]{56}$/
-            return regex.test((v as AddrValue).val)
+            return regex.test(v.val)
         }
-        // Byte arrays are valid if their elements are all valid.
-        // Additionally, fixed-length byte arrays are valid only if their declared length matches their actual length
+        // Fixed-length byte arrays are valid only if their declared length matches their actual length
         case "arr": {
-            const cast = (v as ArrValue)
-            const lenMismatch = ((typeof (cast.len)) !== 'undefined') && (cast.val.length !== cast.len)
-
-            if (lenMismatch) return false
-
-            for (const child of cast.val) {
-                if (!isValid(child)) return false
-            }
-            return true
+            return ((typeof (v.len)) === 'undefined') || (v.val.length === v.len)
         }
         // Vectors are valid iff their elements are all valid.
         case "vec": {
-            for (const child of (v as VecValue).val) {
-                if (!isValid(child)) return false
-            }
-            return true
+            return !v.val.some((elem) => !isValid(elem))
         }
         // Maps are valid iff their keys and values are all valid.
         case "map": {
-            for (const [key, value] of (v as MapValue).val) {
-                if (!isValid(key) || !isValid(value)) return false
-            }
-            return true
+            return ![...v.val.entries()].some(([key, value]) => !isValid(key) || !isValid(value))
         }
         // Booleans are always valid, under TS type constraints.
         default:
@@ -102,14 +89,9 @@ function mkInt(type: ValidIntT, val: bigint): IntValue {
     return obj
 }
 
-// We declare the u32 type separately, to be used in byte-array type signatures.
-export type u32T = { type: "u32", val: bigint }
-
 // Safe constructor for u32-typed `Value`s. Throws a `RangeError` if `v` lies outside [0, 2^32)
-export function u32(v: bigint): u32T {
-    // we cast here, since Value doesn't downcast to u32T in general, 
-    // but it will succeed on all values returned by `mkInt("u32", _)`, by construction
-    return mkInt("u32", v) as u32T
+export function u32(v: bigint): IntValue {
+    return mkInt("u32", v)
 }
 
 // Safe constructor for i32-typed `Value`s. Throws a `RangeError` if `v` lies outside [-2^31, 2^31)
@@ -181,32 +163,25 @@ export function addr(s: string): AddrValue {
     return obj
 }
 
+export type byte = 0 | 1
+
 // Byte arrays (Bytes, BytesN)
 // The `len` field is present iff the length is fixed (i.e. for BytesN)
 export type ArrValue = {
-    val: u32T[]
+    val: byte[]
     type: "arr"
     len?: number
 }
 
-// Safe constructor for arr-typed `Value`s representing non-fixed width byte arrays. 
-// Throws a `TypeError` if `v` contains an invalid value.
-export function bytes(v: u32T[]): Value {
-    const obj: ArrValue = { type: "arr", val: v }
-    if (!isValid(obj)) {
-        throw new TypeError(`Some element of ${v} is not valid.`)
-    }
-    return obj
+// Safe constructor for arr-typed `Value`s representing non-fixed width byte arrays. Cannot throw.
+export function bytes(v: byte[]): Value {
+    return { type: "arr", val: v }
 }
 
-// Safe constructor for arr-typed `Value`s representing fixed width byte arrays. 
-// Throws a `TypeError` if `v` contains an invalid value.
-export function bytesN(v: u32T[]): ArrValue {
-    const obj: ArrValue = { type: "arr", val: v, len: v.length }
-    if (!isValid(obj)) {
-        throw new TypeError(`Some element of ${v} is not valid.`)
-    }
-    return obj
+// Safe constructor for arr-typed `Value`s representing fixed width byte arrays. Cannot throw.
+export function bytesN(v: byte[]): ArrValue {
+    OrderedMap()
+    return { type: "arr", val: v, len: v.length }
 }
 
 // Vectors are an ordered collection of `Value`s, with possible duplicates.
@@ -228,14 +203,14 @@ export function vec(v: Value[]): VecValue {
 // Soroban Map is an ordered key-value dictionary (note that JS maps are in principle unordered, but will iterate in insertion order).
 // Maps have at most one entry per key. Setting a value for a key in the map that already has a value for that key replaces the value. <-- docs
 export type MapValue = {
-    val: Map<Value, Value>
+    val: OrderedMap<Value, Value>
     type: "map"
 }
 
 export type KeyValuePair = [Value, Value]
 
 // Safe constructor for map-typed `Value`s. Throws a `TypeError` if `v` contains an invalid key or value.
-export function map(v: Map<Value, Value>): MapValue {
+export function map(v: OrderedMap<Value, Value>): MapValue {
     const obj: MapValue = { type: "map", val: v }
     if (!isValid(obj)) {
         throw new TypeError(`Some key or value of ${v} is not valid.`)
@@ -246,14 +221,13 @@ export function map(v: Map<Value, Value>): MapValue {
 
 // Safe constructor for vec-typed `Value`s. Throws a `TypeError` if `v` contains an invalid key or value, or if it contains duplicate keys.
 export function mapFromKV(a: KeyValuePair[]): MapValue {
-
-    const partialMap = new Map()
+    let partialMap = OrderedMap<Value, Value>()
 
     for (const [k, v] of a) {
         if (partialMap.has(k)) {
             throw new TypeError(`Pairs must have unique keys, found duplicate ${k}`)
         }
-        partialMap.set(k, v)
+        partialMap = partialMap.set(k, v)
     }
     return map(partialMap)
 }

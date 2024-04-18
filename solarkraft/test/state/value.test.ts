@@ -1,7 +1,8 @@
 import { assert } from 'chai'
 import { describe, it } from 'mocha'
 
-import { isValid, u32, i32, u64, i64, u128, i128, symb, addr, bytes, bytesN, vec, map, bool, Value, u32T, toArr, KeyValuePair, mapFromKV } from '../../src/state/value.js'
+import { OrderedMap } from 'immutable'
+import { isValid, u32, i32, u64, i64, u128, i128, symb, addr, bytes, bytesN, vec, map, bool, Value, byte, toArr, KeyValuePair, mapFromKV } from '../../src/state/value.js'
 
 describe('Integer tests', () => {
     it('asserts 32-bit integer constructors respect bounds', () => {
@@ -76,12 +77,8 @@ describe('Stringlike tests', () => {
 })
 
 describe('Collection tests', () => {
-    it('asserts array constructors properly assert length equality and child validity', () => {
-        const uintArr3 = [u32(1n), u32(2n), u32(3n)]
-        const invalidU32arr: u32T[] = [{ type: "u32", val: -1n }]
-
-        assert.throws(() => { bytes(invalidU32arr) }, TypeError) // child not valid
-        assert.throws(() => { bytesN(invalidU32arr) }, TypeError) // child not valid
+    it('asserts array valididty chekcs properly assert length equality', () => {
+        const arr3: byte[] = [0, 1, 0]
 
         const customVariable: Value = { type: "arr", val: [] }
         const customFixed: Value = { type: "arr", val: [], len: 10 }
@@ -89,19 +86,19 @@ describe('Collection tests', () => {
         assert(isValid(customVariable))
         assert(!isValid(customFixed))
 
-        const variableArr = bytes(uintArr3)
-        const fixedArr = bytesN(uintArr3)
+        const variableArr = bytes(arr3)
+        const fixedArr = bytesN(arr3)
 
         assert(isValid(variableArr))
         assert(isValid(fixedArr))
 
         assert(variableArr.val === fixedArr.val)
-        assert(variableArr.val === uintArr3)
+        assert(variableArr.val === arr3)
         assert(variableArr.type === fixedArr.type)
         assert(variableArr.type === "arr")
 
         assert(!Object.keys(variableArr).includes("len"))
-        assert(fixedArr.len === uintArr3.length)
+        assert(fixedArr.len === arr3.length)
     })
 
     it('asserts vector constructors properly assert child validity', () => {
@@ -124,15 +121,15 @@ describe('Collection tests', () => {
         const alice = addr("ALICE000000000000000000000000000000000000000000000000000")
         const bob = addr("BOB00000000000000000000000000000000000000000000000000000")
 
-        const mapValid: Map<Value, Value> =
-            new Map()
+        const mapValid: OrderedMap<Value, Value> =
+            OrderedMap<Value, Value>()
                 .set(k0, alice)
                 .set(k1, bob)
 
-        const mapInvalidVal: Map<Value, Value> =
-            new Map().set(k0, { type: "addr", val: "ALICE" })
-        const mapInvalidKey: Map<Value, Value> =
-            new Map().set({ type: "u32", val: -1n }, bob)
+        const mapInvalidVal: OrderedMap<Value, Value> =
+            OrderedMap<Value, Value>().set(k0, { type: "addr", val: "ALICE" })
+        const mapInvalidKey: OrderedMap<Value, Value> =
+            OrderedMap<Value, Value>().set({ type: "u32", val: -1n }, bob)
 
         assert.throws(() => { map(mapInvalidKey) }, TypeError)
         assert.throws(() => { map(mapInvalidVal) }, TypeError)
@@ -171,7 +168,7 @@ describe('Collection tests', () => {
 
         assert(asArr.length === arrValid.length)
         assert(asArr[0].length === arrValid[0].length)
-        assert(asArr[1].length === arrValid[0].length)
+        assert(asArr[1].length === arrValid[1].length)
 
         assert(asArr[0][0] === arrValid[0][0])
         assert(asArr[0][1] === arrValid[0][1])
