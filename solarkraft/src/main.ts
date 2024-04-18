@@ -7,37 +7,68 @@
 
 import yargs from 'yargs'
 import { version } from './version.js'
+import { fetch } from './fetch.js'
+import { verify } from './verify.js'
+import { list } from './list.js'
 
 // The default options present in every command
 const defaultOpts = (yargs: any) =>
     yargs.option('color', {
-      desc: 'color output',
-      type: 'boolean',
-      default: true,
+        desc: 'color output',
+        type: 'boolean',
+        default: true,
     })
 
-// transaction extractor
-const txExtractorCmd = {
-    command: ['txs'],
-    desc: 'extract transactions',
+// fetch: transaction extractor
+const fetchCmd = {
+    command: ['fetch'],
+    desc: 'fetch Soroban transactions from Stellar',
     builder: (yargs: any) =>
-      defaultOpts(yargs)
-        .option('id', {
-          desc: 'Contract id',
-          type: 'string',
-          default: '123',
-        }),
-    handler: onTxExtractor,
+        defaultOpts(yargs)
+            .option('id', {
+                desc: 'Contract id',
+                type: 'string',
+                default: '123',
+            })
+            .option('rpc', {
+                desc: 'URL of the Stellar RPC',
+                type: 'string',
+                default: 'http://localhost:8000',
+            })
+            .option('height', {
+                desc: 'The height to start with (a negative value -n goes from the latest block - n)',
+                type: 'number',
+                default: -10,
+            }),
+    handler: fetch,
 }
 
-// call the transaction extractor here
-function onTxExtractor (args: any) {
-    console.log(`Mock TX Extractor(id: ${args.id})`)
+// verify: transaction verifier
+const verifyCmd = {
+    command: ['verify'],
+    desc: 'verify a previously fetched transaction',
+    builder: (yargs: any) =>
+        defaultOpts(yargs).option('txHash', {
+            desc: 'Transaction hash',
+            type: 'string',
+            demandOption: true,
+        }),
+    handler: verify,
+}
+
+// list: show the fetched and verified transactions
+const listCmd = {
+    command: ['list'],
+    desc: 'list the fetched and verified transactions',
+    builder: (yargs: any) => defaultOpts(yargs),
+    handler: list,
 }
 
 function main() {
     return yargs(process.argv.slice(2))
-        .command(txExtractorCmd)
+        .command(fetchCmd)
+        .command(verifyCmd)
+        .command(listCmd)
         .demandCommand(1)
         .version(version)
         .strict()
