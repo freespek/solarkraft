@@ -28,7 +28,7 @@ export function verify(args: any) {
     }
 
     console.log(`Running Apalache (check ${args.monitor})...`)
-    const child = spawnSync(APALACHE_BIN, ['check', args.monitor])
+    const child = spawnSync(APALACHE_BIN, ['check', '--length=1', args.monitor])
 
     switch (child.status) {
         case 0: {
