@@ -48,11 +48,17 @@ const verifyCmd = {
     command: ['verify'],
     desc: 'verify a previously fetched transaction',
     builder: (yargs: any) =>
-        defaultOpts(yargs).option('txHash', {
-            desc: 'Transaction hash',
-            type: 'string',
-            demandOption: true,
-        }),
+        defaultOpts(yargs)
+            .option('txHash', {
+                desc: 'Transaction hash',
+                type: 'string',
+                demandOption: true,
+            })
+            .option('monitor', {
+                desc: 'Monitor to check against',
+                type: 'string',
+                demandOption: true,
+            }),
     handler: verify,
 }
 
