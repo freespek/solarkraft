@@ -31,13 +31,13 @@
   ],
   "scripts": {
     "compile": "genversion -e src/version.ts && tsc",
-    "e2e": "./test/e2e/run-tests.sh",
+    "e2e": "mocha --loader=ts-node/esm test/e2e/**/*.test.ts",
     "format": "prettier --config .prettierrc 'src/**/*.ts' 'test/**/*.ts' --write",
     "license": "source-licenser --config-file licenser-config.yaml .",
     "lint": "eslint src test",
     "prepare": "cd .. && husky solarkraft/.husky",
     "snapshot": "git archive --format=tar.gz -o solarkraft-`git rev-parse --short HEAD`.tar.gz --prefix=solarkraft/ HEAD",
-    "test": "mocha --loader=ts-node/esm test/**/*.test.ts"
+    "test": "mocha --loader=ts-node/esm --exclude test/e2e/**/*.test.ts test/**/*.test.ts"
   },
   "dependencies": {
     "@sweet-monads/either": "^3.3.1",
@@ -56,6 +56,7 @@
     "genversion": "^3.2.0",
     "husky": "^9.0.11",
     "mocha": "^10.3.0",
+    "nexpect": "^0.6.0",
     "prettier": "^3.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
