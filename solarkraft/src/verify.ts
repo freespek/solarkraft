@@ -11,7 +11,7 @@ import { spawnSync } from 'child_process'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 
-// TODO: fix hardcoded path to Apalache
+// TODO(#34): fix hardcoded path to Apalache
 const APALACHE_DIST = '/opt/apalache'
 const APALACHE_BIN = path.join(APALACHE_DIST, 'bin', 'apalache-mc')
 
