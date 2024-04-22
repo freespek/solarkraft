@@ -22,6 +22,8 @@ import {
     toArr,
     KeyValuePair,
     mapFromKV,
+    MapT,
+    getFullType,
 } from '../../src/state/value.js'
 
 describe('Integer tests', () => {
@@ -172,8 +174,12 @@ describe('Collection tests', () => {
             vec(vecWithInvalid)
         }, TypeError)
 
+        assert.throws(() => {
+            vec(heterogeneousArr)
+        }, TypeError)
+
         const homVec = vec(homogeneousArr)
-        const hetVec = vec(heterogeneousArr)
+        const hetVec = vec(heterogeneousArr, true)
 
         assert(homVec.val.length == homogeneousArr.length)
         assert(hetVec.val.length == heterogeneousArr.length)
@@ -189,24 +195,39 @@ describe('Collection tests', () => {
             'BOB00000000000000000000000000000000000000000000000000000'
         )
 
-        const mapValid: OrderedMap<Value, Value> = OrderedMap<Value, Value>()
+        const mapValid: MapT = OrderedMap<Value, Value>()
             .set(k0, alice)
             .set(k1, bob)
 
-        const mapInvalidVal: OrderedMap<Value, Value> = OrderedMap<
-            Value,
-            Value
-        >().set(k0, { type: 'addr', val: 'ALICE' })
-        const mapInvalidKey: OrderedMap<Value, Value> = OrderedMap<
-            Value,
-            Value
-        >().set({ type: 'u32', val: -1n }, bob)
+        const mapHetKey: MapT = OrderedMap<Value, Value>()
+            .set(k0, alice)
+            .set(u64(1n), bob)
+
+        const mapHetVal: MapT = OrderedMap<Value, Value>()
+            .set(k0, alice)
+            .set(k1, symb('BOB'))
+
+        const mapInvalidVal: MapT = OrderedMap<Value, Value>().set(k0, {
+            type: 'addr',
+            val: 'ALICE',
+        })
+        const mapInvalidKey: MapT = OrderedMap<Value, Value>().set(
+            { type: 'u32', val: -1n },
+            bob
+        )
 
         assert.throws(() => {
             map(mapInvalidKey)
         }, TypeError)
         assert.throws(() => {
             map(mapInvalidVal)
+        }, TypeError)
+
+        assert.throws(() => {
+            map(mapHetKey)
+        }, TypeError)
+        assert.throws(() => {
+            map(mapHetVal)
         }, TypeError)
 
         const valdiMap = map(mapValid)
@@ -220,6 +241,15 @@ describe('Collection tests', () => {
         assert(asArr[0][1] === alice)
         assert(asArr[1][0] === k1)
         assert(asArr[1][1] === bob)
+
+        // check for no throws
+        const hetMapKey = map(mapHetKey, true)
+        const keyTypes = [...hetMapKey.val.keys()].map((x) => x.type)
+        assert(keyTypes[0] !== keyTypes[1])
+
+        const hetMapVal = map(mapHetVal, true)
+        const valTypes = [...hetMapVal.val.values()].map((x) => x.type)
+        assert(valTypes[0] !== valTypes[1])
     })
 
     it('asserts map array constructors properly assert child validity', () => {
@@ -267,5 +297,134 @@ describe('Collection tests', () => {
         assert(asArr[0][1] === arrValid[0][1])
         assert(asArr[1][0] === arrValid[1][0])
         assert(asArr[1][1] === arrValid[1][1])
+    })
+})
+
+describe('Type tests', () => {
+    it('Checks basic types', () => {
+        const vals = [
+            u32(0n),
+            i32(0n),
+            u64(0n),
+            i64(0n),
+            u128(0n),
+            i128(0n),
+            bool(true),
+            addr('ALICE000000000000000000000000000000000000000000000000000'),
+            symb('BOB'),
+        ]
+
+        assert(!vals.some((v) => v.type != getFullType(v)))
+    })
+
+    it('Checks byte array type', () => {
+        const bytesNoN = bytes([0, 1, 0, 1])
+        const bytesWithN = bytesN([1, 0, 1, 0])
+
+        assert(getFullType(bytesNoN) === 'Bytes')
+        assert(getFullType(bytesWithN) === 'Bytes')
+    })
+
+    it('Checks Vec type', () => {
+        const emptyVec = vec([], false)
+        const homVec = vec([u32(0n), u32(1n)], false)
+        const hetVec = vec([u32(0n), i32(0n), u32(0n)], true)
+        const nestedHomVec = vec(
+            [vec([u32(0n), u32(1n)], false), vec([u32(2n), u32(3n)], false)],
+            false
+        )
+        const nestedHetVec = vec(
+            [vec([u32(0n), u32(1n)], false), vec([u32(2n), i32(3n)], true)],
+            true
+        )
+
+        assert(getFullType(emptyVec) === `Vec(T)`)
+        assert(getFullType(homVec) === `Vec(u32)`)
+        assert(getFullType(hetVec) === `<u32, i32, u32>`)
+        assert(getFullType(nestedHomVec) === `Vec(Vec(u32))`)
+        assert(getFullType(nestedHetVec) === `<Vec(u32), <u32, i32>>`)
+    })
+
+    it('Checks Map type', () => {
+        const emptyMap = map(OrderedMap<Value, Value>(), false)
+
+        const k0 = u32(0n)
+        const k1 = u32(1n)
+        const alice = symb('ALICE')
+        const bob = symb('BOB')
+
+        const homMap = map(
+            OrderedMap<Value, Value>().set(k0, alice).set(k1, bob),
+            false
+        )
+
+        const hetMapK = map(
+            OrderedMap<Value, Value>().set(k0, alice).set(i32(1n), bob),
+            true
+        )
+
+        const hetMapV = map(
+            OrderedMap<Value, Value>()
+                .set(
+                    k0,
+                    addr(
+                        'ALICE000000000000000000000000000000000000000000000000000'
+                    )
+                )
+                .set(k1, bob),
+            true
+        )
+
+        const nestedHomMap = map(
+            OrderedMap<Value, Value>()
+                .set(
+                    k0,
+                    map(
+                        OrderedMap<Value, Value>().set(k0, alice).set(k1, bob),
+                        false
+                    )
+                )
+                .set(
+                    k1,
+                    map(
+                        OrderedMap<Value, Value>()
+                            .set(u32(2n), symb('CHARLIE'))
+                            .set(u32(3n), symb('DELTA')),
+                        false
+                    )
+                ),
+            false
+        )
+
+        const nestedHetMap = map(
+            OrderedMap<Value, Value>()
+                .set(
+                    k0,
+                    map(
+                        OrderedMap<Value, Value>().set(k0, alice).set(k1, bob),
+                        false
+                    )
+                )
+                .set(
+                    k1,
+                    map(
+                        OrderedMap<Value, Value>()
+                            .set(u32(2n), symb('CHARLIE'))
+                            .set(i32(3n), symb('DELTA')),
+                        true
+                    )
+                ),
+            true
+        )
+
+        assert(getFullType(emptyMap) === `(T1 -> T2)`)
+        assert(getFullType(homMap) === `(u32 -> symb)`)
+        assert(getFullType(hetMapK) === `((u32 -> symb) | (i32 -> symb))`)
+        assert(getFullType(hetMapV) === `((u32 -> addr) | (u32 -> symb))`)
+        assert(getFullType(nestedHomMap) === `(u32 -> (u32 -> symb))`)
+        assert(
+            getFullType(nestedHetMap) ===
+                `((u32 -> (u32 -> symb)) | (u32 -> ((u32 -> symb) | (i32 -> symb))))`
+        )
     })
 })
