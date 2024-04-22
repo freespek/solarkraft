@@ -27,7 +27,7 @@ describe('itf tests', () => {
 
         const itf = stateToITF(state)
 
-        assert(itf['vars'] === 2)
+        assert(itf['vars'].length === 2)
         assert(itf['vars'][0] === 'balances')
         assert(itf['vars'][1] === 'COUNTER')
 
