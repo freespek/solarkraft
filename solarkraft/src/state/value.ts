@@ -53,6 +53,8 @@ export function getFullType(v: Value): string {
         case 'addr':
             return v.type
         case 'arr':
+            // As a type, `Bytes` is atomic, even though it is an array. We avoid `arr`, as it could imply
+            // a generic array type, which does not exist.
             return 'Bytes'
         case 'vec': {
             const childTypes = v.val.map(getFullType)
@@ -146,7 +148,11 @@ export function isValid(
         }
         // Fixed-length byte arrays are valid only if their declared length matches their actual length
         case 'arr': {
-            return typeof v.len === 'undefined' || v.val.length === v.len
+            const val = v.val
+            return (
+                !val.some((x) => 0 > x && x >= 2 ** 8) &&
+                (typeof v.len === 'undefined' || v.val.length === v.len)
+            )
         }
         // Vectors are valid iff their elements are all valid.
         case 'vec': {
@@ -298,7 +304,7 @@ export function addr(s: string): AddrValue {
     return obj
 }
 
-export type byte = 0 | 1
+export type byte = number
 
 // Byte arrays (Bytes, BytesN)
 // The `len` field is present iff the length is fixed (i.e. for BytesN)

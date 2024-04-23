@@ -39,7 +39,7 @@ export function valToITF(v: Value) {
         case 'addr':
             return v.val
         case 'arr':
-            // array of 0/1 s, must be wrapped
+            // array of numbers, must be wrapped
             return v.val.map(numWrap)
         case 'vec':
             return v.val.map(valToITF)
@@ -55,16 +55,7 @@ export function valToITF(v: Value) {
 }
 
 export function stateToITF(state: State): object {
-    const formatter = new Intl.DateTimeFormat('en-GB', {
-        dateStyle: 'full',
-        timeStyle: 'long',
-    })
-
-    // const desc = `Created by Solarkraft on ${formatter.format(new Date().getTime())}`
-    const desc = `Created by Solarkraft on ${new Date()}`
-
-    console.log(formatter.format(new Date().getTime()))
-    console.log(desc)
+    const desc = `Created by Solarkraft on ${new Date().toUTCString()}`
 
     const formatDesc =
         'https://apalache.informal.systems/docs/adr/015adr-trace.html'

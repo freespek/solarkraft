@@ -318,7 +318,7 @@ describe('Type tests', () => {
     })
 
     it('Checks byte array type is Bytes', () => {
-        const bytesNoN = bytes([0, 1, 0, 1])
+        const bytesNoN = bytes([0, 1, 0, 129])
         const bytesWithN = bytesN([1, 0, 1, 0])
 
         assert(getFullType(bytesNoN) === 'Bytes')
