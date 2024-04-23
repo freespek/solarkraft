@@ -19,7 +19,13 @@ export type Value = {
 const EMPTY_COLLECTION_TYPE: string = 'T'
 const UNKNOWN_TYPE: string = 'UNKNOWN'
 
-// helper function
+// Helper function, takes an array of strings (expected: types of child values for a Vec or Map Value)
+// and returns:
+//  - an empty array, iff the input array is empty
+//  - an array with a single element, iff every element within the input array is equal to that element
+//  - the original array, if two or more elements in the input array are different
+// whenever the function returns a singleton array, we can consider the original collection to be homogeneous
+// and its contents to be of the type contained in the singleton return.
 function computeSingleTypeRep(ts: string[]): string[] {
     if (ts.length === 0) return []
     else {
@@ -30,6 +36,10 @@ function computeSingleTypeRep(ts: string[]): string[] {
     }
 }
 
+// Returns the full type annotation of the provided (possibly complex) Value `v`.
+// It uses Apalache-style type notation, with Soroban type primitives.
+// For heterogeneous collections (Vec/Map), the type annotation is distinct, and should be considered to lie
+// outside of the type system.
 export function getFullType(v: Value): string {
     switch (v.type) {
         case 'bool':

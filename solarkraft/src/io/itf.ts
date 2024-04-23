@@ -54,13 +54,17 @@ export function valToITF(v: Value) {
     }
 }
 
-export function stateToITF(s: State): object {
+export function stateToITF(state: State): object {
     const formatter = new Intl.DateTimeFormat('en-GB', {
         dateStyle: 'full',
         timeStyle: 'long',
     })
 
-    const desc = `Created by Solarkraft on ${formatter.format(new Date().getTime())}`
+    // const desc = `Created by Solarkraft on ${formatter.format(new Date().getTime())}`
+    const desc = `Created by Solarkraft on ${new Date()}`
+
+    console.log(formatter.format(new Date().getTime()))
+    console.log(desc)
 
     const formatDesc =
         'https://apalache.informal.systems/docs/adr/015adr-trace.html'
@@ -75,18 +79,16 @@ export function stateToITF(s: State): object {
     const varNames = []
     const stateObj = {}
 
-    for (const [varName, varValue] of s) {
+    for (const [varName, varValue] of state) {
         varTypes[varName] = getFullType(varValue)
         varNames.push(varName)
         stateObj[varName] = valToITF(varValue)
     }
     meta[VAR_TYPES_FIELD] = varTypes
 
-    const ret = {
+    return {
         [META_FIELD]: meta,
         [VARS_FIELD]: varNames,
         [STATES_FIELD]: [stateObj],
     }
-
-    return ret
 }

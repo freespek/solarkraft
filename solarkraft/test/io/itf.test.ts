@@ -8,45 +8,40 @@ import { stateToITF } from '../../src/io/itf.js'
 import { State } from '../../src/state/state.js'
 
 describe('itf tests', () => {
-    it('basic example', () => {
-        const aliceAddr =
-            'ALICE000000000000000000000000000000000000000000000000000'
-        const bobAddr =
-            'BOB00000000000000000000000000000000000000000000000000000'
+    const aliceAddr = 'ALICE000000000000000000000000000000000000000000000000000'
+    const bobAddr = 'BOB00000000000000000000000000000000000000000000000000000'
 
-        const state: State = OrderedMap<string, Value>()
-            .set(
-                'balances',
-                map(
-                    OrderedMap<Value, Value>()
-                        .set(addr(aliceAddr), u128(10n ** 20n))
-                        .set(addr(bobAddr), u128(10n ** 10n))
-                )
+    const state: State = OrderedMap<string, Value>()
+        .set(
+            'balances',
+            map(
+                OrderedMap<Value, Value>()
+                    .set(addr(aliceAddr), u128(10n ** 20n))
+                    .set(addr(bobAddr), u128(10n ** 10n))
             )
-            .set('COUNTER', i32(-50n))
+        )
+        .set('COUNTER', i32(-50n))
 
-        const itf = stateToITF(state)
+    const itf = stateToITF(state)
 
+    it('outputs metadata and type information correctly', () => {
         assert(itf['vars'].length === 2)
         assert(itf['vars'][0] === 'balances')
         assert(itf['vars'][1] === 'COUNTER')
 
+        assert(itf['#meta']['format'] === 'ITF')
         assert(itf['#meta']['varTypes']['balances'] === '(addr -> u128)')
         assert(itf['#meta']['varTypes']['COUNTER'] === 'i32')
 
         assert(itf['states'].length === 1)
+    })
 
+    it('serializes the contract state correctly', () => {
         const s = itf['states'][0]
 
         const expectedBalances = [
-            [
-                aliceAddr,
-                { '#bigint': ['1'].concat(new Array(20).fill('0')).join('') },
-            ],
-            [
-                bobAddr,
-                { '#bigint': ['1'].concat(new Array(10).fill('0')).join('') },
-            ],
+            [aliceAddr, { '#bigint': '1' + '0'.repeat(20) }],
+            [bobAddr, { '#bigint': '1' + '0'.repeat(10) }],
         ]
 
         const expectedCounter = { '#bigint': '-50' }

@@ -301,7 +301,7 @@ describe('Collection tests', () => {
 })
 
 describe('Type tests', () => {
-    it('Checks basic types', () => {
+    it("Checks basic types' type tag is their full type", () => {
         const vals = [
             u32(0n),
             i32(0n),
@@ -317,7 +317,7 @@ describe('Type tests', () => {
         assert(!vals.some((v) => v.type != getFullType(v)))
     })
 
-    it('Checks byte array type', () => {
+    it('Checks byte array type is Bytes', () => {
         const bytesNoN = bytes([0, 1, 0, 1])
         const bytesWithN = bytesN([1, 0, 1, 0])
 
@@ -325,7 +325,7 @@ describe('Type tests', () => {
         assert(getFullType(bytesWithN) === 'Bytes')
     })
 
-    it('Checks Vec type', () => {
+    it('Checks vector type is Vec and heterogeneous vectors are distinctly typed', () => {
         const emptyVec = vec([], false)
         const homVec = vec([u32(0n), u32(1n)], false)
         const hetVec = vec([u32(0n), i32(0n), u32(0n)], true)
@@ -345,7 +345,7 @@ describe('Type tests', () => {
         assert(getFullType(nestedHetVec) === `<Vec(u32), <u32, i32>>`)
     })
 
-    it('Checks Map type', () => {
+    it('Checks map type is Map and heterogeneous maps are distinclty typed', () => {
         const emptyMap = map(OrderedMap<Value, Value>(), false)
 
         const k0 = u32(0n)
