@@ -11,6 +11,17 @@ import path from 'node:path'
 const APALACHE_DIST = '/opt/apalache'
 const APALACHE_BIN = path.join(APALACHE_DIST, 'bin', 'apalache-mc')
 
+// TODO(#38): Replace stubs with ITF
+type Value = { type: string; value: any }
+type Binding = { name: string; type: string; value: any }
+type State = Binding[]
+type Transaction = {
+    functionName: string
+    functionArgs: Value[]
+    env: { timestamp: number }
+    error: string
+}
+
 /**
  * Return an instrumented monitor specification.
  * @param monitor A TLA+ monitor, as returned from `apalache typecheck --output=temp.json`
