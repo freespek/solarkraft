@@ -15,6 +15,7 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
+				"alygin.vscode-tlaplus",
 				"vscodevim.vim"
 			],
 			"settings": {
