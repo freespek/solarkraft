@@ -4,8 +4,11 @@
  */
 
 import { spawnSync } from 'child_process'
-import { existsSync } from 'node:fs'
+import { rmSync } from 'fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
+
+import { temporaryFile } from 'tempy'
 
 // TODO(#34): fix hardcoded path to Apalache
 const APALACHE_DIST = '/opt/apalache'
@@ -21,16 +24,68 @@ export function verify(args: any) {
     )
     console.log(`Verifying transaction: ${args.txHash}...`)
 
+    // Validate arguments
     if (!existsSync(args.monitor)) {
         console.log(`The monitor file ${args.monitor} does not exist.`)
         console.log('[Error]')
         return
     }
 
-    console.log(`Running Apalache (check ${args.monitor})...`)
-    const child = spawnSync(APALACHE_BIN, ['check', '--length=1', args.monitor])
+    // Use Apalache to parse the monitor TLA+ to JSON IR
+    console.log(`Parsing monitor ${args.monitor}`)
+    const jsonFile = temporaryFile({ name: 'apalache_parsed.json' })
+    const apalacheParse = spawnSync(APALACHE_BIN, [
+        'typecheck',
+        `--output=${jsonFile}`,
+        args.monitor,
+    ])
 
-    switch (child.status) {
+    if (apalacheParse.status != 0) {
+        console.error(`Parsing monitor file ${args.monitor} failed:`)
+        console.error(apalacheParse.stderr)
+        return
+    }
+
+    // Read the monitor JSON IR
+    let monitor: string
+    try {
+        monitor = JSON.parse(readFileSync(jsonFile, 'utf8'))
+    } catch (err) {
+        console.error(`Failed to read Apalache IR: ${err}`)
+        return
+    }
+
+    // Instrument the monitor
+    // TODO(#38): Read `state` and `tx` from fetcher output
+    const state = [{ name: 'is_initialized', type: 'TlaBool', value: false }]
+    const tx = {
+        functionName: 'Claim',
+        functionArgs: [{ type: 'TlaStr', value: 'alice' }],
+        env: { timestamp: 100 },
+        error: 'contract is not initialized',
+    }
+    const instrumented = instrumentMonitor(monitor, state, tx)
+
+    // Write the instrumented monitor back to JSON
+    try {
+        writeFileSync(jsonFile, JSON.stringify(instrumented), 'utf8')
+    } catch (err) {
+        console.error(`Failed to write instrumented Apalache IR: ${err}`)
+        return
+    }
+
+    // Check the instrumented spec with Apalache
+    console.log(`Checking monitor ${args.monitor}`)
+    const apalacheCheck = spawnSync(APALACHE_BIN, [
+        'check',
+        '--length=1',
+        jsonFile,
+    ])
+
+    rmSync(jsonFile)
+
+    // Report results
+    switch (apalacheCheck.status) {
         case 0: {
             console.log('[OK]')
             break
@@ -42,10 +97,11 @@ export function verify(args: any) {
             break
         }
         default: {
-            console.log(
-                `Internal error: Apalache failed with error code ${child.status}`
+            console.error(
+                `Internal error: Apalache failed with error code ${apalacheCheck.status}`
             )
-            console.log('[Error]')
+            console.error(apalacheCheck.stdout.toString())
+            console.error('[Error]')
             break
         }
     }
