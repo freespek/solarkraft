@@ -1,3 +1,7 @@
+/**
+ * @license
+ * [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
+ */
 // TODO(#38): Replace stubs with ITF
 type Value = { type: string; value: any }
 type Binding = { name: string; type: string; value: any }
