@@ -10,6 +10,8 @@ import path from 'node:path'
 
 import { temporaryFile } from 'tempy'
 
+import { instrumentMonitor } from './instrument.js'
+
 // TODO(#34): fix hardcoded path to Apalache
 const APALACHE_DIST = '/opt/apalache'
 const APALACHE_BIN = path.join(APALACHE_DIST, 'bin', 'apalache-mc')
