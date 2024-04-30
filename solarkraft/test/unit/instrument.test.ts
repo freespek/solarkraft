@@ -3,11 +3,11 @@
 import { assert } from 'chai'
 import { describe, it } from 'mocha'
 
-import { instrumentMonitor } from '../../src/verify.js'
+import { instrumentMonitor } from '../../src/instrument.js'
 
 import { instrumentedMonitor as expected } from './verify.instrumentedMonitor.js'
 
-describe('verify command', () => {
+describe('Apalache JSON instrumentor', () => {
     it('instruments TLA+ monitors', () => {
         const monitor = { modules: [{ declarations: [] }] }
         const state = [
