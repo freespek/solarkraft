@@ -38,7 +38,7 @@ export function instrumentMonitor(
     state.push({ name: 'last_error', type: 'TlaStr', value: '' })
 
     // Declaration of  "Init" (according to `state`)
-    const tlaInit = tlaJsonOperDecl__Conjunction(
+    const tlaInit = tlaJsonOperDecl__And(
         'Init',
         state.map((binding) =>
             tlaJsonEq__NameEx__ValEx(
@@ -54,7 +54,7 @@ export function instrumentMonitor(
         { name: 'timestamp', kind: 'TlaInt', value: tx.env.timestamp },
     ])
     const txArgs = tx.functionArgs.map((v) => tlaJsonValEx(v.type, v.value))
-    const tlaNext = tlaJsonOperDecl__Conjunction('Next', [
+    const tlaNext = tlaJsonOperDecl__And('Next', [
         tlaJsonApplication(tx.functionName, [envRecord].concat(txArgs)),
         tlaJsonEq__NameEx__ValEx(
             'last_error',
@@ -81,10 +81,7 @@ export function instrumentMonitor(
  * @param conjuncts Body conjuncts
  * @returns The operator declaration in Apalache IR JSON: https://apalache.informal.systems/docs/adr/005adr-json.html
  */
-function tlaJsonOperDecl__Conjunction(
-    operDeclName: string,
-    conjuncts: any
-): any {
+function tlaJsonOperDecl__And(operDeclName: string, conjuncts: any): any {
     return {
         type: 'Untyped',
         kind: 'TlaOperDecl',
