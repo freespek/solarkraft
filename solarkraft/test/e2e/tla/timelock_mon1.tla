@@ -33,5 +33,4 @@ Claim(env, claimant) ==
     \/ /\ is_initialized
        /\ is_initialized' = FALSE
        /\ last_error' = "" 
-
 =============================
