@@ -2,7 +2,6 @@
  * @license
  * [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
  */
-// TODO(#38): Replace stubs with ITF
 type Value = { type: string; value: any }
 type Binding = { name: string; type: string; value: any }
 type State = Binding[]
@@ -11,6 +10,27 @@ type Transaction = {
     functionArgs: Value[]
     env: { timestamp: number }
     error: string
+}
+
+/**
+ * Return a `State` from an ITF JSON object.
+ * @param itf ITF JSON object, see https://apalache.informal.systems/docs/adr/015adr-trace.html
+ * @returns `State`
+ */
+export function stateFromItf(itf: any): State {
+    // const vars = itf['vars'] // e.g., [ "is_initialized", "last_error" ]
+    const varTypes = itf['#meta']['varTypes'] // e.g., { "is_initialized": "Bool", "last_error": "Str" }
+    const initState = itf['states'][0] // e.g., [ { "is_initialized": false, "last_error": "" }, state1, ... ]
+    delete initState['#meta']
+
+    const state = Object.entries(initState)
+        .filter(([name]) => name != '#meta')
+        .map(([name, value]) => ({
+            name: name,
+            value: value,
+            type: 'Tla' + varTypes[name],
+        }))
+    return state
 }
 
 /**
