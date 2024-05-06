@@ -12,6 +12,23 @@ type Transaction = {
     error: string
 }
 
+// Return true iff `o` is a Javascript object.
+function isObject(o: any) {
+    return typeof o === 'object' && !Array.isArray(o) && o !== null
+}
+
+// Decode an ITF value `value` into a Javascript value.
+// TODO(#46): support composite types (sequence, tuple, record, set, map)
+function decodeITFValue(value: any) {
+    if (
+        isObject(value) &&
+        Object.prototype.hasOwnProperty.call(value, '#bigint')
+    ) {
+        return parseInt(value['#bigint'])
+    }
+    return value
+}
+
 /**
  * Return a `State` from an ITF JSON object.
  * @param itf ITF JSON object, see https://apalache.informal.systems/docs/adr/015adr-trace.html
@@ -27,7 +44,7 @@ export function stateFromItf(itf: any): State {
         .filter(([name]) => name != '#meta')
         .map(([name, value]) => ({
             name: name,
-            value: value,
+            value: decodeITFValue(value),
             type: 'Tla' + varTypes[name],
         }))
     return state
