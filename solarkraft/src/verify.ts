@@ -49,7 +49,7 @@ export function verify(args: any) {
 
     if (apalacheParse.status != 0) {
         console.error(`Parsing monitor file ${args.monitor} failed:`)
-        console.error(apalacheParse.stderr)
+        console.error(apalacheParse.stderr.toString())
         return
     }
 

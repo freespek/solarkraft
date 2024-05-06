@@ -14,10 +14,19 @@ describe('verify', () => {
             .run(done)
     })
 
-    it('reports success on okay monitor', function (done) {
+    it('reports success on okay monitor1', function (done) {
         this.timeout(50000)
         spawn(
-            'solarkraft verify --txHash mimimi --monitor test/e2e/tla/timelock_mon1_instrumented_okay.tla --state test/e2e/tla/timelock_state.itf.json'
+            'solarkraft verify --txHash mimimi --monitor test/e2e/tla/timelock_mon1.tla --state test/e2e/tla/timelock_state.itf.json'
+        )
+            .wait('[OK]')
+            .run(done)
+    })
+
+    it('reports success on okay monitor2', function (done) {
+        this.timeout(50000)
+        spawn(
+            'solarkraft verify --txHash mimimi --monitor test/e2e/tla/timelock_mon2.tla --state test/e2e/tla/timelock_state.itf.json'
         )
             .wait('[OK]')
             .run(done)

@@ -12,6 +12,23 @@ type Transaction = {
     error: string
 }
 
+// Return true iff `o` is a Javascript object.
+function isObject(o: any) {
+    return typeof o === 'object' && !Array.isArray(o) && o !== null
+}
+
+// Decode an ITF value `value` into a Javascript value.
+// TODO(#46): support composite types (sequence, tuple, record, set, map)
+function decodeITFValue(value: any) {
+    if (
+        isObject(value) &&
+        Object.prototype.hasOwnProperty.call(value, '#bigint')
+    ) {
+        return parseInt(value['#bigint'])
+    }
+    return value
+}
+
 /**
  * Return a `State` from an ITF JSON object.
  * @param itf ITF JSON object, see https://apalache.informal.systems/docs/adr/015adr-trace.html
@@ -27,7 +44,7 @@ export function stateFromItf(itf: any): State {
         .filter(([name]) => name != '#meta')
         .map(([name, value]) => ({
             name: name,
-            value: value,
+            value: decodeITFValue(value),
             type: 'Tla' + varTypes[name],
         }))
     return state
@@ -45,6 +62,13 @@ export function instrumentMonitor(
     state: State,
     tx: Transaction
 ): any {
+    // Only instrument state variables that are delcared in the monitor spec
+    // (otherwise we provoke type errors in Apalache Snowcat, via undeclared variables)
+    const declaredMonitorVariables = monitor.modules[0].declarations
+        .filter(({ kind }) => kind == 'TlaVarDecl')
+        .map(({ name }) => name)
+    state = state.filter(({ name }) => declaredMonitorVariables.includes(name))
+
     // Add a special variable `last_error` that tracks error messages of failed transactions
     state.push({ name: 'last_error', type: 'TlaStr', value: '' })
 
