@@ -10,7 +10,7 @@ import path from 'node:path'
 
 import { temporaryFile } from 'tempy'
 
-import { instrumentMonitor } from './instrument.js'
+import { instrumentMonitor, stateFromItf } from './instrument.js'
 
 // TODO(#34): fix hardcoded path to Apalache
 const APALACHE_DIST = '/opt/apalache'
@@ -29,6 +29,11 @@ export function verify(args: any) {
     // Validate arguments
     if (!existsSync(args.monitor)) {
         console.log(`The monitor file ${args.monitor} does not exist.`)
+        console.log('[Error]')
+        return
+    }
+    if (!existsSync(args.state)) {
+        console.log(`The ITF state file ${args.state} does not exist.`)
         console.log('[Error]')
         return
     }
@@ -57,9 +62,18 @@ export function verify(args: any) {
         return
     }
 
+    // Read the state from ITF
+    let itf: any
+    try {
+        itf = JSON.parse(readFileSync(args.state, 'utf8'))
+    } catch (err) {
+        console.error(`Failed to read state from ITF: ${err}`)
+        return
+    }
+
     // Instrument the monitor
     // TODO(#38): Read `state` and `tx` from fetcher output
-    const state = [{ name: 'is_initialized', type: 'TlaBool', value: false }]
+    const state = stateFromItf(itf)
     const tx = {
         functionName: 'Claim',
         functionArgs: [{ type: 'TlaStr', value: 'alice' }],
