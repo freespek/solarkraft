@@ -3,6 +3,10 @@ const instrumentedMonitor = {
         {
             declarations: [
                 {
+                    kind: 'TlaVarDecl',
+                    name: 'is_initialized',
+                },
+                {
                     kind: 'TlaOperDecl',
                     name: 'Init',
                     type: 'Untyped',
