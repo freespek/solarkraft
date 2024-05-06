@@ -62,6 +62,13 @@ export function instrumentMonitor(
     state: State,
     tx: Transaction
 ): any {
+    // Only instrument state variables that are delcared in the monitor spec
+    // (otherwise we provoke type errors in Apalache Snowcat, via undeclared variables)
+    const declaredMonitorVariables = monitor.modules[0].declarations
+        .filter(({ kind }) => kind == 'TlaVarDecl')
+        .map(({ name }) => name)
+    state = state.filter(({ name }) => declaredMonitorVariables.includes(name))
+
     // Add a special variable `last_error` that tracks error messages of failed transactions
     state.push({ name: 'last_error', type: 'TlaStr', value: '' })
 
