@@ -16,7 +16,100 @@ export type Value = {
     | MapValue
 )
 
-export function isValid(v: Value): boolean {
+const EMPTY_COLLECTION_TYPE: string = 'T'
+const UNKNOWN_TYPE: string = 'UNKNOWN'
+
+// Helper function, takes an array of strings (expected: types of child values for a Vec or Map Value)
+// and returns:
+//  - an empty array, iff the input array is empty
+//  - an array with a single element, iff every element within the input array is equal to that element
+//  - the original array, if two or more elements in the input array are different
+// whenever the function returns a singleton array, we can consider the original collection to be homogeneous
+// and its contents to be of the type contained in the singleton return.
+function computeSingleTypeRep(ts: string[]): string[] {
+    if (ts.length === 0) return []
+    else {
+        const t0 = ts[0]
+        const hom = !ts.some((t) => t !== t0)
+        if (hom) return [t0]
+        else return ts
+    }
+}
+
+// Returns the full type annotation of the provided (possibly complex) Value `v`.
+// It uses Apalache-style type notation, with Soroban type primitives.
+// For heterogeneous collections (Vec/Map), the type annotation is distinct, and should be considered to lie
+// outside of the type system.
+export function getFullType(v: Value): string {
+    switch (v.type) {
+        case 'bool':
+        case 'u32':
+        case 'i32':
+        case 'u64':
+        case 'i64':
+        case 'u128':
+        case 'i128':
+        case 'symb':
+        case 'addr':
+            return v.type
+        case 'arr':
+            // Bytes is not a generic collection, but always an array of integers, so we treat it as a
+            // type literal. Vec is the generic collection type.
+            return 'Bytes'
+        case 'vec': {
+            const childTypes = v.val.map(getFullType)
+
+            const tRep = computeSingleTypeRep(childTypes)
+
+            switch (tRep.length) {
+                case 0:
+                    // We return a placeholder if empty
+                    return `Vec(${EMPTY_COLLECTION_TYPE})`
+                case 1:
+                    // expected case
+                    return `Vec(${tRep[0]})`
+                default:
+                    // If we have nonhomogeneous vectors, we treat them as tuples
+                    // Note that tuples don't exist in the Soroban type system, and we should treat them as
+                    // an indicator that the data is flawed.
+                    return `<${childTypes.join(', ')}>`
+            }
+        }
+        case 'map': {
+            const childKeyTypes = [...v.val.keys()].map(getFullType)
+            const childValTypes = [...v.val.values()].map(getFullType)
+
+            const keyTrep = computeSingleTypeRep(childKeyTypes)
+            const valTrep = computeSingleTypeRep(childValTypes)
+
+            // Switch over [a, b] doesn't work
+            if (keyTrep.length === 0 && valTrep.length === 0) {
+                // they're either both empty, or neither is
+                return `(${EMPTY_COLLECTION_TYPE}1 -> ${EMPTY_COLLECTION_TYPE}2)`
+            } else if (keyTrep.length === 1 && valTrep.length === 1) {
+                // expected case:
+                return `(${keyTrep[0]} -> ${valTrep[0]})`
+            } else {
+                // If we have nonhomogeneous maps, we treat them as disjoin unions of homogeneous maps
+                // Note that such a type doesn't exist in the Soroban type system, and we should treat it as
+                // an indicator that the data is flawed.
+                const zipped = childKeyTypes.map((k, i) => [
+                    k,
+                    childValTypes[i],
+                ])
+                const maps = zipped.map(([kk, vv]) => `(${kk} -> ${vv})`)
+                return `(${maps.join(' | ')})`
+            }
+        }
+        default:
+            return UNKNOWN_TYPE
+    }
+}
+
+export function isValid(
+    v: Value,
+    allow_nonhmogenoeous: boolean = false
+): boolean {
     switch (v.type) {
         // Integers are valid iff their values lie within the [0, 2^n) or [-2^{n-1},2^{n-1}) intervals
         case 'u32': {
@@ -55,16 +148,47 @@ export function isValid(v: Value): boolean {
         }
         // Fixed-length byte arrays are valid only if their declared length matches their actual length
         case 'arr': {
-            return typeof v.len === 'undefined' || v.val.length === v.len
+            const val = v.val
+            return (
+                !val.some((x) => 0 > x && x >= 2 ** 8) &&
+                (typeof v.len === 'undefined' || v.val.length === v.len)
+            )
         }
         // Vectors are valid iff their elements are all valid.
         case 'vec': {
-            return !v.val.some((elem) => !isValid(elem))
+            // If we enforce homogeneous collections, we chack all child types match
+            let homCheck = true
+            if (!allow_nonhmogenoeous && v.val.length !== 0) {
+                const t0 = getFullType(v.val[0])
+                homCheck = !v.val.some((elem) => getFullType(elem) !== t0)
+            }
+
+            return (
+                homCheck &&
+                !v.val.some((elem) => !isValid(elem, allow_nonhmogenoeous))
+            )
         }
         // Maps are valid iff their keys and values are all valid.
         case 'map': {
-            return ![...v.val.entries()].some(
-                ([key, value]) => !isValid(key) || !isValid(value)
+            const asArr = [...v.val.entries()]
+            // If we enforce homogeneous collections, we chack all child types match
+            let homCheck = true
+            if (!allow_nonhmogenoeous && asArr.length !== 0) {
+                const key_t0 = getFullType(asArr[0][0])
+                const val_t0 = getFullType(asArr[0][1])
+                homCheck = !asArr.some(
+                    ([x, y]) =>
+                        getFullType(x) !== key_t0 || getFullType(y) != val_t0
+                )
+            }
+
+            return (
+                homCheck &&
+                !asArr.some(
+                    ([key, value]) =>
+                        !isValid(key, allow_nonhmogenoeous) ||
+                        !isValid(value, allow_nonhmogenoeous)
+                )
             )
         }
         // Booleans are always valid, under TS type constraints.
@@ -180,7 +304,7 @@ export function addr(s: string): AddrValue {
     return obj
 }
 
-export type byte = 0 | 1
+export type byte = number
 
 // Byte arrays (Bytes, BytesN)
 // The `len` field is present iff the length is fixed (i.e. for BytesN)
@@ -209,34 +333,42 @@ export type VecValue = {
 }
 
 // Safe constructor for vec-typed `Value`s. Throws a `TypeError` if `v` contains an invalid value.
-export function vec(v: Value[]): VecValue {
+export function vec(
+    v: Value[],
+    allow_nonhmogenoeous: boolean = false
+): VecValue {
     const obj: VecValue = { type: 'vec', val: v }
-    if (!isValid(obj)) {
+    if (!isValid(obj, allow_nonhmogenoeous)) {
         throw new TypeError(`Some element of ${v} is not valid.`)
     }
     return obj
 }
 
+export type MapT = OrderedMap<Value, Value>
+
 // Soroban Map is an ordered key-value dictionary (note that JS maps are in principle unordered, but will iterate in insertion order).
 // Maps have at most one entry per key. Setting a value for a key in the map that already has a value for that key replaces the value. <-- docs
 export type MapValue = {
-    val: OrderedMap<Value, Value>
+    val: MapT
     type: 'map'
 }
 
 export type KeyValuePair = [Value, Value]
 
 // Safe constructor for map-typed `Value`s. Throws a `TypeError` if `v` contains an invalid key or value.
-export function map(v: OrderedMap<Value, Value>): MapValue {
+export function map(v: MapT, allow_nonhmogenoeous: boolean = false): MapValue {
     const obj: MapValue = { type: 'map', val: v }
-    if (!isValid(obj)) {
+    if (!isValid(obj, allow_nonhmogenoeous)) {
         throw new TypeError(`Some key or value of ${v} is not valid.`)
     }
     return obj
 }
 
 // Safe constructor for vec-typed `Value`s. Throws a `TypeError` if `v` contains an invalid key or value, or if it contains duplicate keys.
-export function mapFromKV(a: KeyValuePair[]): MapValue {
+export function mapFromKV(
+    a: KeyValuePair[],
+    allow_nonhmogenoeous: boolean = false
+): MapValue {
     let partialMap = OrderedMap<Value, Value>()
 
     for (const [k, v] of a) {
@@ -247,7 +379,7 @@ export function mapFromKV(a: KeyValuePair[]): MapValue {
         }
         partialMap = partialMap.set(k, v)
     }
-    return map(partialMap)
+    return map(partialMap, allow_nonhmogenoeous)
 }
 
 // Helper function, returns the contents of the map as an array of key-value pairs for serialization
