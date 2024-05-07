@@ -7,14 +7,14 @@ import { OrderedMap } from 'immutable'
 export type Value = {
     type: string
 } & (
-    | IntValue
-    | BoolValue
-    | SymbValue
-    | AddrValue
-    | ArrValue
-    | VecValue
-    | MapValue
-)
+        | IntValue
+        | BoolValue
+        | SymbValue
+        | AddrValue
+        | ArrValue
+        | VecValue
+        | MapValue
+    )
 
 const EMPTY_COLLECTION_TYPE: string = 'T'
 const UNKNOWN_TYPE: string = 'UNKNOWN'
@@ -53,8 +53,8 @@ export function getFullType(v: Value): string {
         case 'addr':
             return v.type
         case 'arr':
-            // As a type, `Bytes` is atomic, even though it is an array. We avoid `arr`, as it could imply
-            // a generic array type, which does not exist.
+            // Bytes is not a generic collection, but always an array of integers, so we treat it as a 
+            // type literal. Vec is the generic collection type.
             return 'Bytes'
         case 'vec': {
             const childTypes = v.val.map(getFullType)
