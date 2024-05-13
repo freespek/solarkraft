@@ -55,8 +55,8 @@ const verifyCmd = {
                 demandOption: true,
             })
             .option('monitor', {
-                desc: 'Monitor to check against',
-                type: 'string',
+                desc: 'Monitors to check against',
+                type: 'array',
                 demandOption: true,
             })
             .option('state', {
