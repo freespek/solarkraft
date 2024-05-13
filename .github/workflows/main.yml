@@ -47,7 +47,7 @@ jobs:
         run: cd ./solarkraft && (npx prettier --config .prettierrc --check src/**/*.ts test/**/*.ts) || echo "fix with 'npm run format'"
 
   contracts-unit-tests:
-    name: oslip-build
+    name: contracts-unit-tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -56,7 +56,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
-      - run: cargo install --locked soroban-cli
+      - run: rustup target add wasm32-unknown-unknown
+      - uses: stellar/binaries@v16
+        with:
+          name: soroban-cli
+          version: 0.8.7
       - name: build
         run: cd ContractExamples && cargo build --verbose
       - name: unit tests
