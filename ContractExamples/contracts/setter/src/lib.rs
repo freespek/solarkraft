@@ -193,8 +193,18 @@ impl SetterContract {
         env.storage().instance().extend_ttl(50, 100)
     }
 
-    pub fn get_vec(env: Env) -> Vec<i32> {
+    fn get_vec_internal(env: &Env) -> Vec<i32> {
         env.storage().instance().get(&MY_VEC).unwrap_or(vec![&env])
+    }
+
+    pub fn get_vec(env: Env) -> Vec<i32> {
+        Self::get_vec_internal(&env)
+    }
+
+    pub fn vec_push(env: Env, i: i32) {
+        let mut vs = Self::get_vec_internal(&env);
+        vs.push_back(i);
+        env.storage().instance().set(&MY_VEC, &vs);
     }
 
     pub fn set_map(env: Env, v: Map<u32, i32>) -> () {
@@ -204,8 +214,22 @@ impl SetterContract {
         env.storage().instance().extend_ttl(50, 100)
     }
 
-    pub fn get_map(env: Env) -> Map<u32, i32> {
+    fn get_map_internal(env: &Env) -> Map<u32, i32> {
         env.storage().instance().get(&MY_MAP).unwrap_or(Map::from_array(&env, [(0, 0); 0]))
+    }
+
+    pub fn get_map(env: Env) -> Map<u32, i32> {
+        Self::get_map_internal(&env)
+    }
+
+    pub fn map_set(env: Env, key: u32, value: i32) {
+        let mut map = Self::get_map_internal(&env);
+        map.set(key, value);
+        env.storage().instance().set(&MY_MAP, &map)
+    }
+
+    pub fn map_get(env: Env, key: u32) -> i32 {
+        Self::get_map_internal(&env).get(key).unwrap_or(0i32)
     }
 
     pub fn set_address(env: Env, v: Address) -> () {
@@ -216,7 +240,7 @@ impl SetterContract {
     }
 
     pub fn get_address(env: Env) -> Option<Address> {
-        env.storage().instance().get(&MY_VEC)
+        env.storage().instance().get(&MY_ADDR)
     }
 
     pub fn set_my_struct(env: Env, v: MyStruct) -> () {
