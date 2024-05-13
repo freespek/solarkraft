@@ -1,6 +1,6 @@
 [package]
-name = "megacontract"
-version = "0.0.0"
+name = "setter"
+version = "0.0.1"
 edition = "2021"
 publish = false
 
