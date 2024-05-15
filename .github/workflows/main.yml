@@ -65,3 +65,5 @@ jobs:
         run: cd ContractExamples && cargo build --verbose
       - name: unit tests
         run: cd ContractExamples && cargo test --verbose
+      - name: populating setter
+        run: cd ContractExamples && ./scripts/setter-populate.sh
