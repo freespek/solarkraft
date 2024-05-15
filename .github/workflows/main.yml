@@ -60,7 +60,7 @@ jobs:
       - uses: stellar/binaries@v16
         with:
           name: soroban-cli
-          version: 0.8.7
+          version: "21.0.0-preview.1"
       - name: build
         run: cd ContractExamples && cargo build --verbose
       - name: unit tests
