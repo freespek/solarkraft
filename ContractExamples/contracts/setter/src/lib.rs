@@ -1,4 +1,12 @@
 #![no_std]
+/**
+ * A test contract for better understanding of the ledger layout of Soroban contracts.
+ *
+ * Igor Konnov, 2024.
+ *
+ * @license
+ * [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
+ */
 
 use soroban_sdk::{contract, contractimpl, contracttype, log, symbol_short, vec, Address, Bytes, BytesN, Env, Map, Symbol, Vec};
 
