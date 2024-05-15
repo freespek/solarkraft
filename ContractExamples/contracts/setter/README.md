@@ -4,7 +4,7 @@ fetcher.
 
 ## How to use
 
- 1. Make sure that you have installed Soroban by following the [Getting Started]
+ 1. Make sure that you have installed Soroban by following the [Getting Started][]
  guide.
 
  1. Deploy the setter contract:

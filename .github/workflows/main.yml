@@ -65,5 +65,12 @@ jobs:
         run: cd ContractExamples && cargo build --verbose
       - name: unit tests
         run: cd ContractExamples && cargo test --verbose
-      - name: populating setter
-        run: cd ContractExamples && ./scripts/setter-populate.sh
+      - name: populating Setter
+        run: |
+          soroban network add \
+            --global testnet \
+            --rpc-url https://soroban-testnet.stellar.org:443 \
+            --network-passphrase "Test SDF Network ; September 2015"
+          soroban keys generate --global alice --network testnet
+          cd ContractExamples
+          ./scripts/setter-populate.sh
