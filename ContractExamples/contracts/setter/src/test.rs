@@ -1,4 +1,12 @@
 #![cfg(test)]
+/**
+ * Unit tests for Setter.
+ *
+ * Igor Konnov, 2024.
+ *
+ * @license
+ * [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
+ */
 
 use super::*;
 use soroban_sdk::{
