@@ -2,13 +2,11 @@
  * @license
  * [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
  */
+
 /**
  * A fetcher of contract calls.
  *
  * Igor Konnov, 2024
- *
- * @license
- * [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
  */
 
 import { Horizon } from '@stellar/stellar-sdk'

@@ -2,6 +2,7 @@
  * @license
  * [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
  */
+
 /**
  * The code to extract Stellar operations that correspond to Soroban contract calls.
  *
