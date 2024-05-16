@@ -1,15 +1,19 @@
 /**
+ * @license
+ * [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
+ */
+/**
  * A fetcher of contract calls.
- * 
+ *
  * Igor Konnov, 2024
- * 
+ *
  * @license
  * [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
  */
 
-import { Horizon } from "@stellar/stellar-sdk"
-import JSONbigint from "json-bigint"
-import { extractContractCall } from "./fetcher/callDecoder.js"
+import { Horizon } from '@stellar/stellar-sdk'
+import JSONbigint from 'json-bigint'
+import { extractContractCall } from './fetcher/callDecoder.js'
 
 /**
  * Fetch transactions from the ledger
@@ -54,15 +58,18 @@ export async function fetch(args: any) {
         .stream({
             onmessage: async (msg: any) => {
                 if (msg.transaction_successful === true) {
-                    (await extractContractCall(msg, (id => contractId === id)))
-                        .map(e => {
-                            console.log(`call => ${JSONbigint.stringify(e)}`)
-                        })
+                    ;(
+                        await extractContractCall(
+                            msg,
+                            (id) => contractId === id
+                        )
+                    ).map((e) => {
+                        console.log(`call => ${JSONbigint.stringify(e)}`)
+                    })
                 }
-                
             },
             onerror: finish,
-        });
+        })
 
     const timeout = setTimeout(finish, DURATION * 1000)
 }
