@@ -52,11 +52,21 @@ Now, are direct monitor specs enough? Think about it for a sec, before clicking 
 <details>
 <summary> Are direct monitor specs enough?</summary>
 We believe NO! And here is an (incomplete) list of whys:
+
 - A method may have a side effect, which was overlooked by the spec author. E.g. a boolean flag is set, which in another method allows to direct funds to another account.
 - Code evolves, but the spec stays as is; as a result a side effect above is introduced unintentionally, with the stale spec not accounting for it.
 - Internal state component is modified in multiple methods, in different ways. The specification about how the component should be updated is scattered in multiple places, and loopholes may easily creep in.
 - An invariant which is preserved by the method of this contract, is violated by a method from another contract. As no specs are written or monitored for this other contract, no violation is detected.
+
+Thus we proceed to explore _reverse reasoning_.
 </details>
+
+
+### Reverse monitor specs
+
+With reverse reasoning we will try to patch the loopholes that were left by direct monitor specs above. To do so, we start with an _effect_ (state was modified), and go back to its _cause_ (what should have happened taking the effect into account). Here is the corresponding picture which puts a bit of structure into the reverse reasoning.
+
+![Reverse monitor specs](./MonitorSpecs-Reverse.png)
 
 
 [Timelock]: https://github.com/stellar/soroban-examples/blob/v20.0.0/timelock/src/lib.rs
