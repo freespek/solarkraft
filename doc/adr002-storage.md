@@ -43,6 +43,10 @@ ${STOR}/${contractId}/${height}/entry-${txHash}.json
 The values `${contractId}`, `${height}`, `${txHash}` are the values of the
 fields that are defined in [storage.ts][].
 
+The file is a JSON serialization of [ContractCallEntry][]. Some care is required
+to serialize big integers, we use [json-bigint][]. Additionally, we serialized
+`OrderedMap` as an array.
+
 ## 2. Storing verification results
 
 The verification results are to be stored in a file called:
@@ -56,3 +60,5 @@ The exact format of this file is to be defined later.
 
 
 [storage.ts]: https://github.com/freespek/solarkraft/blob/main/solarkraft/src/fetcher/storage.ts
+[ContractCallEntry]: https://github.com/freespek/solarkraft/blob/38d57fd51082feab9215a77c555bdccdc961aa26/solarkraft/src/fetcher/storage.ts#L23
+[json-bigint]: https://www.npmjs.com/package/@types/json-bigint
