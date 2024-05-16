@@ -64,6 +64,9 @@ impl SetterContract {
         env.storage().instance().set(&MY_BOOL, &v);
         log!(&env, "myBool: {}", v);
         // bump the lifetime
+        // https://developers.stellar.org/docs/learn/smart-contract-internals/state-archival
+        //
+        // The TTL is extended to `max_ttl` when field TTL goes below `max_ttl` - 100
         env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
         // return the old value to the caller
         old
