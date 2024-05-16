@@ -232,7 +232,7 @@ MonitorEffect_TokenBalance_Reduced ==
     method = "claim"
 ```
 
-This is it for the monitor spec of the Timelock contract. I hope you are convinced that the new hybrid style of writing monitor specs is beneficial in terms of clarity, conciseness, and completeness. Please let us know what you think; e.g. feel free to open an issue on the repo.
+This is it for the monitor spec of the Timelock contract. We hope you are convinced that the new hybrid style of writing monitor specs is beneficial in terms of clarity, conciseness, and completeness. Please let us know what you think; e.g. feel free to open an issue on the repo.
 
 
 [Timelock contract]: https://github.com/stellar/soroban-examples/blob/v20.0.0/timelock/src/lib.rs
