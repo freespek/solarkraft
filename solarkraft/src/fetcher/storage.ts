@@ -48,13 +48,17 @@ export interface ContractCallEntry {
     /**
      * Ordered mapping from field names to their native values (JS).
      * This mapping contains values only for the fields that have been set
-     * by transactions.
+     * by transactions in the past. It may happen that `fields` contains
+     * fewer fields than `oldFields`, when the contract deletes some fields
+     * from the storage. Also, `fields` may become empty when the storage
+     * goes over TTL.
      */
     fields: FieldsMap
     /**
      * Ordered mapping from field names to their native values (JS).
      * This mapping contains values only for the fields that were set
-     * before the call took place.
+     * before the call took place. The map `oldFields` may become empty
+     * when the storage goes over TTL.
      */
     oldFields: FieldsMap
 }
