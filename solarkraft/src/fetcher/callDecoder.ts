@@ -56,6 +56,7 @@ export async function extractContractCall(
             tx.result_meta_xdr,
             'base64'
         )
+        // extract transaction metadata for version 3
         if (meta.switch() !== 3) {
             // Is it possible to have older transaction metadata with Soroban?
             // TODO: make it future-proof
