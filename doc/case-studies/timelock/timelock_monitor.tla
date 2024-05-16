@@ -5,9 +5,9 @@
  *)
 ---- MODULE timelock_monitor ----
 
-\*************************
-\* Deposit method monitors
-\*************************
+\************************
+\* Deposit method monitor
+\************************
 
 MustFail_deposit_TooManyClaimants == 
     claimants.len > 10
@@ -42,9 +42,9 @@ MustAchieve_deposit_TokenTransferred ==
     token.transferred(from, this, amount)
 
 
-\***********************
-\* Claim method monitors
-\***********************
+\**********************
+\* Claim method monitor
+\**********************
 
 MustFail_claim_Unauthorized == 
     ~authorized(claimant)
@@ -72,9 +72,9 @@ MustAchieve_deposit_BalanceRecordRemoved ==
     ~exists(balance')
 
 
-\************************
-\* Balance record monitor
-\************************
+\*******************************
+\* Balance record effect monitor
+\*******************************
 
 \* This trigger fires when the balance record is created or destroyed
 \* Notice that it doesn't track the record content
@@ -92,9 +92,9 @@ MonitorEffect_Balance_Changed ==
     \/ method = "claim"
 
 
-\************************
-\* Token balance monitor
-\************************
+\******************************
+\* Token balance effect monitor
+\******************************
 
 \* This trigger fires when the token balance of this contract is reduced
 \* Notice that it will panic (won't fire) if balance record doesn't exist
