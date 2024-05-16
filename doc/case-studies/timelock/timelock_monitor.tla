@@ -78,16 +78,16 @@ MustAchieve_deposit_BalanceRecordRemoved ==
 
 \* This trigger fires when the balance record is created or destroyed
 \* Notice that it doesn't track the record content
-MonitorTrigger_Balance_RecordAchieved ==
+MonitorTrigger_Balance_RecordChanged ==
     exists(balance) /= exists(balance)'
 
 \* This trigger fires when the balance record content Achieves
 \* Notice that it will panic (won't fire) if the record doesn't exist
-MonitorTrigger_Balance_ContentAchieved ==
+MonitorTrigger_Balance_ContentChanged ==
     balance /= balance'
 
 \* Only deposit and claim methods are allowed to alter balances
-MonitorEffect_Balance_Achieved ==
+MonitorEffect_Balance_Changed ==
     \/ method = "deposit"
     \/ method = "claim"
 
