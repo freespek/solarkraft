@@ -18,7 +18,7 @@ consistent, fail-free, etc., we would have to implement the storage with a solid
 database library.
 
 In the rest of this document, we refer to the root of the storage directory as
-`${STOR}$`. We expect the user to provide the Solarkraft commands with the
+`${STOR}`. We expect the user to provide the Solarkraft commands with the
 root directory. By default, `${STOR}` would point to
 `$HOME/.solarkraft/.stor`.
 
