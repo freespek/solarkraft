@@ -50,15 +50,12 @@ export async function extractContractCall(
     const methodArgs = params.slice(2)
 
     const tx = await op.transaction()
-    // is it the right way to extract the height?
+    // TODO: is it the right way to extract the height?
     const height = tx.ledger_attr
 
     // The operation itself does not give us the ledger updates.
     // Deserialize tx.result_meta_xdr.
-    const meta = sdk.xdr.TransactionMeta.fromXDR(
-        tx.result_meta_xdr,
-        'base64'
-    )
+    const meta = sdk.xdr.TransactionMeta.fromXDR(tx.result_meta_xdr, 'base64')
     // extract transaction metadata for version 3
     if (meta.switch() !== 3) {
         // Is it possible to have older transaction metadata with Soroban?
@@ -82,9 +79,7 @@ export async function extractContractCall(
         .flat()
 
     if (fieldsUpdates.length > 2) {
-        console.error(
-            `Transaction ${txHash} has over two contract states`
-        )
+        console.error(`Transaction ${txHash} has over two contract states`)
     }
 
     // contract storage after the operations were applied
@@ -99,11 +94,18 @@ export async function extractContractCall(
             : OrderedMap<string, any>()
 
     // decode return value
-    const returnValue = sdk.scValToNative(
-        meta3.sorobanMeta().returnValue()
-    )
+    const returnValue = sdk.scValToNative(meta3.sorobanMeta().returnValue())
 
-    return just({ height, txHash, contractId, method, methodArgs, returnValue, fields, oldFields, })
+    return just({
+        height,
+        txHash,
+        contractId,
+        method,
+        methodArgs,
+        returnValue,
+        fields,
+        oldFields,
+    })
 }
 
 // decode a contract entry that is changed by a contract call
