@@ -19,7 +19,7 @@ The problem we've observed with the specification approaches previously is that 
 
 So monitors should be able to specify both safety and liveness properties, and do it _compactly_. For that we impose a certain structure to the direct reasoning (cause -> effect), as well as apply the reverse reasoning (effect -> cause).
 
-### Structured direct reasoning
+### Direct monitor specs
 
 Here we reason from the cause (method invocation) to the effect, but apply a structure which closely mimics in formal semantics what we expect to see when we program smart contracts. The essence of the structure is in the picture below:
 
@@ -45,6 +45,18 @@ All predicates which refer to the same `<Method>` will be grouped, to create tog
 4. If method invocation succeeds, check that all of `MustAchieve_i` conditions hold on the pre- and post-states of the method invocation (otherwise, issue a warning / revert if configured to do so)
 
 
+Notice that above we apply _or_ as default connector for preconditions (`MustFail_i` / `MustSucceed_i`), and we apply _and_ as default connector for effects (`MustAchieve_i`). Thus, you may split preconditions/effects into separate predicates at your convenience, thus avoiding complicated logical structure inside predicates themselves.
+
+Now, are direct monitor specs enough? Think about it for a sec, before clicking on the our answer below.
+
+<details>
+<summary> Are direct monitor specs enough?</summary>
+We believe NO! And here is an (incomplete) list of whys:
+- A method may have a side effect, which was overlooked by the spec author. E.g. a boolean flag is set, which in another method allows to direct funds to another account.
+- Code evolves, but the spec stays as is; as a result a side effect above is introduced unintentionally, with the stale spec not accounting for it.
+- Internal state component is modified in multiple methods, in different ways. The specification about how the component should be updated is scattered in multiple places, and loopholes may easily creep in.
+- An invariant which is preserved by the method of this contract, is violated by a method from another contract. As no specs are written or monitored for this other contract, no violation is detected.
+</details>
 
 
 [Timelock]: https://github.com/stellar/soroban-examples/blob/v20.0.0/timelock/src/lib.rs
