@@ -28,7 +28,7 @@ const fetchCmd = {
             .option('id', {
                 desc: 'Contract id',
                 type: 'string',
-                default: '123',
+                require: true,
             })
             .option('rpc', {
                 desc: 'URL of the Stellar RPC',

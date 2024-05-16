@@ -64,7 +64,7 @@ impl SetterContract {
         env.storage().instance().set(&MY_BOOL, &v);
         log!(&env, "myBool: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100);
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
         // return the old value to the caller
         old
     }
@@ -78,7 +78,7 @@ impl SetterContract {
         env.storage().instance().set(&MY_U32, &v);
         log!(&env, "myU32: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100);
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
         // return the old value to the caller
         old
     }
@@ -92,7 +92,7 @@ impl SetterContract {
         env.storage().instance().set(&MY_I32, &v);
         log!(&env, "myI32: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100);
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
         // return the old value to the caller
         old
     }
@@ -106,7 +106,7 @@ impl SetterContract {
         env.storage().instance().set(&MY_U64, &v);
         log!(&env, "myU64: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100);
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
         // return the old value to the caller
         old
     }
@@ -120,7 +120,7 @@ impl SetterContract {
         env.storage().instance().set(&MY_I64, &v);
         log!(&env, "myi64: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100);
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
         // return the old value to the caller
         old
     }
@@ -134,7 +134,7 @@ impl SetterContract {
         env.storage().instance().set(&MY_U128, &v);
         log!(&env, "myU128: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100);
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
         // return the old value to the caller
         old
     }
@@ -148,7 +148,7 @@ impl SetterContract {
         env.storage().instance().set(&MY_I128, &v);
         log!(&env, "myi128: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100);
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
         // return the old value to the caller
         old
     }
@@ -162,7 +162,7 @@ impl SetterContract {
         env.storage().instance().set(&MY_SYM, &v);
         log!(&env, "mySym: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100);
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
         // return the old value to the caller
         old
     }
@@ -175,7 +175,7 @@ impl SetterContract {
         env.storage().instance().set(&MY_BYTES, &v);
         log!(&env, "myBytes: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100)
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
     }
 
     pub fn get_bytes(env: Env) -> Bytes {
@@ -186,7 +186,7 @@ impl SetterContract {
         env.storage().instance().set(&MY_BYTES32, &v);
         log!(&env, "myBytes32: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100)
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
     }
 
     pub fn get_bytes32(env: Env) -> BytesN<32> {
@@ -198,7 +198,7 @@ impl SetterContract {
         env.storage().instance().set(&MY_VEC, &v);
         log!(&env, "myVec: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100)
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
     }
 
     fn get_vec_internal(env: &Env) -> Vec<i32> {
@@ -213,13 +213,14 @@ impl SetterContract {
         let mut vs = Self::get_vec_internal(&env);
         vs.push_back(i);
         env.storage().instance().set(&MY_VEC, &vs);
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
     }
 
     pub fn set_map(env: Env, v: Map<u32, i32>) -> () {
         env.storage().instance().set(&MY_MAP, &v);
         log!(&env, "myMap: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100)
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
     }
 
     fn get_map_internal(env: &Env) -> Map<u32, i32> {
@@ -233,7 +234,8 @@ impl SetterContract {
     pub fn map_set(env: Env, key: u32, value: i32) {
         let mut map = Self::get_map_internal(&env);
         map.set(key, value);
-        env.storage().instance().set(&MY_MAP, &map)
+        env.storage().instance().set(&MY_MAP, &map);
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
     }
 
     pub fn map_get(env: Env, key: u32) -> i32 {
@@ -244,7 +246,7 @@ impl SetterContract {
         env.storage().instance().set(&MY_ADDR, &v);
         log!(&env, "myAddress: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100)
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
     }
 
     pub fn get_address(env: Env) -> Option<Address> {
@@ -255,7 +257,7 @@ impl SetterContract {
         env.storage().instance().set(&MY_STRUCT, &v);
         log!(&env, "myStruct: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100)
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
     }
 
     pub fn get_my_struct(env: Env) -> MyStruct {
@@ -269,7 +271,7 @@ impl SetterContract {
         env.storage().instance().set(&MY_ENUM, &v);
         log!(&env, "myEnum: {}", v);
         // bump the lifetime
-        env.storage().instance().extend_ttl(50, 100)
+        env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
     }
 
     pub fn get_my_enum(env: Env) -> MyEnum {
