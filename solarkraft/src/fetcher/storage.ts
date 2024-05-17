@@ -12,7 +12,13 @@
 import JSONbigint from 'json-bigint'
 import { OrderedMap } from 'immutable'
 import { join } from 'node:path/posix'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import {
+    existsSync,
+    mkdirSync,
+    readFileSync,
+    readdirSync,
+    writeFileSync,
+} from 'node:fs'
 
 const JSONbig = JSONbigint({ useNativeBigInt: true })
 
@@ -66,6 +72,16 @@ export interface ContractCallEntry {
      * when the storage goes over TTL.
      */
     oldFields: FieldsMap
+}
+
+/**
+ * A listing entry.
+ */
+export interface ListEntry {
+    contractId: string
+    height: number
+    txHash: string
+    verification: 'ok' | 'fail' | 'unverified'
 }
 
 /**
@@ -125,6 +141,42 @@ export function loadContractCallEntry(filename: string): ContractCallEntry {
         returnValue: loaded.returnValue,
         fields: OrderedMap<string, any>(loaded.fields),
         oldFields: OrderedMap<string, any>(loaded.oldFields),
+    }
+}
+
+/**
+ * Generate storage entries for a given contract id in a path.
+ * @param contractId contract identifier (address)
+ * @param path the path to the contract storage
+ */
+export function* yieldListEntriesForContract(
+    contractId: string,
+    path: string
+): Generator<ListEntry> {
+    for (const dirent of readdirSync(path, { withFileTypes: true })) {
+        // match ledger heights, which are positive integers
+        if (dirent.isDirectory() && /^[0-9]+$/.exec(dirent.name)) {
+            // This directory may contain several transactions for the same height.
+            const height = Number.parseInt(dirent.name)
+            for (const ledgerDirent of readdirSync(join(path, dirent.name), {
+                withFileTypes: true,
+            })) {
+                // match all storage entries, which may be reported in different cases
+                const matcher = /^entry-([0-9a-fA-F]+)\.json$/.exec(
+                    ledgerDirent.name
+                )
+                if (ledgerDirent.isFile() && matcher) {
+                    const txHash = matcher[1]
+                    // TODO: read the verification result and report it
+                    yield {
+                        contractId,
+                        height,
+                        txHash,
+                        verification: 'unverified',
+                    }
+                }
+            }
+        }
     }
 }
 
