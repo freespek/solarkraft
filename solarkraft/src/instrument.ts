@@ -1,101 +1,67 @@
+import { assert } from 'console'
+import { ContractCallEntry } from './fetcher/storage.js'
+
 /**
  * @license
  * [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
  */
-type Value = { type: string; value: any }
-type Binding = { name: string; type: string; value: any }
-type State = Binding[]
-type Transaction = {
-    functionName: string
-    functionArgs: Value[]
-    env: { timestamp: number }
-    error: string
-}
-
-// Return true iff `o` is a Javascript object.
-function isObject(o: any) {
-    return typeof o === 'object' && !Array.isArray(o) && o !== null
-}
-
-// Decode an ITF value `value` into a Javascript value.
-// TODO(#46): support composite types (sequence, tuple, record, set, map)
-function decodeITFValue(value: any) {
-    if (
-        isObject(value) &&
-        Object.prototype.hasOwnProperty.call(value, '#bigint')
-    ) {
-        return parseInt(value['#bigint'])
-    }
-    return value
-}
-
-/**
- * Return a `State` from an ITF JSON object.
- * @param itf ITF JSON object, see https://apalache.informal.systems/docs/adr/015adr-trace.html
- * @returns `State`
- */
-export function stateFromItf(itf: any): State {
-    // const vars = itf['vars'] // e.g., [ "is_initialized", "last_error" ]
-    const varTypes = itf['#meta']['varTypes'] // e.g., { "is_initialized": "Bool", "last_error": "Str" }
-    const initState = itf['states'][0] // e.g., [ { "is_initialized": false, "last_error": "" }, state1, ... ]
-    delete initState['#meta']
-
-    const state = Object.entries(initState)
-        .filter(([name]) => name != '#meta')
-        .map(([name, value]) => ({
-            name: name,
-            value: decodeITFValue(value),
-            type: 'Tla' + varTypes[name],
-        }))
-    return state
-}
 
 /**
  * Return an instrumented monitor specification.
  * @param monitor A TLA+ monitor, as returned from `apalache typecheck --output=temp.json`
- * @param state The blockchain state before executing the transaction / the monitor.
- * @param tx The transaction being applied to `state`.
+ * @param contractCall The contract call, fetched from the ledger.
  * @returns The instrumented TLA+ monitor.
  */
 export function instrumentMonitor(
     monitor: any,
-    state: State,
-    tx: Transaction
+    contractCall: ContractCallEntry
 ): any {
     // Only instrument state variables that are delcared in the monitor spec
     // (otherwise we provoke type errors in Apalache Snowcat, via undeclared variables)
     const declaredMonitorVariables = monitor.modules[0].declarations
         .filter(({ kind }) => kind == 'TlaVarDecl')
         .map(({ name }) => name)
-    state = state.filter(({ name }) => declaredMonitorVariables.includes(name))
+    const fieldsToInstrument = contractCall.oldFields.filter((value, key) =>
+        declaredMonitorVariables.includes(key)
+    )
 
+    // TODO(#61): handle failed transactions
     // Add a special variable `last_error` that tracks error messages of failed transactions
-    state.push({ name: 'last_error', type: 'TlaStr', value: '' })
+    // fieldsToInstrument.push({ name: 'last_error', type: 'TlaStr', value: '' })
 
-    // Declaration of  "Init" (according to `state`)
+    // Declaration of  "Init" (according to `contractCall.oldFields`)
     const tlaInit = tlaJsonOperDecl__And(
         'Init',
-        state.map((binding) =>
-            tlaJsonEq__NameEx__ValEx(
-                binding.name,
-                false,
-                tlaJsonValEx(binding.type, binding.value)
+        fieldsToInstrument
+            .map((value, name) =>
+                tlaJsonEq__NameEx__ValEx(
+                    name,
+                    false,
+                    tlaJsonValEx(tlaJsonTypeOfNative(value), value)
+                )
             )
-        )
+            .valueSeq()
+            .toArray()
     )
 
     // Declaration of "Next" (according to `tx`)
     const envRecord = tlaJsonRecord([
-        { name: 'timestamp', kind: 'TlaInt', value: tx.env.timestamp },
+        { name: 'height', kind: 'TlaInt', value: contractCall.height },
     ])
-    const txArgs = tx.functionArgs.map((v) => tlaJsonValEx(v.type, v.value))
+    const tlaMethodArgs = contractCall.methodArgs.map((v) =>
+        tlaJsonValEx(tlaJsonTypeOfNative(v), v)
+    )
     const tlaNext = tlaJsonOperDecl__And('Next', [
-        tlaJsonApplication(tx.functionName, [envRecord].concat(txArgs)),
-        tlaJsonEq__NameEx__ValEx(
-            'last_error',
-            true,
-            tlaJsonValEx('TlaStr', tx.error)
+        tlaJsonApplication(
+            contractCall.method,
+            [envRecord].concat(tlaMethodArgs)
         ),
+        // TODO(#61): handle failed transactions
+        // tlaJsonEq__NameEx__ValEx(
+        //     'last_error',
+        //     true,
+        //     tlaJsonValEx('TlaStr', tx.error)
+        // ),
     ])
 
     // Instantiate the monitor spec with declarations of "Init" and "Next"
@@ -108,6 +74,32 @@ export function instrumentMonitor(
         declarations: extendedDeclarations,
     }
     return { ...monitor, modules: [extendedModule] }
+}
+
+// Decode a Native JS value `v` into its corresponding Apalache IR type.
+function tlaJsonTypeOfNative(v: any) {
+    assert(
+        typeof v !== 'symbol' &&
+            typeof v !== 'undefined' &&
+            typeof v !== 'function',
+        `Unexpected native value ${v} of type ${typeof v} in fetcher output.`
+    )
+
+    switch (typeof v) {
+        case 'string':
+            return 'TlaStr'
+        case 'number':
+            return 'TlaInt'
+        case 'bigint':
+            return 'TlaInt'
+        case 'boolean':
+            return 'TlaBool'
+        case 'object':
+            // an array or object
+            // TODO(#46): support composite types (sequence, tuple, record, set, map)
+            // if (Array.isArray(o)) ...
+            return undefined
+    }
 }
 
 /**

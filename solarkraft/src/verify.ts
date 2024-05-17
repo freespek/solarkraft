@@ -8,10 +8,12 @@ import { rmSync } from 'fs'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { globSync } from 'glob'
 import { temporaryFile } from 'tempy'
 import { Either, left, right, mergeInOne } from '@sweet-monads/either'
 
-import { instrumentMonitor, stateFromItf } from './instrument.js'
+import { loadContractCallEntry, storagePath } from './fetcher/storage.js'
+import { instrumentMonitor } from './instrument.js'
 
 type Result<T> = Either<string, T>
 type ApalacheResult = Result<void>
@@ -106,36 +108,35 @@ export function verify(args: any) {
             return
         }
     }
-    if (!existsSync(args.state)) {
-        console.log(`The ITF state file ${args.state} does not exist.`)
+
+    // Resolve fetcher entry in storage from txHash
+    const entryPaths = globSync(
+        path.join(storagePath(args.home), '**', `entry-${args.txHash}.json`)
+    )
+    if (entryPaths.length === 0) {
+        console.error(
+            `No entries found for tx hash ${args.txHash}. Run 'solarkraft fetch' first.`
+        )
         console.log('[Error]')
         return
     }
-
-    // Read the state from ITF
-    let itf: any
-    try {
-        itf = JSON.parse(readFileSync(args.state, 'utf8'))
-    } catch (err) {
-        console.error(`Failed to read state from ITF: ${err}`)
+    if (entryPaths.length > 1) {
+        console.error(
+            `Too many entries (${entryPaths.length}) found for tx hash ${args.txHash}.`
+        )
         console.log('[Error]')
         return
     }
+    const entryPath = entryPaths[0]
 
-    // TODO(#38): Read ledger state and `tx` from fetcher output
-    const state = stateFromItf(itf)
-    const tx = {
-        functionName: 'Claim',
-        functionArgs: [{ type: 'TlaStr', value: 'alice' }],
-        env: { timestamp: 100 },
-        error: 'contract is not initialized',
-    }
+    // Read the state from fetcher output
+    const contractCall = loadContractCallEntry(entryPath)
 
     // Check all monitors
     const resultsPerMonitor: Result<ApalacheResult>[] = args.monitor.map(
         (monitorPath: string) =>
             getApalacheJsonIr(monitorPath)
-                .map((jsonIr: any) => instrumentMonitor(jsonIr, state, tx))
+                .map((jsonIr: any) => instrumentMonitor(jsonIr, contractCall))
                 .chain(apalacheCheck)
                 // Print the monitor's result
                 .map((apalacheResult) => {

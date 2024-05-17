@@ -78,7 +78,7 @@ export async function fetch(args: any) {
                         console.log(`+ save: ${entry.height}`)
                         saveContractCallEntry(args.home, entry)
                     }
-                } // else: shall we also store reverted transactions?
+                } // TODO(#61): else: shall we also store reverted transactions?
 
                 nEvents++
                 if (nEvents % HEIGHT_FETCHING_PERIOD === 0) {

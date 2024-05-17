@@ -37,26 +37,6 @@ const instrumentedMonitor = {
                                     },
                                 ],
                             },
-                            {
-                                kind: 'OperEx',
-                                oper: 'EQ',
-                                type: 'Untyped',
-                                args: [
-                                    {
-                                        kind: 'NameEx',
-                                        name: 'last_error',
-                                        type: 'Untyped',
-                                    },
-                                    {
-                                        kind: 'ValEx',
-                                        type: 'Untyped',
-                                        value: {
-                                            kind: 'TlaStr',
-                                            value: '',
-                                        },
-                                    },
-                                ],
-                            },
                         ],
                     },
                 },
@@ -91,7 +71,7 @@ const instrumentedMonitor = {
                                                 type: 'Untyped',
                                                 value: {
                                                     kind: 'TlaStr',
-                                                    value: 'timestamp',
+                                                    value: 'height',
                                                 },
                                             },
                                             {
@@ -110,33 +90,6 @@ const instrumentedMonitor = {
                                         value: {
                                             kind: 'TlaStr',
                                             value: 'alice',
-                                        },
-                                    },
-                                ],
-                            },
-                            {
-                                kind: 'OperEx',
-                                oper: 'EQ',
-                                type: 'Untyped',
-                                args: [
-                                    {
-                                        kind: 'OperEx',
-                                        oper: 'PRIME',
-                                        type: 'Untyped',
-                                        args: [
-                                            {
-                                                kind: 'NameEx',
-                                                name: 'last_error',
-                                                type: 'Untyped',
-                                            },
-                                        ],
-                                    },
-                                    {
-                                        kind: 'ValEx',
-                                        type: 'Untyped',
-                                        value: {
-                                            kind: 'TlaStr',
-                                            value: 'contract is not initialized',
                                         },
                                     },
                                 ],

@@ -71,12 +71,6 @@ const verifyCmd = {
                 desc: 'Monitors to check against',
                 type: 'array',
                 demandOption: true,
-            })
-            .option('state', {
-                // TODO(#38): read state from fetcher output
-                desc: 'ITF file encoding ledger state',
-                type: 'string',
-                demandOption: true,
             }),
     handler: verify,
 }

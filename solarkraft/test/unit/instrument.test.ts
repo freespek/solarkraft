@@ -3,6 +3,8 @@
 import { assert } from 'chai'
 import { describe, it } from 'mocha'
 
+import { OrderedMap } from 'immutable'
+
 import { instrumentMonitor } from '../../src/instrument.js'
 
 import { instrumentedMonitor as expected } from './verify.instrumentedMonitor.js'
@@ -18,17 +20,18 @@ describe('Apalache JSON instrumentor', () => {
                 },
             ],
         }
-        const state = [
-            { name: 'is_initialized', type: 'TlaBool', value: false },
-        ]
-        const tx = {
-            functionName: 'Claim',
-            functionArgs: [{ type: 'TlaStr', value: 'alice' }],
-            env: { timestamp: 100 },
-            error: 'contract is not initialized',
+        const contractCall = {
+            height: 100,
+            txHash: '0xasdf',
+            contractId: '0xqwer',
+            returnValue: null,
+            method: 'Claim',
+            methodArgs: ['alice'],
+            fields: OrderedMap<string, any>([['is_initialized', false]]),
+            oldFields: OrderedMap<string, any>([['is_initialized', false]]),
         }
 
-        const instrumented = instrumentMonitor(monitor, state, tx)
+        const instrumented = instrumentMonitor(monitor, contractCall)
         assert.deepEqual(expected, instrumented)
     })
 
@@ -42,18 +45,23 @@ describe('Apalache JSON instrumentor', () => {
                 },
             ],
         }
-        const state = [
-            { name: 'is_initialized', type: 'TlaBool', value: false },
-            { name: 'additional_variable', type: 'TlaBool', value: false },
-        ]
-        const tx = {
-            functionName: 'Claim',
-            functionArgs: [{ type: 'TlaStr', value: 'alice' }],
-            env: { timestamp: 100 },
-            error: 'contract is not initialized',
+        const contractCall = {
+            height: 100,
+            txHash: '0xasdf',
+            contractId: '0xqwer',
+            returnValue: null,
+            method: 'Claim',
+            methodArgs: ['alice'],
+            fields: OrderedMap<string, any>([
+                ['is_initialized', false],
+                ['additional_variable', false],
+            ]),
+            oldFields: OrderedMap<string, any>([
+                ['is_initialized', false],
+                ['additional_variable', false],
+            ]),
         }
-
-        const instrumented = instrumentMonitor(monitor, state, tx)
+        const instrumented = instrumentMonitor(monitor, contractCall)
         assert.deepEqual(expected, instrumented)
     })
 })
