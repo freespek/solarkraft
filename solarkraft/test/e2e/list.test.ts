@@ -31,9 +31,10 @@ describe('list', () => {
 
         this.timeout(50000)
         spawn(`solarkraft list --home ${root}`)
-            .wait('[unverified]')
-            .wait('  height: 1000')
-            .wait(`  tx: ${TX_HASH}`)
+            .wait(`Contract ${CONTRACT_ID}`)
+            .wait('  [unverified]')
+            .wait('    height: 1000')
+            .wait(`    tx: ${TX_HASH}`)
             .run(done)
     })
 })

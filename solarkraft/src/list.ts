@@ -32,13 +32,16 @@ export function list(args: any) {
         if (dirent.isDirectory() && dirent.name.length === CONTRACT_ID_LENGTH) {
             // this is a storage directory for a contract
             if (args.id === '' || dirent.name === args.id) {
+                console.log(`Contract ${dirent.name}:`)
+                console.log('')
+
                 for (const e of yieldListEntriesForContract(
                     dirent.name,
                     join(storageRoot, dirent.name)
                 )) {
-                    console.log(`[${e.verification}]`)
-                    console.log(`  height: ${e.height}`)
-                    console.log(`  tx: ${e.txHash}`)
+                    console.log(`  [${e.verification}]`)
+                    console.log(`    height: ${e.height}`)
+                    console.log(`    tx: ${e.txHash}`)
                     console.log('')
                 }
             }
