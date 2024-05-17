@@ -1,0 +1,18 @@
+{
+  "height": 100,
+  "txHash": "0xasdf",
+  "contractId": "0xqwer",
+  "returnValue": null,
+  "method": "Claim",
+  "methodArgs": ["alice"],
+  "fields": [
+      ["balance", 123],
+      ["is_initialized", false],
+      ["last_error", ""]
+  ],
+  "oldFields": [
+      ["balance", 123],
+      ["is_initialized", false],
+      ["last_error", ""]
+  ]
+}
