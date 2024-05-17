@@ -1,3 +1,4 @@
+import { assert } from 'console'
 import { ContractCallEntry } from './fetcher/storage.js'
 
 /**
@@ -77,6 +78,13 @@ export function instrumentMonitor(
 
 // Decode a Native JS value `v` into its corresponding Apalache IR type.
 function tlaJsonTypeOfNative(v: any) {
+    assert(
+        typeof v !== 'symbol' &&
+            typeof v !== 'undefined' &&
+            typeof v !== 'function',
+        `Unexpected native value ${v} of type ${typeof v} in fetcher output.`
+    )
+
     switch (typeof v) {
         case 'string':
             return 'TlaStr'
@@ -86,13 +94,10 @@ function tlaJsonTypeOfNative(v: any) {
             return 'TlaInt'
         case 'boolean':
             return 'TlaBool'
-        // an array or object
-        // TODO(#46): support composite types (sequence, tuple, record, set, map)
-        // if (Array.isArray(o)) ...
         case 'object':
-        case 'symbol':
-        case 'undefined':
-        case 'function':
+            // an array or object
+            // TODO(#46): support composite types (sequence, tuple, record, set, map)
+            // if (Array.isArray(o)) ...
             return undefined
     }
 }
