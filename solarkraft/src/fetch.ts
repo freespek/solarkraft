@@ -35,8 +35,8 @@ export async function fetch(args: any) {
     console.log(`Last cached height: ${cachedHeight}`)
     if (args.height < 0) {
         // how to fetch the latest height?
-        console.log('not implemented yet, starting with 0')
-        lastHeight = 0
+        console.log(`not implemented yet, starting with ${cachedHeight}`)
+        lastHeight = cachedHeight
     } else if (args.height === 0) {
         lastHeight = cachedHeight
     } else {
@@ -82,12 +82,14 @@ export async function fetch(args: any) {
 
                 nEvents++
                 if (nEvents % HEIGHT_FETCHING_PERIOD === 0) {
-                    // Fetch the height of the current message.
+                    // Fetch the height of the current message and persist it for the future runs.
                     // Note that messages may come slightly out of order, so the heights are not precise.
                     const tx = await msg.transaction()
                     lastHeight = Math.max(lastHeight, tx.ledger_attr)
                     console.log(`= at: ${lastHeight}`)
-                    // load and save the state, other fetchers may work concurrently
+                    // Load and save the state. Other fetchers may work concurrently,
+                    // so there is a possibility of overwriting an updated height.
+                    // This will result in a fetcher doing additional work on the next run.
                     fetcherState = loadFetcherState(args.home)
                     fetcherState = {
                         ...fetcherState,
