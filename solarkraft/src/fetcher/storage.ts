@@ -12,7 +12,7 @@
 import JSONbigint from 'json-bigint'
 import { OrderedMap } from 'immutable'
 import { join } from 'node:path/posix'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 
 const JSONbig = JSONbigint({ useNativeBigInt: true })
 
@@ -69,12 +69,32 @@ export interface ContractCallEntry {
 }
 
 /**
+ * Serializable fetcher state.
+ */
+export interface FetcherState {
+    /**
+     * For every contract id, store the ledger height,
+     * up to which the transactions were fetched.
+     */
+    heights: OrderedMap<string, number>
+}
+
+/**
+ * Given the solarkraft home, construct the path to store the transactions.
+ * @param solarkraftHome path to solarkraft home (or project directory)
+ * @returns path to the transactions storage
+ */
+export function storagePath(solarkraftHome: string): string {
+    return join(solarkraftHome, ".stor")
+}
+
+/**
  * Store a contract call entry in the file storage.
- * @param root the storage root directory
+ * @param home the storage root directory
  * @param entry a call entry
  */
-export function saveContractCallEntry(root: string, entry: ContractCallEntry) {
-    const filename = getEntryFilename(root, entry)
+export function saveContractCallEntry(home: string, entry: ContractCallEntry) {
+    const filename = getEntryFilename(storagePath(home), entry)
     // convert OrderedMaps to arrays
     const simplified = {
         ...entry,
@@ -108,6 +128,42 @@ export function loadContractCallEntry(filename: string): ContractCallEntry {
 }
 
 /**
+ * Load fetcher state from the storage.
+ * @param root the storage root directory
+ * @returns the loaded state
+ */
+export function loadFetcherState(home: string): FetcherState {
+    const filename = getFetcherStateFilename(home)
+    if (!existsSync(filename)) {
+        // just return an empty map
+        return {
+            heights: OrderedMap<string, any>()
+        }
+    } else {
+        const contents = readFileSync(filename)
+        const loaded = JSONbig.parse(contents)
+        return {
+            heights: OrderedMap<string, any>(loaded.heights),
+        }
+    }
+}
+
+/**
+ * Store the fetcher config.
+ * @param home the storage root directory
+ * @param state fetcher state
+ */
+export function saveFetcherState(home: string, state: FetcherState): string {
+    const filename = getFetcherStateFilename(home)
+    const simplified = {
+        heights: state.heights.toArray(),
+    }
+    const contents = JSONbig.stringify(simplified)
+    writeFileSync(filename, contents)
+    return filename
+} 
+
+/**
  * Get the filename for a contract call entry. Create the parent directory, if required.
  *
  * @param root storage root
@@ -117,6 +173,18 @@ export function loadContractCallEntry(filename: string): ContractCallEntry {
 function getEntryFilename(root: string, entry: ContractCallEntry) {
     const dir = getOrCreateDirectory(root, entry)
     return join(dir, `entry-${entry.txHash}.json`)
+}
+
+/**
+ * Get the filename for a contract call entry. Create the parent directory, if required.
+ *
+ * @param root storage root
+ * @param entry call entry
+ * @returns the filename
+ */
+function getFetcherStateFilename(root: string) {
+    mkdirSync(root, { recursive: true })
+    return join(root, 'fetcher-state.json')
 }
 
 /**
