@@ -15,7 +15,8 @@ import { homedir } from 'node:os'
 
 // The default options present in every command
 const defaultOpts = (yargs: any) =>
-    yargs.option('color', {
+    yargs
+        .option('color', {
             desc: 'color output',
             type: 'boolean',
             default: true,
@@ -25,7 +26,6 @@ const defaultOpts = (yargs: any) =>
             type: 'string',
             default: join(homedir(), '.solarkraft'),
         })
-
 
 // fetch: transaction extractor
 const fetchCmd = {

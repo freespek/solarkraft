@@ -75,6 +75,7 @@ export interface FetcherState {
     /**
      * For every contract id, store the ledger height,
      * up to which the transactions were fetched.
+     * Similar to Stellar SDK, we are using number instead of bigint.
      */
     heights: OrderedMap<string, number>
 }
@@ -85,7 +86,7 @@ export interface FetcherState {
  * @returns path to the transactions storage
  */
 export function storagePath(solarkraftHome: string): string {
-    return join(solarkraftHome, ".stor")
+    return join(solarkraftHome, '.stor')
 }
 
 /**
@@ -137,7 +138,7 @@ export function loadFetcherState(home: string): FetcherState {
     if (!existsSync(filename)) {
         // just return an empty map
         return {
-            heights: OrderedMap<string, number>()
+            heights: OrderedMap<string, number>(),
         }
     } else {
         const contents = readFileSync(filename)
@@ -161,7 +162,7 @@ export function saveFetcherState(home: string, state: FetcherState): string {
     const contents = JSONbig.stringify(simplified)
     writeFileSync(filename, contents)
     return filename
-} 
+}
 
 /**
  * Get the filename for a contract call entry. Create the parent directory, if required.

@@ -49,7 +49,12 @@ describe('storage tests', () => {
 
         assert.equal(
             filename,
-            join(storagePath(root), CONTRACT_ID, '1000', `entry-${TX_HASH}.json`)
+            join(
+                storagePath(root),
+                CONTRACT_ID,
+                '1000',
+                `entry-${TX_HASH}.json`
+            )
         )
     })
 

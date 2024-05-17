@@ -11,7 +11,11 @@
 
 import { Horizon } from '@stellar/stellar-sdk'
 import { extractContractCall } from './fetcher/callDecoder.js'
-import { loadFetcherState, saveContractCallEntry, saveFetcherState } from './fetcher/storage.js'
+import {
+    loadFetcherState,
+    saveContractCallEntry,
+    saveFetcherState,
+} from './fetcher/storage.js'
 
 // how often to query for the latest synchronized height
 const HEIGHT_FETCHING_PERIOD = 100
@@ -40,7 +44,7 @@ export async function fetch(args: any) {
     }
 
     console.log(`Fetching fresh transactions from: ${args.rpc}...`)
-    
+
     console.log(`Fetching the ledger for ${lastHeight}`)
     const response = await server.ledgers().ledger(lastHeight).call()
     const startCursor = (response as any).paging_token
@@ -65,8 +69,10 @@ export async function fetch(args: any) {
         .stream({
             onmessage: async (msg: any) => {
                 if (msg.transaction_successful) {
-                    const callEntryMaybe =
-                        await extractContractCall(msg, (id) => contractId === id)
+                    const callEntryMaybe = await extractContractCall(
+                        msg,
+                        (id) => contractId === id
+                    )
                     if (callEntryMaybe.isJust()) {
                         const entry = callEntryMaybe.value
                         console.log(`+ save: ${entry.height}`)
@@ -83,7 +89,13 @@ export async function fetch(args: any) {
                     console.log(`= at: ${lastHeight}`)
                     // load and save the state, other fetchers may work concurrently
                     fetcherState = loadFetcherState(args.home)
-                    fetcherState = { ...fetcherState, heights: fetcherState.heights.set(contractId, lastHeight) }
+                    fetcherState = {
+                        ...fetcherState,
+                        heights: fetcherState.heights.set(
+                            contractId,
+                            lastHeight
+                        ),
+                    }
                     saveFetcherState(args.home, fetcherState)
                 }
             },
