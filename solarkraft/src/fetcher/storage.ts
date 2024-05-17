@@ -137,13 +137,13 @@ export function loadFetcherState(home: string): FetcherState {
     if (!existsSync(filename)) {
         // just return an empty map
         return {
-            heights: OrderedMap<string, any>()
+            heights: OrderedMap<string, number>()
         }
     } else {
         const contents = readFileSync(filename)
         const loaded = JSONbig.parse(contents)
         return {
-            heights: OrderedMap<string, any>(loaded.heights),
+            heights: OrderedMap<string, number>(loaded.heights),
         }
     }
 }
