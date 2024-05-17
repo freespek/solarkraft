@@ -5,13 +5,13 @@
 
 /**
  * List the transactions in the storage.
- * 
+ *
  * Igor Konnov, 2024.
  */
 
-import { existsSync, readdirSync } from "fs"
-import { storagePath, yieldListEntriesForContract } from "./fetcher/storage.js"
-import { join } from "node:path"
+import { existsSync, readdirSync } from 'fs'
+import { storagePath, yieldListEntriesForContract } from './fetcher/storage.js'
+import { join } from 'node:path'
 
 // the length of a contract id in its string representation
 const CONTRACT_ID_LENGTH = 56
@@ -28,11 +28,14 @@ export function list(args: any) {
         return
     }
 
-    readdirSync(storageRoot, { withFileTypes: true }).map(dirent => {
+    readdirSync(storageRoot, { withFileTypes: true }).map((dirent) => {
         if (dirent.isDirectory() && dirent.name.length === CONTRACT_ID_LENGTH) {
             // this is a storage directory for a contract
             if (args.id === '' || dirent.name === args.id) {
-                for (const e of yieldListEntriesForContract(dirent.name, join(storageRoot, dirent.name))) {
+                for (const e of yieldListEntriesForContract(
+                    dirent.name,
+                    join(storageRoot, dirent.name)
+                )) {
                     console.log(`[${e.verification}]`)
                     console.log(`  height: ${e.height}`)
                     console.log(`  tx: ${e.txHash}`)

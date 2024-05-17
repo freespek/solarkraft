@@ -86,13 +86,12 @@ const listCmd = {
     command: ['list'],
     desc: 'list the fetched and verified transactions',
     builder: (yargs: any) =>
-        defaultOpts(yargs)
-            .option('id', {
-                desc: 'Contract id',
-                type: 'string',
-                default: '',
-                require: false,
-            }),
+        defaultOpts(yargs).option('id', {
+            desc: 'Contract id',
+            type: 'string',
+            default: '',
+            require: false,
+        }),
     handler: list,
 }
 

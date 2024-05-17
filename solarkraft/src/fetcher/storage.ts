@@ -12,7 +12,13 @@
 import JSONbigint from 'json-bigint'
 import { OrderedMap } from 'immutable'
 import { join } from 'node:path/posix'
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import {
+    existsSync,
+    mkdirSync,
+    readFileSync,
+    readdirSync,
+    writeFileSync,
+} from 'node:fs'
 
 const JSONbig = JSONbigint({ useNativeBigInt: true })
 
@@ -72,9 +78,9 @@ export interface ContractCallEntry {
  * A listing entry.
  */
 export interface ListEntry {
-    contractId: string,
-    height: number,
-    txHash: string,
+    contractId: string
+    height: number
+    txHash: string
     verification: 'ok' | 'fail' | 'unverified'
 }
 
@@ -143,18 +149,30 @@ export function loadContractCallEntry(filename: string): ContractCallEntry {
  * @param contractId contract identifier (address)
  * @param path the path to the contract storage
  */
-export function *yieldListEntriesForContract(contractId: string, path: string): Generator<ListEntry> {
+export function* yieldListEntriesForContract(
+    contractId: string,
+    path: string
+): Generator<ListEntry> {
     for (const dirent of readdirSync(path, { withFileTypes: true })) {
         if (dirent.isDirectory() && /^[0-9]+$/.exec(dirent.name)) {
             // This directory may contain several transactions for the same height.
             const height = Number.parseInt(dirent.name)
-            for (const ledgerDirent of readdirSync(join(path, dirent.name), { withFileTypes: true })) {
+            for (const ledgerDirent of readdirSync(join(path, dirent.name), {
+                withFileTypes: true,
+            })) {
                 // match all storage entries
-                const matcher = /^entry-([0-9a-fA-F]+)\.json$/.exec(ledgerDirent.name)
+                const matcher = /^entry-([0-9a-fA-F]+)\.json$/.exec(
+                    ledgerDirent.name
+                )
                 if (ledgerDirent.isFile() && matcher) {
-                    const txHash = matcher[1];
+                    const txHash = matcher[1]
                     // TODO: read the verification result and report it
-                    yield ({ contractId, height, txHash, verification: 'unverified' })
+                    yield {
+                        contractId,
+                        height,
+                        txHash,
+                        verification: 'unverified',
+                    }
                 }
             }
         }
