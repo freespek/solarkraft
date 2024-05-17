@@ -156,6 +156,7 @@ export function loadFetcherState(home: string): FetcherState {
  */
 export function saveFetcherState(home: string, state: FetcherState): string {
     const filename = getFetcherStateFilename(home)
+    mkdirSync(home, { recursive: true })
     const simplified = {
         heights: state.heights.toArray(),
     }
@@ -177,14 +178,13 @@ function getEntryFilename(root: string, entry: ContractCallEntry) {
 }
 
 /**
- * Get the filename for a contract call entry. Create the parent directory, if required.
+ * Get the filename for the fetcher state.
  *
  * @param root storage root
  * @param entry call entry
  * @returns the filename
  */
 function getFetcherStateFilename(root: string) {
-    mkdirSync(root, { recursive: true })
     return join(root, 'fetcher-state.json')
 }
 
