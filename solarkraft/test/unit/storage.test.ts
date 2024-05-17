@@ -12,6 +12,7 @@ import { join } from 'node:path'
 import {
     loadContractCallEntry,
     saveContractCallEntry,
+    storagePath,
 } from '../../src/fetcher/storage.js'
 import { OrderedMap } from 'immutable'
 
@@ -48,7 +49,12 @@ describe('storage tests', () => {
 
         assert.equal(
             filename,
-            join(root, CONTRACT_ID, '1000', `entry-${TX_HASH}.json`)
+            join(
+                storagePath(root),
+                CONTRACT_ID,
+                '1000',
+                `entry-${TX_HASH}.json`
+            )
         )
     })
 

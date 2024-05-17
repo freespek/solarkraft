@@ -10,64 +10,104 @@
  */
 
 import { Horizon } from '@stellar/stellar-sdk'
-import JSONbigint from 'json-bigint'
 import { extractContractCall } from './fetcher/callDecoder.js'
+import {
+    loadFetcherState,
+    saveContractCallEntry,
+    saveFetcherState,
+} from './fetcher/storage.js'
+
+// how often to query for the latest synchronized height
+const HEIGHT_FETCHING_PERIOD = 100
 
 /**
  * Fetch transactions from the ledger
  * @param args the arguments parsed by yargs
  */
 export async function fetch(args: any) {
+    const server = new Horizon.Server(args.rpc)
+
     const contractId = args.id
     console.log(`Target contract: ${contractId}...`)
+    let fetcherState = loadFetcherState(args.home)
+    const cachedHeight = fetcherState.heights.get(contractId, 1)
+    let lastHeight = args.height
+    console.log(`Last cached height: ${cachedHeight}`)
+    if (args.height < 0) {
+        // how to fetch the latest height?
+        console.log(`not implemented yet, starting with ${cachedHeight}`)
+        lastHeight = cachedHeight
+    } else if (args.height === 0) {
+        lastHeight = cachedHeight
+    } else {
+        lastHeight = args.height
+    }
+
     console.log(`Fetching fresh transactions from: ${args.rpc}...`)
-    /*
-    // read the latest height cached from the latest invocation of fetch
-    const cachedHeight = 0
-    // fetch the actual height from the RPC endpoint
-    const currentHeight = 12345
-    let startHeight =
-        args.height < 0 ? currentHeight + args.height : args.height
-    startHeight = Math.max(startHeight, cachedHeight)
-    console.log(`| ledger | cached | start |`)
-    console.log(`| ${currentHeight}  | ${cachedHeight}   | ${startHeight} |\n`)
-    */
-    const startHeight = args.height
 
-    const DURATION = 30
-    const server = new Horizon.Server(args.rpc)
-    console.log(`Fetching the ledger for ${startHeight}`)
-    const response = await server.ledgers().ledger(startHeight).call()
-    //console.log(response)
+    console.log(`Fetching the ledger for ${lastHeight}`)
+    const response = await server.ledgers().ledger(lastHeight).call()
     const startCursor = (response as any).paging_token
+    // timeout id, if a timeout is set below
+    let timeout
 
-    // See:
-    // https://github.com/stellar/js-stellar-sdk/blob/master/test/integration/streaming_test.js
-    const finish = (err) => {
+    const done = (err) => {
+        // Closing handler:
+        // https://github.com/stellar/js-stellar-sdk/blob/master/test/integration/streaming_test.js
         clearTimeout(timeout)
         closeHandler()
         console.error(err)
     }
 
-    // TODO: work in progress
+    // the number of received events
+    let nEvents = 0
+
+    // initiate the streaming loop
     const closeHandler = server
         .operations()
         .cursor(startCursor)
         .stream({
             onmessage: async (msg: any) => {
-                if (msg.transaction_successful === true) {
-                    ;(
-                        await extractContractCall(
-                            msg,
-                            (id) => contractId === id
-                        )
-                    ).map((e) => {
-                        console.log(`call => ${JSONbigint.stringify(e)}`)
-                    })
+                if (msg.transaction_successful) {
+                    const callEntryMaybe = await extractContractCall(
+                        msg,
+                        (id) => contractId === id
+                    )
+                    if (callEntryMaybe.isJust()) {
+                        const entry = callEntryMaybe.value
+                        console.log(`+ save: ${entry.height}`)
+                        saveContractCallEntry(args.home, entry)
+                    }
+                } // else: shall we also store reverted transactions?
+
+                nEvents++
+                if (nEvents % HEIGHT_FETCHING_PERIOD === 0) {
+                    // Fetch the height of the current message and persist it for the future runs.
+                    // Note that messages may come slightly out of order, so the heights are not precise.
+                    const tx = await msg.transaction()
+                    lastHeight = Math.max(lastHeight, tx.ledger_attr)
+                    console.log(`= at: ${lastHeight}`)
+                    // Load and save the state. Other fetchers may work concurrently,
+                    // so there is a possibility of overwriting an updated height.
+                    // This will result in a fetcher doing additional work on the next run.
+                    fetcherState = loadFetcherState(args.home)
+                    fetcherState = {
+                        ...fetcherState,
+                        heights: fetcherState.heights.set(
+                            contractId,
+                            lastHeight
+                        ),
+                    }
+                    saveFetcherState(args.home, fetcherState)
                 }
             },
-            onerror: finish,
+            onerror: done,
         })
 
-    const timeout = setTimeout(finish, DURATION * 1000)
+    if (args.timeout > 0) {
+        console.log(`Fetching transactions for ${args.timeout} seconds.`)
+        timeout = setTimeout(done, args.timeout * 1000)
+    } else {
+        console.log('Fetching transactions indefinitely. Close with Ctrl-C.')
+    }
 }

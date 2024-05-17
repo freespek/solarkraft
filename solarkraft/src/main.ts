@@ -10,14 +10,22 @@ import { version } from './version.js'
 import { fetch } from './fetch.js'
 import { verify } from './verify.js'
 import { list } from './list.js'
+import { join } from 'node:path'
+import { homedir } from 'node:os'
 
 // The default options present in every command
 const defaultOpts = (yargs: any) =>
-    yargs.option('color', {
-        desc: 'color output',
-        type: 'boolean',
-        default: true,
-    })
+    yargs
+        .option('color', {
+            desc: 'color output',
+            type: 'boolean',
+            default: true,
+        })
+        .option('home', {
+            desc: 'Solarkraft home directory (or project directory)',
+            type: 'string',
+            default: join(homedir(), '.solarkraft'),
+        })
 
 // fetch: transaction extractor
 const fetchCmd = {
@@ -31,14 +39,19 @@ const fetchCmd = {
                 require: true,
             })
             .option('rpc', {
-                desc: 'URL of the Stellar RPC',
+                desc: 'URL of a Horizon endpoint',
                 type: 'string',
-                default: 'http://localhost:8000',
+                default: 'https://horizon-testnet.stellar.org',
             })
             .option('height', {
                 desc: 'The height to start with (a negative value -n goes from the latest block - n)',
                 type: 'number',
                 default: -10,
+            })
+            .option('timeout', {
+                desc: 'Fetcher timeout in seconds (when 0, fetch indefinitely long)',
+                type: 'number',
+                default: 0,
             }),
     handler: fetch,
 }
