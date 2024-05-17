@@ -5,7 +5,7 @@ import { describe, it } from 'mocha'
 import { spawn } from 'nexpect'
 
 describe('verify', () => {
-    it('errors on missing file', function (done) {
+    it('errors on missing monitor', function (done) {
         spawn(
             'solarkraft verify --home test/e2e/tla/ --txHash timelock --monitor doesnotexist'
         )
