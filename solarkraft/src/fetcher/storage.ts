@@ -154,13 +154,14 @@ export function* yieldListEntriesForContract(
     path: string
 ): Generator<ListEntry> {
     for (const dirent of readdirSync(path, { withFileTypes: true })) {
+        // match ledger heights, which are positive integers
         if (dirent.isDirectory() && /^[0-9]+$/.exec(dirent.name)) {
             // This directory may contain several transactions for the same height.
             const height = Number.parseInt(dirent.name)
             for (const ledgerDirent of readdirSync(join(path, dirent.name), {
                 withFileTypes: true,
             })) {
-                // match all storage entries
+                // match all storage entries, which may be reported in different cases
                 const matcher = /^entry-([0-9a-fA-F]+)\.json$/.exec(
                     ledgerDirent.name
                 )
