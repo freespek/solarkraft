@@ -90,7 +90,7 @@ Let's take a look at how reverse monitor specs help us to patch the loopholes de
 4. Unrestricted access from other contracts/methods: as in 1. and 2., it doesn't matter again where the modification comes from: if the state component we monitor is being changed, the monitor will detect it.
 
 
-## Verifying monitor specs
+## Verifying monitor specifications
 
 All that is nice and good, but there are a few questions that still need to be addressed, as people with different backgrounds might feel:
 
@@ -109,13 +109,27 @@ If you are still interested in the details -- continue reading!
 
 ### Checking monitor verification conditions
 
-TODO
+Formally, a blockchain is a sequence of _ledgers_, where each ledger is a snapshot of the blockchain _state_. States are partitioned, into separate spaces per contract, and then into separate regions per contract variable. 
+
+Blockchain states are mutated by _transactions_, where each transaction is an invocation of a certain contract _method_ with the corresponding method parameters supplied. The invoked method modifies the states according to its logic.
+
+For our purposes we consider only the state as it's relevant for a single contract and its variables. Thus we will use the following notations:
+
+- $D$ is a set of all possible data values: strings, numbers, structs, etc. Mathematically we don't distinguish between different data types (though practically we of course do).
+- $V$ is a set of typed contract variables.
+- $S = S_0, S_1, ...$ is a sequence of states.
+- $S_i \subseteq V \rightarrow D$ is the $i$-th contract state, which is a partial mapping from variables to their data values. If a variable $v$ is present in the mapping $S_i$, we say that it _exists_ in this state.
+- $T = T_0, T_1, ...$ is a sequence of transactions. Each transaction brings the contract into its next state, which we denote by $S_i \xrightarrow{T_i} S_{i+1}$.
+- $P$ is a set of all possible method parameter names. We reserve "method" to denote the name of the invoked contract method.
+- $T_i \subseteq P \rightarrow D$ is a partial mapping from parameter names to their values; only the parameters specific to the method invoked are present in the mapping.
 
 ### Monitor verification complexity
 
 TODO
 
 ### Practical checking of monitor specifications
+
+TODO
 
 
 [Runtime verification]: https://en.wikipedia.org/wiki/Runtime_verification
