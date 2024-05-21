@@ -26,8 +26,8 @@ Here we reason from the cause (method invocation) to the effect, but apply a str
 ![Direct monitor specs](./MonitorSpecs-Direct.png)
 
 - `MustFail_i` is a condition under which the method is expected to fail. If _any_ of those conditions hold, the monitor fires, and checks that the method does indeed fail;
-- `MustSucceed_i` is a condition, under which the method is expected to succeed, _provided that_ none of the `MustFail_i` conditions fired. Each `MustSucceed_i` condition represents a separate happy path in the method invocation;
-- `MustAchieve_i` is a condition over past and next state variables, which specifies the effect that the method invocation should achieve (e.g. the tokens should be transferred). _All_ of `MustAchieve_i` should hold if the method is executed successfully.
+- `MustPass_i` is a condition, under which the method is expected to succeed, _provided that_ none of the `MustFail_i` conditions fired. Each `MustPass_i` condition represents a separate happy path in the method invocation;
+- `MustHold_i` is a condition over past and next state variables, which specifies the effect that the method invocation should achieve (e.g. the tokens should be transferred). _All_ of `MustHold_i` should hold if the method is executed successfully.
 
 
 In the above, `Must<Fail|Succeed|Achieve>` is a prefix, which tells the monitor system how to interpret this predicate. The complete pattern for predicate names with these prefixes is as follows:
@@ -40,12 +40,12 @@ All predicates which refer to the same `<Method>` will be grouped, to create tog
 
 1. If any of `MustFail_i` conditions fire, check that method invocation reverts (otherwise, issue a warning / revert if configured to do so)
 2. If none of `MustFail_i` conditions fired, but method invocation reverted, issue a warning (incomplete spec)
-3. If none of  `MustFail_i` fired, and one of `MustSucceed_i` conditions fired, check that method invocation succeeds (otherwise, issue a warning)
-3. If none of  `MustFail_i` fired, and none of `MustSucceed_i` conditions fired, but method invocation succeeded, issue a warning of an incomplete spec (or revert if configured to do so)
-4. If method invocation succeeds, check that all of `MustAchieve_i` conditions hold on the pre- and post-states of the method invocation (otherwise, issue a warning / revert if configured to do so)
+3. If none of  `MustFail_i` fired, and one of `MustPass_i` conditions fired, check that method invocation succeeds (otherwise, issue a warning)
+3. If none of  `MustFail_i` fired, and none of `MustPass_i` conditions fired, but method invocation succeeded, issue a warning of an incomplete spec (or revert if configured to do so)
+4. If method invocation succeeds, check that all of `MustHold_i` conditions hold on the pre- and post-states of the method invocation (otherwise, issue a warning / revert if configured to do so)
 
 
-Notice that above we apply _or_ as default connector for preconditions (`MustFail_i` / `MustSucceed_i`), and we apply _and_ as default connector for effects (`MustAchieve_i`). Thus, you may split preconditions/effects into separate predicates at your convenience, thus avoiding complicated logical structure inside predicates themselves.
+Notice that above we apply _or_ as default connector for preconditions (`MustFail_i` / `MustPass_i`), and we apply _and_ as default connector for effects (`MustHold_i`). Thus, you may split preconditions/effects into separate predicates at your convenience, thus avoiding complicated logical structure inside predicates themselves.
 
 Now, is the approach described above enough to achieve the goals (safety, liveness, completeness) stated above? Think about it for a sec, before clicking on the our answer below.
 
@@ -125,18 +125,18 @@ MustFail_deposit_AlreadyInitialized ==
 
 \* The above failure conditions exhaust the precondition of deposit method
 \* The default success condition is not needed, but we may provide it
-MustSucceed_deposit_Default = TRUE
+MustPass_deposit_Default = TRUE
 
-MustAchieve_deposit_BalanceRecordCreated ==
+MustHold_deposit_BalanceRecordCreated ==
     exists(balance')
 
-MustAchieve_deposit_BalanceRecordCorrect ==
+MustHold_deposit_BalanceRecordCorrect ==
     /\ balance'.token = token
     /\ balance'.amount = amount
     /\ balance'.time_bound = time_bound
     /\ balance'.claimants = claimants
 
-MustAchieve_deposit_TokenTransferred ==
+MustHold_deposit_TokenTransferred ==
     token.transferred(from, this, amount)
 ```
 
@@ -144,7 +144,7 @@ MustAchieve_deposit_TokenTransferred ==
 ### Direct monitor for the `claim` method
 
 
-The [claim method](https://github.com/stellar/soroban-examples/blob/186443aab0bf8b7c2673428c38708bf38cb772ab/timelock/src/lib.rs#L93-L121) allows a user to claim the funds deposited previously into the contract, provided all conditions are fulfilled. Again `MustFail` predicates in the spec closely follow the assertions in the code. Notice that `MustSucceed` predicates allow us to separately specify two distinct happy paths for `claim`, namely when the time bound is given as `Before` and as `After`.
+The [claim method](https://github.com/stellar/soroban-examples/blob/186443aab0bf8b7c2673428c38708bf38cb772ab/timelock/src/lib.rs#L93-L121) allows a user to claim the funds deposited previously into the contract, provided all conditions are fulfilled. Again `MustFail` predicates in the spec closely follow the assertions in the code. Notice that `MustPass` predicates allow us to separately specify two distinct happy paths for `claim`, namely when the time bound is given as `Before` and as `After`.
 
 
 ```tla
@@ -158,19 +158,19 @@ MustFail_claim_NotClaimant ==
     claimant \notin claimants
 
 \* One success condition: correctly claimed before time bound
-MustSucceed_claim_BeforeTimeBount
+MustPass_claim_BeforeTimeBount
     /\ time_bound.kind = "Before" 
     /\ env.ledger.timestamp <= balance.time_bound.timestamp
 
 \* Another success condition: correctly claimed after time bound
-MustSucceed_claim_AfterTimeBount
+MustPass_claim_AfterTimeBount
     /\ time_bound.kind = "After" 
     /\ env.ledger.timestamp >= balance.time_bound.timestamp
 
-MustAchieve_claim_TokenTransferred ==
+MustHold_claim_TokenTransferred ==
     balance.token.transferred(this, claimant, balance.amount)
 
-MustAchieve_deposit_BalanceRecordRemoved ==
+MustHold_deposit_BalanceRecordRemoved ==
     ~exists(balance')
 ```
 
@@ -196,7 +196,7 @@ MonitorEffect_Balance_Changed ==
     \/ method = "claim"
 ```
 
-Notice that in the above three TLA+ fragments, changes to the deposit record are scattered across them. If we are concered about that fact, we could delete the predicates `MustAchieve_deposit_BalanceRecordCreated`, `MustAchieve_deposit_BalanceRecordCorrect`, and `MustAchieve_deposit_BalanceRecordRemoved`, and instead concentrate all management of the balance record in one place like this:
+Notice that in the above three TLA+ fragments, changes to the deposit record are scattered across them. If we are concered about that fact, we could delete the predicates `MustHold_deposit_BalanceRecordCreated`, `MustHold_deposit_BalanceRecordCorrect`, and `MustHold_deposit_BalanceRecordRemoved`, and instead concentrate all management of the balance record in one place like this:
 
 
 ```tla
