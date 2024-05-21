@@ -22,7 +22,7 @@ const MY_SYM: Symbol = symbol_short!("MY_SYM");
 
 // aggregate types
 const MY_BYTES: Symbol = symbol_short!("MY_BYTES");
-const MY_BYTES32: Symbol = symbol_short!("MY_BTES32");
+const MY_BYTES32: Symbol = symbol_short!("MY_BYTES32");
 const MY_VEC: Symbol = symbol_short!("MY_VEC");
 const MY_MAP: Symbol = symbol_short!("MY_MAP");
 const MY_ADDR: Symbol = symbol_short!("MY_ADDR");
