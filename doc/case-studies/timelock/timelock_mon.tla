@@ -3,7 +3,7 @@
  *
  * Andrey Kuprianov, 2024
  *)
----- MODULE timelock_monitor ----
+---- MODULE timelock_mon ----
 
 \************************
 \* Deposit method monitor
@@ -27,18 +27,18 @@ MustFail_deposit_AlreadyInitialized ==
 
 \* The above failure conditions exhaust the precondition of deposit method
 \* The default success condition is not needed, but we may provide it
-MustSucceed_deposit_Default = TRUE
+MustPass_deposit_Default = TRUE
 
-MustAchieve_deposit_BalanceRecordCreated ==
+MustHold_deposit_BalanceRecordCreated ==
     exists(balance')
 
-MustAchieve_deposit_BalanceRecordCorrect ==
+MustHold_deposit_BalanceRecordCorrect ==
     /\ balance'.token = token
     /\ balance'.amount = amount
     /\ balance'.time_bound = time_bound
     /\ balance'.claimants = claimants
 
-MustAchieve_deposit_TokenTransferred ==
+MustHold_deposit_TokenTransferred ==
     token.transferred(from, this, amount)
 
 
@@ -56,19 +56,19 @@ MustFail_claim_NotClaimant ==
     claimant \notin claimants
 
 \* One success condition: correctly claimed before time bound
-MustSucceed_claim_BeforeTimeBount
+MustPass_claim_BeforeTimeBount
     /\ time_bound.kind = "Before" 
     /\ env.ledger.timestamp <= balance.time_bound.timestamp
 
 \* Another success condition: correctly claimed after time bound
-MustSucceed_claim_AfterTimeBount
+MustPass_claim_AfterTimeBount
     /\ time_bound.kind = "After" 
     /\ env.ledger.timestamp >= balance.time_bound.timestamp
 
-MustAchieve_claim_TokenTransferred ==
+MustHold_claim_TokenTransferred ==
     balance.token.transferred(this, claimant, balance.amount)
 
-MustAchieve_deposit_BalanceRecordRemoved ==
+MustHold_deposit_BalanceRecordRemoved ==
     ~exists(balance')
 
 
@@ -81,7 +81,7 @@ MustAchieve_deposit_BalanceRecordRemoved ==
 MonitorTrigger_Balance_RecordChanged ==
     exists(balance) /= exists(balance)'
 
-\* This trigger fires when the balance record content Achieves
+\* This trigger fires when the balance record content Holds
 \* Notice that it will panic (won't fire) if the record doesn't exist
 MonitorTrigger_Balance_ContentChanged ==
     balance /= balance'
