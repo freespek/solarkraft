@@ -155,4 +155,4 @@ This is it for the monitor spec of the Timelock contract. We hope you are convin
 [Direct and Reverse Monitor Specifications]: ../../monitor-specs.md
 [ERC-721 Certora spec]: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/255e27e6d22934ddaf00c7f279039142d725382d/certora/specs/ERC721.spec
 [ERC-721 implementation]: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/255e27e6d22934ddaf00c7f279039142d725382d/contracts/token/ERC721/ERC721.sol
-[Timelock monitor spec]: ./timelock_monitor.tla
+[Timelock monitor spec]: ./timelock_mon.tla
