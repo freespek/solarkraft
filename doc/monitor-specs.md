@@ -4,19 +4,20 @@ _Andrey Kuprianov, 2024_
 
 ------
 
-## Structuring monitor specifications
+Runtime monitoring, also known as [Runtime verification][], is a well-established field, where many practical approaches have been devised and applied successfully. Based on this heritage, we propose a Web-3 runtime monitoring system for the Stellar blockchain, which is based on the [TLA+][] specification language, a well-established formalism for specifying and verifying distributed systems. 
 
-Before diving into the concrete timelock example, let's explore a bit of a theory of what we want to achieve with runtime monitors. Eventually, runtime monitors are going to be deployed on the live blockchain, and they should serve two purposes:
+What do we want to achieve with runtime monitors? Eventually, runtime monitors are going to be deployed on the live blockchain, and they should satisfy three requirements:
 
-- **Prevent safety violations**: bad things, such as your token balance being stolen, should not happen. This is the primary goal of runtime monitors: react preventively, and abort unwanted executions.
-- **Detect liveness violations**: good things should be able to happen! E.g. you, as an account owner, should be able to withdraw your own balance. If a legitimate transaction keeps reverting, that's also a bug, not less severe than someone stealing your tokens.
-- **Detect unexpected behaviors**: same as code, specs are not perfect. If a spec author overlooked some behaviors, and they manifest themselves on the live blockchain, this may mean anything: from simple spec incompleteness, to an exploit being executed. Monitors can be configured to either issue a simple warning, or to prevent such behaviors altogether.
+- **Prevent safety violations** (_safety_): bad things, such as your token balance being stolen, should not happen. This is the primary goal of runtime monitors: react preventively, and abort unwanted executions.
+- **Detect liveness violations** (_liveness_): good things should be able to happen! E.g. you, as an account owner, should be able to withdraw your own balance. If a legitimate transaction keeps reverting, that's also a bug, not less severe than someone stealing your tokens.
+- **Detect unexpected behaviors** (_completeness_): same as code, specs are not perfect. If a spec author overlooked some behaviors, and they manifest themselves on the live blockchain, this may mean anything: from simple spec incompleteness, to an exploit being executed. Monitors can be configured to either issue a simple warning, or to prevent such behaviors altogether.
 
 The problem we've observed with the specification approaches previously is that the specs of _what_ the method should do can easily be much larger than the actual implementation; compare e.g. this [ERC-721 Certora spec][] with the [ERC-721 implementation][] (don't forget to exclude comments when comparing).
 
-So monitors should be able to specify both safety and liveness properties, and do it _compactly_. For that we impose a certain structure to the direct reasoning (cause -> effect), as well as apply the reverse reasoning (effect -> cause).
+So monitors should be able to specify both safety and liveness properties, do it _compactly_, and at the same time be _complete_ wrt. the current and future system behaviors. For that we impose a certain structure to the direct reasoning (cause -> effect), as well as complement it with reverse reasoning (effect -> cause).
 
-### Direct monitor specs
+
+## Direct monitor specs
 
 Here we reason from the cause (method invocation) to the effect, but apply a structure which closely mimics in formal semantics what we expect to see when we program smart contracts. The essence of the structure is in the picture below:
 
@@ -24,13 +25,13 @@ Here we reason from the cause (method invocation) to the effect, but apply a str
 
 - `MustFail_i` is a condition under which the method is expected to fail. If _any_ of those conditions hold, the monitor fires, and checks that the method does indeed fail;
 - `MustPass_i` is a condition, under which the method is expected to succeed, _provided that_ none of the `MustFail_i` conditions fired. Each `MustPass_i` condition represents a separate happy path in the method invocation;
-- `MustHold_i` is a condition over past and next state variables, which specifies the effect that the method invocation should achieve (e.g. the tokens should be transferred). _All_ of `MustHold_i` should hold if the method is executed successfully.
+- `MustHold_i` is a condition that should hold over past and next state variables, if the method invocation is successful (e.g. the tokens should be transferred). _All_ of `MustHold_i` should hold if the method is executed successfully.
 
 
-In the above, `Must<Fail|Succeed|Achieve>` is a prefix, which tells the monitor system how to interpret this predicate. The complete pattern for predicate names with these prefixes is as follows:
+In the above, `Must<Fail|Pass|Hold>` is a prefix, which tells the monitor system how to interpret this predicate. The complete pattern for predicate names with these prefixes is as follows:
 
 ```
-Must<Fail|Succeed|Achieve>_<Method>_<ConditionDescription>
+Must<Fail|Pass|Hold>_<Method>_<ConditionDescription>
 ```
 
 All predicates which refer to the same `<Method>` will be grouped, to create together one _method monitor_. Interpreted formally, the monitor should do the following when `<Method>` is invoked:
@@ -59,7 +60,7 @@ Thus we proceed to explore _reverse reasoning_.
 </details>
 
 
-### Reverse monitor specs
+## Reverse monitor specs
 
 With reverse reasoning we will try to patch the loopholes that were left by direct monitor specs above. To do so, we start with an _effect_ (state was modified), and go back to its _cause_ (what should have happened taking the effect into account). Here is the corresponding picture which puts a bit of structure into the reverse reasoning.
 
@@ -89,7 +90,8 @@ Let's take a look at how reverse monitor specs help us to patch the loopholes de
 4. Unrestricted access from other contracts/methods: as in 1. and 2., it doesn't matter again where the modification comes from: if the state component we monitor is being changed, the monitor will detect it.
 
 
-
+[Runtime verification]: https://en.wikipedia.org/wiki/Runtime_verification
+[TLA+]: https://en.wikipedia.org/wiki/TLA%2B
 [Timelock contract]: https://github.com/stellar/soroban-examples/blob/v20.0.0/timelock/src/lib.rs
 [SCF 24 submission example]: ./scf24/example/README.md
 [ERC-721 Certora spec]: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/255e27e6d22934ddaf00c7f279039142d725382d/certora/specs/ERC721.spec
