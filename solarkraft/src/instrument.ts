@@ -33,13 +33,14 @@ export function instrumentMonitor(
     const tlaInit = tlaJsonOperDecl__And(
         'Init',
         fieldsToInstrument
-            .map((value, name) =>
-                tlaJsonEq__NameEx__ValEx(
+            .map((value, name) => {
+                const tlaValue = tlaJsonValueOfNative(value)
+                return tlaJsonEq__NameEx__ValEx(
                     name,
                     false,
-                    tlaJsonValEx(tlaJsonTypeOfNative(value), value)
+                    tlaJsonValEx(tlaJsonTypeOfValue(tlaValue), tlaValue)
                 )
-            )
+            })
             .valueSeq()
             .toArray()
     )
@@ -48,9 +49,10 @@ export function instrumentMonitor(
     const envRecord = tlaJsonRecord([
         { name: 'height', kind: 'TlaInt', value: contractCall.height },
     ])
-    const tlaMethodArgs = contractCall.methodArgs.map((v) =>
-        tlaJsonValEx(tlaJsonTypeOfNative(v), v)
-    )
+    const tlaMethodArgs = contractCall.methodArgs.map((v) => {
+        const tlaValue = tlaJsonValueOfNative(v)
+        return tlaJsonValEx(tlaJsonTypeOfValue(tlaValue), tlaValue)
+    })
     const tlaNext = tlaJsonOperDecl__And('Next', [
         tlaJsonApplication(
             contractCall.method,
@@ -76,28 +78,67 @@ export function instrumentMonitor(
     return { ...monitor, modules: [extendedModule] }
 }
 
-// Decode a Native JS value `v` into its corresponding Apalache IR type.
-function tlaJsonTypeOfNative(v: any) {
-    assert(
-        typeof v !== 'symbol' &&
-            typeof v !== 'undefined' &&
-            typeof v !== 'function',
-        `Unexpected native value ${v} of type ${typeof v} in fetcher output.`
-    )
+// Return the appropriate type for an Apalache JSON IR value `v`.
+export function tlaJsonTypeOfValue(v: any) {
+    if (
+        typeof v === 'symbol' ||
+        typeof v == 'undefined' ||
+        typeof v == 'function' ||
+        typeof v == 'object'
+    ) {
+        console.error(
+            `Unexpected native value of type ${typeof v} in fetcher output:`
+        )
+        console.error(v)
+        assert(false)
+    }
 
     switch (typeof v) {
-        case 'string':
-            return 'TlaStr'
-        case 'number':
-            return 'TlaInt'
-        case 'bigint':
-            return 'TlaInt'
         case 'boolean':
             return 'TlaBool'
+        case 'bigint':
+        case 'number':
+            return 'TlaInt'
+        case 'string':
+            return 'TlaStr'
+    }
+}
+
+// Decode a Native JS value `v` into its corresponding Apalache JSON IR representation.
+export function tlaJsonValueOfNative(v: any) {
+    if (
+        typeof v == 'symbol' ||
+        typeof v == 'undefined' ||
+        typeof v == 'function'
+    ) {
+        console.error(
+            `Unexpected native value of type ${typeof v} in fetcher output:`
+        )
+        console.error(v)
+        assert(false)
+    }
+
+    switch (typeof v) {
+        case 'boolean':
+        case 'bigint':
+        case 'number':
+        case 'string':
+            return v
         case 'object':
-            // an array or object
             // TODO(#46): support composite types (sequence, tuple, record, set, map)
-            // if (Array.isArray(o)) ...
+            if (Array.isArray(v)) {
+                // an array
+                return undefined
+            }
+            // an object
+            if (v.type == 'Buffer') {
+                // a buffer
+                // v.data contains the bytes, as integers - render them into a string
+                return v.data
+                    .map((x: number) => x.toString(16).padStart(2, '0'))
+                    .join('')
+            }
+            // a record or map
             return undefined
     }
 }
