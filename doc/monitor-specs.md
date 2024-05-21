@@ -90,6 +90,34 @@ Let's take a look at how reverse monitor specs help us to patch the loopholes de
 4. Unrestricted access from other contracts/methods: as in 1. and 2., it doesn't matter again where the modification comes from: if the state component we monitor is being changed, the monitor will detect it.
 
 
+## Verifying monitor specs
+
+All that is nice and good, but there are a few questions that still need to be addressed, as people with different backgrounds might feel:
+
+- Formal Methods: "How do you _verify_ monitor specs?"
+- Math: "What about verification _complexity_?"
+- Software engineering: "How do you _practically check_ them on the blockchain?"
+
+This section outlines the answers to the above questions. TL;DR; for those who are not interested in these details:
+
+- We verify monitor specs via a) producing verification conditions from each monitor specification; b) extracting transactions from the blockchain; c) validating each transaction against verification conditions using the Apalache model checker.
+- Complexity of verifying monitor specs is _linear_ wrt. the number of conditions in the specification, and the number of transactions: each condition is checked _at most once_ against every transaction (but many checks may be skipped/optimized away).
+- Practically, we integrate monitor specs as outlined here in the `solarcraft verify` command; the documentation for which can be found elsewhere in this repo. `Solarcraft` is a tool that we write specifically for checking monitor specifications against blockchain transactions. Currently we are doing it in _offline mode_ by first downloading transactions using `solarcraft fetch`, and then verifying them; eventually we want to move into verifying monitor specs on the live blockchain, i.e. we want to do _online monitoring_.
+
+If you are still interested in the details -- continue reading!
+
+
+### Checking monitor verification conditions
+
+TODO
+
+### Monitor verification complexity
+
+TODO
+
+### Practical checking of monitor specifications
+
+
 [Runtime verification]: https://en.wikipedia.org/wiki/Runtime_verification
 [TLA+]: https://en.wikipedia.org/wiki/TLA%2B
 [Timelock contract]: https://github.com/stellar/soroban-examples/blob/v20.0.0/timelock/src/lib.rs
