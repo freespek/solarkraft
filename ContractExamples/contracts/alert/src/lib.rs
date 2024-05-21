@@ -1,8 +1,12 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Env, Symbol, Map, String};
+use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Env, Symbol, Vec, String};
 
 const ALERTS: Symbol = symbol_short!("ALERTS");
+
 const VIOLATION: Symbol = symbol_short!("VIOLATION");
+const OK: Symbol = symbol_short!("OK");
+const UNKNOWN: Symbol = symbol_short!("UNKNOWN");
+
 
 #[contract]
 pub struct Alert;
@@ -16,7 +20,7 @@ pub enum MonitorAnalysisStatus {
     Unknown = 2
 }
 
-type AlertMap = Map<String, MonitorAnalysisStatus>;
+type AlertVec = Vec<String>;
 
 /*
     The Alert contract gets called by the monitor executor, whenever a transaction gets analyzed.
@@ -28,20 +32,31 @@ type AlertMap = Map<String, MonitorAnalysisStatus>;
 #[contractimpl]
 impl Alert {
 
-    pub fn emit_warning_if_violation(env: Env, tx_hash: String, status: MonitorAnalysisStatus) -> MonitorAnalysisStatus {
+    pub fn emit_and_store_violation(env: Env, tx_hash: String, status: MonitorAnalysisStatus) -> MonitorAnalysisStatus {
         // Get the current alerts
-        let mut alerts: AlertMap = env.storage().instance().get(&ALERTS).unwrap_or(AlertMap::new(&env));
+        let mut alerts: AlertVec = env.storage().instance().get(&ALERTS).unwrap_or(AlertVec::new(&env));
 
-        // Add to history and save
-        alerts.set(tx_hash, status);
-        env.storage().instance().set(&ALERTS, &alerts);
-
-        // If there is a violation, emit an event.
-        if status == MonitorAnalysisStatus::Violation {
-            env.events().publish((ALERTS, VIOLATION), status);
-        }
+        // We always 
+        match status {
+            MonitorAnalysisStatus::NoViolation => {
+                env.events().publish((ALERTS, OK), status);
+            }
+            MonitorAnalysisStatus::Unknown => {
+                env.events().publish((ALERTS, UNKNOWN), status);
+            }
+            MonitorAnalysisStatus::Violation => {
+                env.events().publish((ALERTS, VIOLATION), status);
+                // Add to history and save
+                alerts.push_back(tx_hash);
+                env.storage().instance().set(&ALERTS, &alerts);
+            }
+        }    
 
         return status
+    }
+
+    pub fn alerts(env: Env) -> AlertVec {
+        return env.storage().instance().get(&ALERTS).unwrap_or(AlertVec::new(&env));
     }
 }
 
