@@ -121,7 +121,19 @@ For our purposes we consider only the state as it's relevant for a single contra
 - $S_i \subseteq V \rightarrow D$ is the $i$-th contract state, which is a partial mapping from variables to their data values. If a variable $v$ is present in the mapping $S_i$, we say that it _exists_ in this state.
 - $T = T_0, T_1, ...$ is a sequence of transactions. Each transaction brings the contract into its next state, which we denote by $S_i \xrightarrow{T_i} S_{i+1}$.
 - $P$ is a set of all possible method parameter names. We reserve "method" to denote the name of the invoked contract method.
-- $T_i \subseteq P \rightarrow D$ is a partial mapping from parameter names to their values; only the parameters specific to the method invoked are present in the mapping.
+- $T_i \subseteq P \rightarrow D$ is a partial mapping from parameter names to their values; only the parameters specific to the invoked method are present in the mapping.
+
+
+The above definitions define the structure of the object to which we apply monitor specifications. Now it's time to define the structure of specifications themselves. As checking each direct method specification or reverse effect specification is independent from others, we define only the structure for individual monitors.
+
+- $M_D = \langle F, P, H \rangle$ is a direct method monitor specification, where the components are the finite sets of `MustFail`, `MustPass`, and `MustHold` conditions respectively.
+- $M_R = \langle T, E \rangle$ is a reverse effect monitor specification, where the components are the finite sets of `MonitorTrigger` and `MonitorEffect` conditions respectively.
+
+In the above:
+
+- $F, P, T \subseteq S_i \rightarrow \mathbb{B}$ are boolean conditions of the past state only
+- $H, E \subseteq (S_i, S_{i+1}) \rightarrow \mathbb{B}$ are boolean conditions defined over the past and the next state
+
 
 ### Monitor verification complexity
 
