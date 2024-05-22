@@ -34,11 +34,10 @@ export function instrumentMonitor(
         'Init',
         fieldsToInstrument
             .map((value, name) => {
-                const tlaValue = tlaJsonValueOfNative(value)
                 return tlaJsonEq__NameEx__ValEx(
                     name,
                     false,
-                    tlaJsonValEx(tlaJsonTypeOfValue(tlaValue), tlaValue)
+                    tlaJsonOfNative(value)
                 )
             })
             .valueSeq()
@@ -49,10 +48,7 @@ export function instrumentMonitor(
     const envRecord = tlaJsonRecord([
         { name: 'height', kind: 'TlaInt', value: contractCall.height },
     ])
-    const tlaMethodArgs = contractCall.methodArgs.map((v) => {
-        const tlaValue = tlaJsonValueOfNative(v)
-        return tlaJsonValEx(tlaJsonTypeOfValue(tlaValue), tlaValue)
-    })
+    const tlaMethodArgs = contractCall.methodArgs.map(tlaJsonOfNative)
     const tlaNext = tlaJsonOperDecl__And('Next', [
         tlaJsonApplication(
             contractCall.method,
@@ -79,20 +75,7 @@ export function instrumentMonitor(
 }
 
 // Return the appropriate type for an Apalache JSON IR value `v`.
-export function tlaJsonTypeOfValue(v: any) {
-    if (
-        typeof v === 'symbol' ||
-        typeof v == 'undefined' ||
-        typeof v == 'function' ||
-        typeof v == 'object'
-    ) {
-        console.error(
-            `Unexpected native value of type ${typeof v} in fetcher output:`
-        )
-        console.error(v)
-        assert(false)
-    }
-
+export function tlaJsonTypeOfPrimitive(v: any) {
     switch (typeof v) {
         case 'boolean':
             return 'TlaBool'
@@ -101,46 +84,55 @@ export function tlaJsonTypeOfValue(v: any) {
             return 'TlaInt'
         case 'string':
             return 'TlaStr'
+        default:
+            assert(false, `Expected primitive type, got ${typeof v}`)
     }
 }
 
-// Decode a Native JS value `v` into its corresponding Apalache JSON IR representation.
-export function tlaJsonValueOfNative(v: any) {
-    if (
-        typeof v == 'symbol' ||
-        typeof v == 'undefined' ||
-        typeof v == 'function'
-    ) {
-        console.error(
-            `Unexpected native value of type ${typeof v} in fetcher output:`
-        )
-        console.error(v)
-        assert(false)
-    }
-
-    switch (typeof v) {
-        case 'boolean':
-        case 'bigint':
-        case 'number':
-        case 'string':
-            return v
-        case 'object':
-            // TODO(#46): support composite types (sequence, tuple, record, set, map)
-            if (Array.isArray(v)) {
-                // an array
-                return undefined
+// Translate a Native JS value `v` into its corresponding Apalache JSON IR representation.
+export function tlaJsonOfNative(v: any): any {
+    if (typeof v === 'object') {
+        if (Array.isArray(v)) {
+            // a JS array / Soroban `Vec`
+            // [ 1, 2, 3 ]  ~~>  << 1, 2, 3 >>
+            return {
+                type: 'Untyped',
+                kind: 'OperEx',
+                oper: 'TUPLE',
+                args: v.map(tlaJsonOfNative),
             }
-            // an object
-            if (v.type == 'Buffer') {
-                // a buffer
-                // v.data contains the bytes, as integers - render them into a string
-                return v.data
+        }
+        // a "proper" JS object (not an array)
+        if (v.type == 'Buffer') {
+            // Soroban `Buffer`
+            // v.data contains the bytes, as integers - render them into a string
+            return tlaJsonOfNative(
+                v.data
                     .map((x: number) => x.toString(16).padStart(2, '0'))
                     .join('')
-            }
-            // a record or map
-            return undefined
+            )
+        }
+        // Soroban `Map`
+        // { "2": 3, "4": 5 }  ~~>  SetAsFun({ <<"2", 3>>, <<"4", 5>> })
+        return {
+            type: 'Untyped',
+            kind: 'OperEx',
+            oper: 'Apalache!SetAsFun',
+            args: [
+                {
+                    type: 'Untyped',
+                    kind: 'OperEx',
+                    oper: 'SET_ENUM',
+                    args: Object.entries(v).map(([key, value]) =>
+                        tlaJsonOfNative([key, value])
+                    ),
+                },
+            ],
+        }
     }
+    // a primitive value
+    // v  ~~>  ValEx(v)
+    return tlaJsonValEx(tlaJsonTypeOfPrimitive(v), v)
 }
 
 /**

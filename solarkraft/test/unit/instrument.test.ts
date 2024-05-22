@@ -7,11 +7,58 @@ import { OrderedMap } from 'immutable'
 
 import {
     instrumentMonitor,
-    tlaJsonTypeOfValue,
-    tlaJsonValueOfNative,
+    tlaJsonTypeOfPrimitive,
+    tlaJsonOfNative,
 } from '../../src/instrument.js'
 
 import { instrumentedMonitor as expected } from './verify.instrumentedMonitor.js'
+
+// Assert that `tlaJsonOfNative` returns a proper TLA+ `ValEx` for the primitive JS value `v`
+function assertProperValExOfPrimitive(v: any) {
+    const valEx = tlaJsonOfNative(v)
+    assert.propertyVal(valEx, 'type', 'Untyped')
+    assert.propertyVal(valEx, 'kind', 'ValEx')
+    assert.property(valEx, 'value')
+    assert.propertyVal(valEx.value, 'value', v)
+}
+
+// Assert that `tlaJsonOfNative` returns a proper TLA+ `ValEx` for the Soroban `Buffer` `v`
+function assertProperValExOfBuffer(v: any, expected: string) {
+    const valEx = tlaJsonOfNative(v)
+    assert.propertyVal(valEx, 'type', 'Untyped')
+    assert.propertyVal(valEx, 'kind', 'ValEx')
+    assert.property(valEx, 'value')
+    assert.propertyVal(valEx.value, 'kind', 'TlaStr')
+    assert.propertyVal(valEx.value, 'value', expected)
+}
+
+// Assert that `tlaJsonOfNative` returns a proper TLA+ sequence constructor for the Soroban `Vec` `v`
+function assertProperVec(v: any[]) {
+    const tla = tlaJsonOfNative(v)
+    assert.propertyVal(tla, 'type', 'Untyped')
+    assert.propertyVal(tla, 'kind', 'OperEx')
+    assert.propertyVal(tla, 'oper', 'TUPLE')
+    assert.deepPropertyVal(tla, 'args', v.map(tlaJsonOfNative))
+}
+
+// Assert that `tlaJsonOfNative` returns a proper Apalache/TLA+ `SetAsFun({<<k1, v1>>, <<k2, v2>>, ...})` for the Soroban `Map` `v`
+function assertProperMap(v: any) {
+    const tla = tlaJsonOfNative(v)
+    assert.propertyVal(tla, 'type', 'Untyped')
+    assert.propertyVal(tla, 'kind', 'OperEx')
+    assert.propertyVal(tla, 'oper', 'Apalache!SetAsFun')
+    assert.property(tla, 'args')
+    assert.equal(tla.args.length, 1)
+    const setEnum = tla.args[0]
+    assert.propertyVal(setEnum, 'type', 'Untyped')
+    assert.propertyVal(setEnum, 'kind', 'OperEx')
+    assert.propertyVal(setEnum, 'oper', 'SET_ENUM')
+    assert.property(setEnum, 'args')
+    setEnum.args.forEach((tuple) => {
+        const key = tuple.args[0].value.value
+        assertProperVec([key, v[key]])
+    })
+}
 
 describe('Apalache JSON instrumentor', () => {
     it('instruments TLA+ monitors', () => {
@@ -69,32 +116,42 @@ describe('Apalache JSON instrumentor', () => {
         assert.deepEqual(expected, instrumented)
     })
 
-    it('decodes Soroban values to Apalache JSON IR values', () => {
-        assert.equal(true, tlaJsonValueOfNative(true))
-        assert.equal(false, tlaJsonValueOfNative(false))
-        assert.equal(-42000, tlaJsonValueOfNative(-42000))
-        assert.equal(0, tlaJsonValueOfNative(0))
-        assert.equal(1, tlaJsonValueOfNative(1))
-        assert.equal(42000, tlaJsonValueOfNative(42000))
-        assert.equal('', tlaJsonValueOfNative(''))
-        assert.equal('asdf', tlaJsonValueOfNative('asdf'))
-        assert.equal('00', tlaJsonValueOfNative({ type: 'Buffer', data: [0] }))
-        assert.equal(
-            'beef',
-            tlaJsonValueOfNative({ type: 'Buffer', data: [190, 239] })
-        )
+    it('decodes primitive Soroban values to Apalache JSON IR ValEx', () => {
+        assertProperValExOfPrimitive(true)
+        assertProperValExOfPrimitive(false)
+        assertProperValExOfPrimitive(-42000)
+        assertProperValExOfPrimitive(0)
+        assertProperValExOfPrimitive(1)
+        assertProperValExOfPrimitive(42000)
+        assertProperValExOfPrimitive('')
+        assertProperValExOfPrimitive('asdf')
     })
 
-    it('finds appropriate types for values', () => {
-        assert.equal('TlaBool', tlaJsonTypeOfValue(true))
-        assert.equal('TlaBool', tlaJsonTypeOfValue(false))
-        assert.equal('TlaInt', tlaJsonTypeOfValue(-42000))
-        assert.equal('TlaInt', tlaJsonTypeOfValue(0))
-        assert.equal('TlaInt', tlaJsonTypeOfValue(1))
-        assert.equal('TlaInt', tlaJsonTypeOfValue(42000))
-        assert.equal('TlaStr', tlaJsonTypeOfValue(''))
-        assert.equal('TlaStr', tlaJsonTypeOfValue('asdf'))
-        assert.equal('TlaStr', tlaJsonTypeOfValue('00'))
-        assert.equal('TlaStr', tlaJsonTypeOfValue('beef'))
+    it('decodes Soroban Buffer values to Apalache JSON IR ValEx', () => {
+        assertProperValExOfBuffer({ type: 'Buffer', data: [0] }, '00')
+        assertProperValExOfBuffer({ type: 'Buffer', data: [190, 239] }, 'beef')
+    })
+
+    it('decodes Soroban Vec values to Apalache JSON IR', () => {
+        assertProperVec([])
+        assertProperVec([1, 2, 3])
+        assertProperVec(['a', 'b'])
+    })
+
+    it('decodes Soroban Map values to Apalache JSON IR', () => {
+        assertProperMap({})
+        assertProperMap({ 1: 'a' })
+        assertProperMap({ a: 2, b: 3 })
+    })
+
+    it('finds appropriate types for primitive values', () => {
+        assert.equal('TlaBool', tlaJsonTypeOfPrimitive(true))
+        assert.equal('TlaBool', tlaJsonTypeOfPrimitive(false))
+        assert.equal('TlaInt', tlaJsonTypeOfPrimitive(-42000))
+        assert.equal('TlaInt', tlaJsonTypeOfPrimitive(0))
+        assert.equal('TlaInt', tlaJsonTypeOfPrimitive(1))
+        assert.equal('TlaInt', tlaJsonTypeOfPrimitive(42000))
+        assert.equal('TlaStr', tlaJsonTypeOfPrimitive(''))
+        assert.equal('TlaStr', tlaJsonTypeOfPrimitive('asdf'))
     })
 })
