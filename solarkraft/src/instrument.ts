@@ -1,10 +1,24 @@
-import { assert } from 'console'
-import { ContractCallEntry } from './fetcher/storage.js'
-
 /**
  * @license
  * [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
  */
+/**
+ * Instrument a Solarkraft monitor spec with a ledger state.
+ *
+ * The monitor spec is given as Apalache TLA+ JSON IR, which can be obtained from
+ * `apalache-mc typecheck --output file.json`:
+ * https://apalache.informal.systems/docs/adr/005adr-json.html
+ *
+ * The ledger state can be obtained using the Solarkraft fetcher, see `./fetch.ts`.
+ *
+ * The entry point to this module is `instrumentMonitor`; other exports are made
+ * to facilitate finer-grained unit testing.
+ *
+ * @author Thomas Pani, 2024
+ */
+
+import { assert } from 'console'
+import { ContractCallEntry } from './fetcher/storage.js'
 
 /**
  * Return an instrumented monitor specification.
@@ -48,7 +62,9 @@ export function instrumentMonitor(
     const envRecord = tlaJsonRecord([
         { name: 'height', kind: 'TlaInt', value: contractCall.height },
     ])
-    const tlaMethodArgs = contractCall.methodArgs.map(tlaJsonOfNative)
+    const tlaMethodArgs = contractCall.methodArgs.map((arg) =>
+        tlaJsonOfNative(arg)
+    )
     const tlaNext = tlaJsonOperDecl__And('Next', [
         tlaJsonApplication(
             contractCall.method,
@@ -89,30 +105,107 @@ export function tlaJsonTypeOfPrimitive(v: any) {
     }
 }
 
-// Translate a Native JS value `v` into its corresponding Apalache JSON IR representation.
-export function tlaJsonOfNative(v: any): any {
+// Return true iff `name` is a valid TLA+ Name.
+// See Lamport, Specifying Systems, 15.1. The Simple Grammar
+export function isTlaName(name: string): boolean {
+    // From Lamport, Specifying Systems, 15.1. The Simple Grammar:
+    // Letter = OneOf("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    // Numeral = OneOf("0123456789")
+    // NameChar = Letter ∪ Numeral ∪ {"_"}
+    // Name = Tok ( (NameChar* & Letter & NameChar*) \ ({"WF_", "SF_"} & NameChar+) )
+    const re = /^[a-zA-Z0-9_]*[a-zA-Z][a-zA-Z0-9_]*$/
+    return re.test(name)
+}
+
+/**
+ * Return the Apalache JSON IR representation of a native JS value `v`.
+ *
+ * If `v` is a JS array (representing a Soroban `Vec` or `enum`), it is
+ * translated into either a TLA+ sequence, or an Apalache variant, in particular:
+ *   - a TLA+ sequence, if the array is empty or of homogenous types, or if `forceVec` is set.
+ *   - an Apalache variant, in all other cases where the array is non-empty and its first element is a string.
+ *
+ * If `v` is a JS object (representing a Soroban `Bytes`, `Map` or `struct`), it is
+ * translated into either a TLA+ string, a TLA+ record, or a TLA+ function, in particular:
+ *   - a string, if the object has a `Buffer` property, that contains a zero-padded hex encoding of the payload.
+ *   - a TLA+ record, if its keys are all strings and valid TLA+ names,
+ *   - a TLA+ function, for all other keys.
+ *
+ * For example,
+ *   [ 1, 2, 3 ]  ~~>  << 1, 2, 3 >>
+ *   [ 'A', 42 ]  ~~>  Variant("A", 42)
+ *   { type: 'Buffer', data: [190, 239] }  ~~>  "beef"
+ *   { "a": 3, "b": 5 }  ~~>  [ a |-> 3, b |-> 5 ]
+ *   { "2": 3, "4": 5 }  ~~>  SetAsFun({ <<"2", 3>>, <<"4", 5>> })
+ */
+export function tlaJsonOfNative(v: any, forceVec: boolean = false): any {
     if (typeof v === 'object') {
         if (Array.isArray(v)) {
-            // a JS array / Soroban `Vec`
-            // [ 1, 2, 3 ]  ~~>  << 1, 2, 3 >>
-            return {
-                type: 'Untyped',
-                kind: 'OperEx',
-                oper: 'TUPLE',
-                args: v.map(tlaJsonOfNative),
+            // a JS array
+            if (
+                v.length == 0 ||
+                forceVec ||
+                v.every((elem) => typeof elem === typeof v[0])
+            ) {
+                // a Soroban `Vec`
+                // [ 1, 2, 3 ]  ~~>  << 1, 2, 3 >>
+                return {
+                    type: 'Untyped',
+                    kind: 'OperEx',
+                    oper: 'TUPLE',
+                    args: v.map((arg) => tlaJsonOfNative(arg)),
+                }
+            } else if (v.length > 0 && typeof v[0] === 'string') {
+                // a Soroban `enum`
+                // [ 'A', 42 ]   ~~>  Variant("A", 42)
+                const tlaUnit = {
+                    type: 'Untyped',
+                    kind: 'OperEx',
+                    oper: 'OPER_APP',
+                    args: [{ type: 'Untyped', kind: 'NameEx', name: 'UNIT' }],
+                }
+                return {
+                    type: 'Untyped',
+                    kind: 'OperEx',
+                    oper: 'Variants!Variant',
+                    args:
+                        v.length > 1
+                            ? v.map((arg) => tlaJsonOfNative(arg))
+                            : [...v.map(tlaJsonApplication), tlaUnit],
+                }
+            } else {
+                assert(false, `Unexpected native value: ${v}`)
             }
         }
         // a "proper" JS object (not an array)
         if (v.type == 'Buffer') {
-            // Soroban `Buffer`
+            // a Soroban `Bytes[N]`
             // v.data contains the bytes, as integers - render them into a string
+            // { type: 'Buffer', data: [190, 239] }  ~~>  "beef"
             return tlaJsonOfNative(
                 v.data
                     .map((x: number) => x.toString(16).padStart(2, '0'))
                     .join('')
             )
         }
-        // Soroban `Map`
+        // a Soroban struct or `Map`
+        // If there is at least one key and all keys are TLA+ names, make it a TLA+ record, otherwise a TLA+ function.
+        // { "a": 3, "b": 5 }  ~~>  [ a |-> 3, b |-> 5 ]
+        if (
+            Object.keys(v).length > 0 &&
+            Object.keys(v).every(
+                (key) => typeof key === 'string' && isTlaName(key)
+            )
+        ) {
+            return {
+                type: 'Untyped',
+                kind: 'OperEx',
+                oper: 'RECORD',
+                args: Object.entries(v)
+                    .flat()
+                    .map((arg) => tlaJsonOfNative(arg)),
+            }
+        }
         // { "2": 3, "4": 5 }  ~~>  SetAsFun({ <<"2", 3>>, <<"4", 5>> })
         return {
             type: 'Untyped',
@@ -124,7 +217,7 @@ export function tlaJsonOfNative(v: any): any {
                     kind: 'OperEx',
                     oper: 'SET_ENUM',
                     args: Object.entries(v).map(([key, value]) =>
-                        tlaJsonOfNative([key, value])
+                        tlaJsonOfNative([key, value], true)
                     ),
                 },
             ],
