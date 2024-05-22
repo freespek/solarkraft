@@ -38,7 +38,7 @@
     "lint": "eslint src test",
     "prepare": "cd .. && husky solarkraft/.husky",
     "snapshot": "git archive --format=tar.gz -o solarkraft-`git rev-parse --short HEAD`.tar.gz --prefix=solarkraft/ HEAD",
-    "test": "mocha --loader=ts-node/esm --exclude test/e2e/**/*.test.ts test/**/*.test.ts"
+    "test": "mocha --loader=ts-node/esm --exclude test/e2e/**/*.test.ts test/alert/**/*.test.ts test/**/*.test.ts"
   },
   "dependencies": {
     "@stellar/stellar-base": "^11.0.1",
