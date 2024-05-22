@@ -5,71 +5,76 @@
  *)
 ---- MODULE timelock_mon ----
 
+EXTENDS timelock_mon_defs
+
 \************************
 \* Deposit method monitor
 \************************
 
 MustFail_deposit_TooManyClaimants == 
-    claimants.len > 10
+    Len(args.claimants) > 10
 
 MustFail_deposit_Unauthorized == 
-    ~authorized(from)
+    ~authorized(args.from)
 
 \* This property would not be originally conceived 
 \* if looking solely at the timelock contract source
 MustFail_deposit_NotEnoughBalance == 
-    token.balance(from) < amount
+    token_balance(args.token, args.from) < args.amount
 
-\* Balance is externally relevant; initialized flag is not
+\* Balance is externally relevant; Init flag is not
 \* What matters for users is that balance is not overwritten
 MustFail_deposit_AlreadyInitialized == 
-    exists(balance)
+    instance_has("Balance")
 
 \* The above failure conditions exhaust the precondition of deposit method
 \* The default success condition is not needed, but we may provide it
-MustPass_deposit_Default = TRUE
+MustPass_deposit_Default == TRUE
 
 MustHold_deposit_BalanceRecordCreated ==
-    exists(balance')
+    next_instance_has("Balance")
 
 MustHold_deposit_BalanceRecordCorrect ==
-    /\ balance'.token = token
-    /\ balance'.amount = amount
-    /\ balance'.time_bound = time_bound
-    /\ balance'.claimants = claimants
+    /\ Balance'.token = args.token
+    /\ Balance'.amount = args.amount
+    /\ Balance'.time_bound = args.time_bound
+    /\ Balance'.claimants = args.claimants
 
 MustHold_deposit_TokenTransferred ==
-    token.transferred(from, this, amount)
-
+    token_transferred(
+        args.token, args.from, env.current_contract_address, args.amount
+    )
 
 \**********************
 \* Claim method monitor
 \**********************
 
 MustFail_claim_Unauthorized == 
-    ~authorized(claimant)
+    ~authorized(args.claimant)
 
 MustFail_claim_NoBalanceRecord == 
-    ~exists(balance)
+    ~instance_has("Balance")
 
 MustFail_claim_NotClaimant == 
-    claimant \notin claimants
+    \A i \in 1..Len(Balance.claimants): 
+        Balance.claimants[i] /= args.claimant
 
 \* One success condition: correctly claimed before time bound
-MustPass_claim_BeforeTimeBount
-    /\ time_bound.kind = "Before" 
-    /\ env.ledger.timestamp <= balance.time_bound.timestamp
+MustPass_claim_BeforeTimeBound ==
+    /\ args.time_bound.kind = "Before" 
+    /\ env.ledger_timestamp <= Balance.time_bound.timestamp
 
 \* Another success condition: correctly claimed after time bound
-MustPass_claim_AfterTimeBount
-    /\ time_bound.kind = "After" 
-    /\ env.ledger.timestamp >= balance.time_bound.timestamp
+MustPass_claim_AfterTimeBound ==
+    /\ args.time_bound.kind = "After" 
+    /\ env.ledger_timestamp >= Balance.time_bound.timestamp
 
 MustHold_claim_TokenTransferred ==
-    balance.token.transferred(this, claimant, balance.amount)
+    token_transferred(
+        Balance.token, env.current_contract_address, args.claimant, Balance.amount)
 
-MustHold_deposit_BalanceRecordRemoved ==
-    ~exists(balance')
+MustHold_claim_BalanceRecordRemoved ==
+    ~next_instance_has("Balance")
 
 
 \*******************************
@@ -79,17 +84,17 @@ MustHold_deposit_BalanceRecordRemoved ==
 \* This trigger fires when the balance record is created or destroyed
 \* Notice that it doesn't track the record content
 MonitorTrigger_Balance_RecordChanged ==
-    exists(balance) /= exists(balance)'
+    instance_has("Balance") /= next_instance_has("Balance")
 
 \* This trigger fires when the balance record content Holds
 \* Notice that it will panic (won't fire) if the record doesn't exist
 MonitorTrigger_Balance_ContentChanged ==
-    balance /= balance'
+    Balance /= Balance'
 
 \* Only deposit and claim methods are allowed to alter balances
 MonitorEffect_Balance_Changed ==
-    \/ method = "deposit"
-    \/ method = "claim"
+    \/ env.method_name = "deposit"
+    \/ env.method_name = "claim"
 
 
 \******************************
@@ -99,11 +104,11 @@ MonitorEffect_Balance_Changed ==
 \* This trigger fires when the token balance of this contract is reduced
 \* Notice that it will panic (won't fire) if balance record doesn't exist
 MonitorTrigger_TokenBalance_Reduced ==
-    token_balance(balance.token, this)' <
-    token_balance(balance.token, this) 
+    next_token_balance(Balance.token, env.current_contract_address) <
+    token_balance(Balance.token, env.current_contract_address) 
 
 \* Only claim method is allowed to reduce this contract token balance
 MonitorEffect_TokenBalance_Reduced ==
-    method = "claim"
+    env.method_name = "claim"
 
 =============================
