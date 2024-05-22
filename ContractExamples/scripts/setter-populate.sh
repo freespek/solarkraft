@@ -27,6 +27,8 @@ soroban contract build
 soroban contract deploy --wasm target/wasm32-unknown-unknown/release/setter.wasm \
       --source $ACCOUNT --network $NET | tee >.setter.id
 
+soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET -- init
+
 soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET \
       -- set_bool --v true
 soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET \
