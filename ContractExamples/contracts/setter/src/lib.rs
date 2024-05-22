@@ -45,8 +45,8 @@ pub struct MyStruct {
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum MyEnum {
-    A,
-    B(u32),
+    A(u32),
+    B(i128)
 }
 
 #[contract]
@@ -270,15 +270,15 @@ impl SetterContract {
             })
     }
 
-    pub fn set_my_enum(env: Env, v: MyEnum) -> () {
+    pub fn set_enum(env: Env, v: MyEnum) -> () {
         env.storage().instance().set(&MY_ENUM, &v);
         log!(&env, "myEnum: {}", v);
         // bump the lifetime
         env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
     }
 
-    pub fn get_my_enum(env: Env) -> MyEnum {
-        env.storage().instance().get(&MY_ENUM).unwrap_or(MyEnum::A)
+    pub fn get_enum(env: Env) -> MyEnum {
+        env.storage().instance().get(&MY_ENUM).unwrap_or(MyEnum::A(0u32))
     }
 }
 
