@@ -30,6 +30,7 @@
     "dist/**/*"
   ],
   "scripts": {
+    "alert": "mocha --timeout 0 --loader=ts-node/esm test/alert/**/*.test.ts",
     "compile": "genversion -e src/version.ts && tsc",
     "e2e": "mocha --loader=ts-node/esm test/e2e/**/*.test.ts",
     "format": "prettier --config .prettierrc 'src/**/*.ts' 'test/**/*.ts' --write",
