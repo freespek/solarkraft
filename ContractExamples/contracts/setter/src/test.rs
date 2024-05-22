@@ -99,6 +99,6 @@ fn test() {
     client.set_enum(&MyEnum::A(14u32));
     assert_eq!(client.get_enum(), MyEnum::A(14u32));
 
-    client.set_enum(&MyEnum::B(14, -10));
-    assert_eq!(client.get_enum(), MyEnum::B(14, -10));
+    client.set_enum(&MyEnum::B(-10));
+    assert_eq!(client.get_enum(), MyEnum::B(-10));
 }
