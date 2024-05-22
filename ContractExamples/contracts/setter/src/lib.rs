@@ -256,14 +256,14 @@ impl SetterContract {
         env.storage().instance().get(&MY_ADDR)
     }
 
-    pub fn set_my_struct(env: Env, v: MyStruct) -> () {
+    pub fn set_struct(env: Env, v: MyStruct) -> () {
         env.storage().instance().set(&MY_STRUCT, &v);
         log!(&env, "myStruct: {}", v);
         // bump the lifetime
         env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
     }
 
-    pub fn get_my_struct(env: Env) -> MyStruct {
+    pub fn get_struct(env: Env) -> MyStruct {
         env.storage().instance().get(&MY_STRUCT)
             .unwrap_or(MyStruct {
                 a: 0u32, b: 0i128

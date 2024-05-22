@@ -54,6 +54,6 @@ soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET 
 soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET \
       -- set_address --v GDIY6AQQ75WMD4W46EYB7O6UYMHOCGQHLAQGQTKHDX4J2DYQCHVCR4W4
 soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET \
-      -- set_my_struct --v '{ "a": 1, "b": "-100" }'
+      -- set_struct --v '{ "a": 1, "b": "-100" }'
 soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET \
       -- set_enum --v '{ "B": "-200" }'
