@@ -18,7 +18,7 @@ NET=testnet
 (soroban network ls | grep -q $NET) || (echo "add testnet via soroban network"; exit 1)
 
 ACCOUNT=alice
-soroban keys address $ACCOUNT || (echo "add the account $ALICE via soroban keys generate"; exit 1)
+soroban keys address $ACCOUNT || (echo "add the account $ACCOUNT via soroban keys generate"; exit 1)
 
 
 set -x
