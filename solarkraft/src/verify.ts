@@ -107,6 +107,7 @@ export function verify(args: any) {
     if (args.monitor.length < 1) {
         console.log(`No monitor given.`)
         console.log('[Error]')
+        return
     }
     for (const monitor of args.monitor) {
         if (!existsSync(monitor)) {
