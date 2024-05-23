@@ -56,7 +56,9 @@ export async function fetch(args: any) {
         // https://github.com/stellar/js-stellar-sdk/blob/master/test/integration/streaming_test.js
         clearTimeout(timeout)
         closeHandler()
-        console.error(err)
+        if (err) {
+            console.error(err)
+        }
     }
 
     // the number of received events
