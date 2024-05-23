@@ -17,8 +17,6 @@ import { Api } from '@stellar/stellar-sdk/lib/soroban/api.js'
  */
 
 const AlertMethodName = 'emit_and_store_violation'
-export const LocalRPC = 'https://localhost:8000/'
-export const TestnetRPC = 'https://soroban-testnet.stellar.org:443'
 
 /**
  * When we have obtained a `MonitorAnalysisStatus` for a given monitor, we can submit it to the
