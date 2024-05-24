@@ -18,8 +18,11 @@ import { instrumentMonitor } from './instrument.js'
 type Result<T> = Either<string, T>
 type ApalacheResult = Result<void>
 
-// TODO(#34): fix hardcoded path to Apalache
-const APALACHE_DIST = '/opt/apalache'
+// Looks for the Apalache path under $APALACHE_HOME. If undefined, uses /opt/apalache
+const APALACHE_DIST =
+    typeof process.env.APALACHE_HOME === 'undefined'
+        ? '/opt/apalache'
+        : process.env.APALACHE_HOME
 const APALACHE_BIN = path.join(APALACHE_DIST, 'bin', 'apalache-mc')
 
 /**
