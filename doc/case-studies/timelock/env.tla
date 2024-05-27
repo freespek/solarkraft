@@ -6,36 +6,44 @@
 
 ---- MODULE env ----
 
-EXTENDS typedefs
+EXTENDS Integers, Sequences, Apalache
+
+(*
+    @typeAlias: address = Str;
+    @typeAlias: dataKey = Str;
+*)
+typedefs == TRUE
 
 VARIABLES
     (*  Soroban's environment 
-        @type: { 
+        @type: {
             current_contract_address: $address,
             ledger_timestamp: Int,
-            method_name: Str
+            instance_storage: Set($dataKey),
         };
     *)
-    env
+    env,
+
+    (*  Transaction metadata 
+        @type: { 
+            method: Str, 
+            signatures: Set($address), 
+            status: Bool 
+        };
+    *)
+    tx
 
 
 \************************
 \* Authorization
 \************************
 
-VARIABLES
-
-    (*  Addresses that have authorized the current method call
-        @type: Set($address);
-    *)
-    signatures
-
 \* Whether id has authorized this call
 \* @type: ($address) => Bool;
 authorized(id) ==
-    TRUE
-    \* Should be as below, but we mock that for the time being
-    \* id \in signatures
+    id \in env.signatures
+    \* Should be as below, but we might need to mock that as below
+    \* TRUE
 
 
 \************************************************************************************
@@ -52,26 +60,21 @@ authorized(id) ==
 \*
 \* Initially we support only a single Instance storage type.
 \************************************************************************************
-VARIABLES
-    (*  
-        @type: Set($dataKey);
-    *)
-    instance_storage
 
 \* @type: ($dataKey) => Bool;
 instance_has(key) ==
-    key \in instance_storage
+    key \in env.instance_storage
 
 \* @type: ($dataKey) => Bool;
 next_instance_has(key) ==
-    key \in instance_storage'
+    key \in env.instance_storage'
 
 \* @type: ($dataKey) => Bool;
 instance_set(key) ==
-    instance_storage' = instance_storage \union {key}
+    env'.instance_storage = env.instance_storage \union {key}
 
 \* @type: ($dataKey) => Bool;
 instance_remove(key) ==
-    instance_storage' = instance_storage \ {key}
+    env'.instance_storage = env.instance_storage \ {key}
 
 =============================
