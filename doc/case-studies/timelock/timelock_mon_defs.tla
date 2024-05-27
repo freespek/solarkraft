@@ -15,8 +15,6 @@ EXTENDS env, token
 module_typedefs == TRUE
 
 
-
-
 VARIABLES
     (*  Arguments for contract methods
         @type: { 

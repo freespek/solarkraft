@@ -7,7 +7,7 @@
 
 ---- MODULE token ----
 
-EXTENDS typedefs
+EXTENDS env
 
 VARIABLES
     (*  

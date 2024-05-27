@@ -19,7 +19,7 @@ VARIABLES
         @type: {
             current_contract_address: $address,
             ledger_timestamp: Int,
-            instance_storage: Set($dataKey),
+            instance_storage: Set($dataKey)
         };
     *)
     env,
@@ -41,7 +41,7 @@ VARIABLES
 \* Whether id has authorized this call
 \* @type: ($address) => Bool;
 authorized(id) ==
-    id \in env.signatures
+    id \in tx.signatures
     \* Should be as below, but we might need to mock that as below
     \* TRUE
 
