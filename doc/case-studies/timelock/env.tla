@@ -26,7 +26,7 @@ VARIABLES
 
     (*  Transaction metadata 
         @type: { 
-            method: Str, 
+            method_name: Str, 
             signatures: Set($address), 
             status: Bool 
         };

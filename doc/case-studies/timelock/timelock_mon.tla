@@ -93,8 +93,8 @@ MonitorTrigger_Balance_ContentChanged ==
 
 \* Only deposit and claim methods are allowed to alter balances
 MonitorEffect_Balance_Changed ==
-    \/ env.method_name = "deposit"
-    \/ env.method_name = "claim"
+    \/ tx.method_name = "deposit"
+    \/ tx.method_name = "claim"
 
 
 \******************************
@@ -109,6 +109,6 @@ MonitorTrigger_TokenBalance_Reduced ==
 
 \* Only claim method is allowed to reduce this contract token balance
 MonitorEffect_TokenBalance_Reduced ==
-    env.method_name = "claim"
+    tx.method_name = "claim"
 
 =============================
