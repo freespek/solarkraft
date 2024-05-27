@@ -75,7 +75,7 @@ export interface ContractCallEntry {
     oldFields: FieldsMap
 
     /**
-     * Flag which tracks whether this particular entry has already been verified, and, if it was, the verification result.
+     * Flag which tracks whether this particular entry has already been verified, and, if it has been, the verification result.
      */
     verification?: VerificationStatus
 }
