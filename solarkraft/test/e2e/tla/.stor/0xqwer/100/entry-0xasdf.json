@@ -1,0 +1,1 @@
+{"height":100,"contractId":"0xqwer","txHash":"0xasdf","method":"Claim","methodArgs":["alice"],"returnValue":null,"fields":[["balance",123],["is_initialized",false],["last_error",""]],"oldFields":[["balance",123],["is_initialized",false],["last_error",""]],"verification":"ok"}

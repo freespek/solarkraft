@@ -12,7 +12,12 @@ import { globSync } from 'glob'
 import { temporaryFile } from 'tempy'
 import { Either, left, right, mergeInOne } from '@sweet-monads/either'
 
-import { loadContractCallEntry, storagePath } from './fetcher/storage.js'
+import {
+    loadContractCallEntry,
+    saveContractCallEntry,
+    storagePath,
+    VerificationStatus,
+} from './fetcher/storage.js'
 import { instrumentMonitor } from './instrument.js'
 
 type Result<T> = Either<string, T>
@@ -135,6 +140,8 @@ export function verify(args: any) {
     // Read the state from fetcher output
     const contractCall = loadContractCallEntry(entryPath)
 
+    let verificationStatus: VerificationStatus = 'unverified'
+
     // Check all monitors
     const resultsPerMonitor: Result<ApalacheResult>[] = args.monitor.map(
         (monitorPath: string) =>
@@ -147,15 +154,24 @@ export function verify(args: any) {
                     console.log(
                         `${path.basename(monitorPath)}: ${errorStringOrOK}`
                     )
+                    apalacheResult
+                        .map(() => (verificationStatus = 'ok'))
+                        .mapLeft(() => (verificationStatus = 'fail'))
                     return apalacheResult
                 })
                 .mapLeft((error) => {
                     console.log(
                         `${path.basename(monitorPath)}: Internal error, see below`
                     )
+                    verificationStatus = 'fail'
                     return error
                 })
     )
+
+    saveContractCallEntry(args.home, {
+        ...contractCall,
+        verification: verificationStatus,
+    })
 
     // Print accumulated result
     mergeInOne(resultsPerMonitor)

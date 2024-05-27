@@ -28,6 +28,7 @@ const JSONbig = JSONbigint({ useNativeBigInt: true })
  */
 export type FieldsMap = OrderedMap<string, any>
 
+export type VerificationStatus = 'ok' | 'fail' | 'unverified'
 /**
  * A storage entry for a performed contract call.
  */
@@ -72,6 +73,11 @@ export interface ContractCallEntry {
      * when the storage goes over TTL.
      */
     oldFields: FieldsMap
+
+    /**
+     * Flag which tracks whether this particular entry has already been verified, and, if it was, the verification result.
+     */
+    verification?: VerificationStatus
 }
 
 /**
@@ -81,7 +87,7 @@ export interface ListEntry {
     contractId: string
     height: number
     txHash: string
-    verification: 'ok' | 'fail' | 'unverified'
+    verification: VerificationStatus
 }
 
 /**
@@ -112,11 +118,14 @@ export function storagePath(solarkraftHome: string): string {
  */
 export function saveContractCallEntry(home: string, entry: ContractCallEntry) {
     const filename = getEntryFilename(storagePath(home), entry)
+    const verificationStatus: VerificationStatus =
+        entry.verification ?? 'unverified'
     // convert OrderedMaps to arrays
     const simplified = {
         ...entry,
         fields: entry.fields.toArray(),
         oldFields: entry.oldFields.toArray(),
+        verification: verificationStatus,
     }
     const contents = JSONbig.stringify(simplified)
     writeFileSync(filename, contents)
@@ -141,6 +150,7 @@ export function loadContractCallEntry(filename: string): ContractCallEntry {
         returnValue: loaded.returnValue,
         fields: OrderedMap<string, any>(loaded.fields),
         oldFields: OrderedMap<string, any>(loaded.oldFields),
+        verification: loaded.verification ?? 'unverified',
     }
 }
 
@@ -167,12 +177,19 @@ export function* yieldListEntriesForContract(
                 )
                 if (ledgerDirent.isFile() && matcher) {
                     const txHash = matcher[1]
-                    // TODO: read the verification result and report it
+                    const filename = join(
+                        ledgerDirent.path,
+                        `entry-${txHash}.json`
+                    )
+                    const contents = JSONbig.parse(
+                        readFileSync(filename, 'utf-8')
+                    )
+                    const status = contents['verification'] ?? 'unverified'
                     yield {
                         contractId,
                         height,
                         txHash,
-                        verification: 'unverified',
+                        verification: status,
                     }
                 }
             }
