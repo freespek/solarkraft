@@ -46,13 +46,20 @@ MustHold_deposit ==
 \* Monitor predicates to be checked
 
 Inv_MustFail_deposit ==
-    MustFail_deposit => tx'.status = FALSE
+    (   /\ tx.method_name = "deposit" 
+        /\ MustFail_deposit
+    )   => tx'.status = FALSE
 
 Inv_MustPass_deposit ==
-    (~MustFail_deposit /\ MustPass_deposit) => tx'.status = TRUE
+    (   /\ tx.method_name = "deposit" 
+        /\ ~MustFail_deposit 
+        /\ MustPass_deposit
+    )   => tx'.status = TRUE
 
 Inv_MustHold_deposit ==
-    tx'.status = TRUE => MustHold_deposit
+    (   /\ tx.method_name = "deposit"
+        /\ tx'.status = TRUE
+    )   => MustHold_deposit
 
 
 \***********************
@@ -78,13 +85,20 @@ MustHold_claim ==
 \* Monitor predicates to be checked
 
 Inv_MustFail_claim ==
-    MustFail_claim => tx'.status = FALSE
+    (   /\ tx.method_name = "claim"
+        /\ MustFail_claim
+    )   => tx'.status = FALSE
 
 Inv_MustPass_claim ==
-    (~MustFail_claim /\ MustPass_claim) => tx'.status = TRUE
+    (   /\ tx.method_name = "claim"
+        /\ ~MustFail_claim 
+        /\ MustPass_claim
+    ) => tx'.status = TRUE
 
 Inv_MustHold_claim ==
-    tx'.status = TRUE => MustHold_claim
+    (   /\ tx.method_name = "claim"
+        /\ tx'.status = TRUE
+    )   => MustHold_claim
 
 
 \*******************************
@@ -131,5 +145,8 @@ TxRes_Deposit_Alice_100_BobCarol_Before_Fail ==
     /\ Tx_Deposit_Alice_100_BobCarol_Before
     /\ Res_Fail
 
+TxRes_Deposit_Alice_100_BobCarol_Before_NextBalanceRecordExists_BalanceRecordCorrect_TokenNotTransferredToContract_Pass ==
+    /\ Tx_Deposit_Alice_100_BobCarol_Before
+    /\ Res_NextBalanceRecordExists_BalanceRecordCorrect_TokenNotTransferredToContract_Pass
 
 ================================================
