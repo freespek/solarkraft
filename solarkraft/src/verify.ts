@@ -162,7 +162,7 @@ export function verify(args: any) {
                 })
     )
 
-    const status = resultsPerMonitor.reduce<VerificationStatus>(
+    const verificationStatus = resultsPerMonitor.reduce<VerificationStatus>(
         (status, result) =>
             // any one monitor failure marks a 'fail'
             status === 'fail'
@@ -180,7 +180,7 @@ export function verify(args: any) {
 
     saveContractCallEntry(args.home, {
         ...contractCall,
-        verificationStatus: status,
+        verificationStatus: verificationStatus,
     })
 
     // Print accumulated result

@@ -125,7 +125,7 @@ export function saveContractCallEntry(home: string, entry: ContractCallEntry) {
         ...entry,
         fields: entry.fields.toArray(),
         oldFields: entry.oldFields.toArray(),
-        verification: verificationStatus,
+        verificationStatus: verificationStatus,
     }
     const contents = JSONbig.stringify(simplified)
     writeFileSync(filename, contents)
@@ -150,7 +150,7 @@ export function loadContractCallEntry(filename: string): ContractCallEntry {
         returnValue: loaded.returnValue,
         fields: OrderedMap<string, any>(loaded.fields),
         oldFields: OrderedMap<string, any>(loaded.oldFields),
-        verificationStatus: loaded.verification ?? 'unverified',
+        verificationStatus: loaded.verificationStatus ?? 'unverified',
     }
 }
 
@@ -184,7 +184,8 @@ export function* yieldListEntriesForContract(
                     const contents = JSONbig.parse(
                         readFileSync(filename, 'utf-8')
                     )
-                    const status = contents['verification'] ?? 'unverified'
+                    const status =
+                        contents['verificationStatus'] ?? 'unverified'
                     yield {
                         contractId,
                         height,
