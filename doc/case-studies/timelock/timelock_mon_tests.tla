@@ -5,8 +5,8 @@ EXTENDS timelock_mon_txs
 
 \****************************************************************************************
 \* Monitor tests (aka verification conditions)
-\* Each monitor test is a tuple of 
-\* (Init, TxRes, Inv) which should be produced / filled by fetcher / verifier, where:
+\* Each monitor test is a tuple to be produced/filled by fetcher/verifier
+\* (Init, TxRes, Inv), where:
 \* - Init is any initial predicate
 \* - TxRes is a conjunction of any of Tx and Res predicates
 \* - Inv is any monitor predicate; produced from monitor specs

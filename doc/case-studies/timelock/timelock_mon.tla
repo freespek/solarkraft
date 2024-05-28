@@ -86,7 +86,7 @@ MustHold_claim_BalanceRecordRemoved ==
 MonitorTrigger_Balance_RecordChanged ==
     instance_has("Balance") /= next_instance_has("Balance")
 
-\* This trigger fires when the balance record content Holds
+\* This trigger fires when the balance record content changes
 \* Notice that it will panic (won't fire) if the record doesn't exist
 MonitorTrigger_Balance_ContentChanged ==
     Balance /= Balance'
