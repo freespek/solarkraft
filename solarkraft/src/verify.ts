@@ -140,8 +140,6 @@ export function verify(args: any) {
     // Read the state from fetcher output
     const contractCall = loadContractCallEntry(entryPath)
 
-    let verificationStatus: VerificationStatus = 'unverified'
-
     // Check all monitors
     const resultsPerMonitor: Result<ApalacheResult>[] = args.monitor.map(
         (monitorPath: string) =>
@@ -154,23 +152,35 @@ export function verify(args: any) {
                     console.log(
                         `${path.basename(monitorPath)}: ${errorStringOrOK}`
                     )
-                    apalacheResult
-                        .map(() => (verificationStatus = 'ok'))
-                        .mapLeft(() => (verificationStatus = 'fail'))
                     return apalacheResult
                 })
                 .mapLeft((error) => {
                     console.log(
                         `${path.basename(monitorPath)}: Internal error, see below`
                     )
-                    verificationStatus = 'fail'
                     return error
                 })
     )
 
+    const status = resultsPerMonitor.reduce<VerificationStatus>(
+        (status, result) =>
+            // any one monitor failure marks a 'fail'
+            status === 'fail'
+                ? status
+                : result.fold(
+                      () => 'fail', // internal error marks a 'fail'
+                      (apalacheResult) =>
+                          apalacheResult.fold(
+                              () => 'fail', // apalache result error marks a 'fail'
+                              () => 'ok'
+                          )
+                  ),
+        'unverified' // only returned if array is empty
+    )
+
     saveContractCallEntry(args.home, {
         ...contractCall,
-        verification: verificationStatus,
+        verificationStatus: status,
     })
 
     // Print accumulated result

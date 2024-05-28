@@ -1,7 +1,7 @@
 {
   "height": 100,
-  "txHash": "0xasdf",
-  "contractId": "0xqwer",
+  "txHash": "timelock",
+  "contractId": "asdf",
   "returnValue": null,
   "method": "Claim",
   "methodArgs": [
@@ -35,5 +35,5 @@
       ""
     ]
   ],
-  "verification": "unverified"
+  "verificationStatus": "unverified"
 }

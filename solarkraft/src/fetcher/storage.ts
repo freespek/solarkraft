@@ -77,7 +77,7 @@ export interface ContractCallEntry {
     /**
      * Flag which tracks whether this particular entry has already been verified, and, if it has been, the verification result.
      */
-    verification?: VerificationStatus
+    verificationStatus?: VerificationStatus
 }
 
 /**
@@ -87,7 +87,7 @@ export interface ListEntry {
     contractId: string
     height: number
     txHash: string
-    verification: VerificationStatus
+    verificationStatus: VerificationStatus
 }
 
 /**
@@ -119,7 +119,7 @@ export function storagePath(solarkraftHome: string): string {
 export function saveContractCallEntry(home: string, entry: ContractCallEntry) {
     const filename = getEntryFilename(storagePath(home), entry)
     const verificationStatus: VerificationStatus =
-        entry.verification ?? 'unverified'
+        entry.verificationStatus ?? 'unverified'
     // convert OrderedMaps to arrays
     const simplified = {
         ...entry,
@@ -150,7 +150,7 @@ export function loadContractCallEntry(filename: string): ContractCallEntry {
         returnValue: loaded.returnValue,
         fields: OrderedMap<string, any>(loaded.fields),
         oldFields: OrderedMap<string, any>(loaded.oldFields),
-        verification: loaded.verification ?? 'unverified',
+        verificationStatus: loaded.verification ?? 'unverified',
     }
 }
 
@@ -189,7 +189,7 @@ export function* yieldListEntriesForContract(
                         contractId,
                         height,
                         txHash,
-                        verification: status,
+                        verificationStatus: status,
                     }
                 }
             }
