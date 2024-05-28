@@ -52,10 +52,14 @@ Init_HasBalance_AliceHas100TOK == Init_Nondet
 \* Transactions
 \************************
 
-\* A completely non-deterministic transaction
+\* A completely non-deterministic transaction 
+\* (with some natural restrictions)
 Tx_Nondet == 
     /\ env' = Gen(4)
+    /\ env'.current_contract_address = env.current_contract_address
     /\ tx' = Gen(4)
+    /\ tx'.method_name = tx.method_name
+    /\ tx'.signatures = tx.signatures
     /\ args' = args
     /\ Balance' = Gen(4)
     /\ token_balances' = Gen(4)
@@ -187,5 +191,13 @@ Res_TokenNotTransferredFromContract_Fail == Tx_Nondet
     /\ ~token_transferred(Balance.token, env.current_contract_address, args.claimant, Balance.amount)
     /\ tx'.status = FALSE
 
+Res_NextBalanceRecordExists_BalanceRecordCorrect_TokenNotTransferredToContract_Pass == Tx_Nondet
+    /\ next_instance_has("Balance")
+    /\ Balance'.token = args.token
+    /\ Balance'.amount = args.amount
+    /\ Balance'.time_bound = args.time_bound
+    /\ Balance'.claimants = args.claimants
+    /\ token_transferred(args.token, args.from, env.current_contract_address, args.amount)
+    /\ tx'.status = TRUE
 
 ================================================
