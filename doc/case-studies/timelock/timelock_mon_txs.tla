@@ -71,7 +71,7 @@ Tx_Deposit_Alice_100_BobCarol_Before == Tx_Nondet
     /\ args.time_bound = [ kind |-> "Before", timestamp |-> 42 ]
 
 \* Alice deposits 100 TOK; allows to claim it after ledger 42
-Tx_Deposit_Alice__100_BobCarol_Before == Tx_Nondet
+Tx_Deposit_Alice__100_BobCarol_After == Tx_Nondet
     /\ tx.method_name = "deposit"
     /\ tx.signatures = { "alice" }
     /\ args.token = "TOK"
@@ -91,7 +91,7 @@ Tx_Deposit_Alice_200_Dave_Before == Tx_Nondet
     /\ args.time_bound = [ kind |-> "Before", timestamp |-> 42 ]
 
 \* Alice deposits 200 TOK; allows to claim it after ledger 42
-Tx_Deposit_Alice_200_Dave_Before == Tx_Nondet
+Tx_Deposit_Alice_200_Dave_After == Tx_Nondet
     /\ tx.method_name = "deposit"
     /\ tx.signatures = { "alice" }
     /\ args.token = "TOK"
@@ -179,13 +179,13 @@ Res_TokenTransferredFromContract_Fail == Tx_Nondet
     /\ token_transferred(Balance.token, env.current_contract_address, args.claimant, Balance.amount)
     /\ tx'.status = FALSE
 
-Res_TokenTransferredFromContract_Pass == Tx_Nondet
+Res_TokenNotTransferredFromContract_Pass == Tx_Nondet
     /\ ~token_transferred(Balance.token, env.current_contract_address, args.claimant, Balance.amount)
     /\ tx'.status = TRUE
 
-Res_TokenTransferredFromContract_Fail == Tx_Nondet
+Res_TokenNotTransferredFromContract_Fail == Tx_Nondet
     /\ ~token_transferred(Balance.token, env.current_contract_address, args.claimant, Balance.amount)
     /\ tx'.status = FALSE
 
 
-===========================================
+================================================

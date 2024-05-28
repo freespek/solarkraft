@@ -7,9 +7,9 @@
 
 EXTENDS timelock_mon_defs
 
-\************************
-\* Deposit method monitor
-\************************
+\*************************
+\* Deposit method monitors
+\*************************
 
 MustFail_deposit_TooManyClaimants == 
     Len(args.claimants) > 10
@@ -45,9 +45,9 @@ MustHold_deposit_TokenTransferred ==
         args.token, args.from, env.current_contract_address, args.amount
     )
 
-\**********************
-\* Claim method monitor
-\**********************
+\***********************
+\* Claim method monitors
+\***********************
 
 MustFail_claim_Unauthorized == 
     ~authorized(args.claimant)
@@ -111,4 +111,4 @@ MonitorTrigger_TokenBalance_Reduced ==
 MonitorEffect_TokenBalance_Reduced ==
     tx.method_name = "claim"
 
-=============================
+================================================
