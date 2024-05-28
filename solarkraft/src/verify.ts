@@ -12,7 +12,12 @@ import { globSync } from 'glob'
 import { temporaryFile } from 'tempy'
 import { Either, left, right, mergeInOne } from '@sweet-monads/either'
 
-import { loadContractCallEntry, storagePath } from './fetcher/storage.js'
+import {
+    loadContractCallEntry,
+    saveContractCallEntry,
+    storagePath,
+    VerificationStatus,
+} from './fetcher/storage.js'
 import { instrumentMonitor } from './instrument.js'
 
 type Result<T> = Either<string, T>
@@ -156,6 +161,27 @@ export function verify(args: any) {
                     return error
                 })
     )
+
+    const verificationStatus = resultsPerMonitor.reduce<VerificationStatus>(
+        (status, result) =>
+            // any one monitor failure marks a 'fail'
+            status === 'fail'
+                ? status
+                : result.fold(
+                      () => 'fail', // internal error marks a 'fail'
+                      (apalacheResult) =>
+                          apalacheResult.fold(
+                              () => 'fail', // apalache result error marks a 'fail'
+                              () => 'ok'
+                          )
+                  ),
+        'unverified' // only returned if array is empty
+    )
+
+    saveContractCallEntry(args.home, {
+        ...contractCall,
+        verificationStatus: verificationStatus,
+    })
 
     // Print accumulated result
     mergeInOne(resultsPerMonitor)

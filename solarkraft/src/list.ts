@@ -39,7 +39,7 @@ export function list(args: any) {
                     dirent.name,
                     join(storageRoot, dirent.name)
                 )) {
-                    console.log(`  [${e.verification}]`)
+                    console.log(`  [${e.verificationStatus}]`)
                     console.log(`    height: ${e.height}`)
                     console.log(`    tx: ${e.txHash}`)
                     console.log('')
