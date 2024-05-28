@@ -1,3 +1,11 @@
+(*
+ * Monitor tests (aka verification conditions) for the Timelock contract.
+ * Will be produced automatically from monitor specs; 
+ * manually encoded here for illustrative purposes.
+ * 
+ * Andrey Kuprianov, 2024
+ *)
+
 ---- MODULE timelock_mon_tests ----
 
 EXTENDS timelock_mon_txs
@@ -16,11 +24,6 @@ EXTENDS timelock_mon_txs
 \* 
 \****************************************************************************************
 
-
-\*******************************************
-\* Monitor predicates
-\* Produced automatically from monitor specs
-\*******************************************
 
 \*************************
 \* Deposit method monitors

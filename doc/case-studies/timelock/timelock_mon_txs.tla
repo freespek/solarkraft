@@ -1,3 +1,11 @@
+(*
+ * Example transactions and results,
+ * for testing of the Timelock contract monitor specs.
+ * Real transactions/results will be fetched from the blockchain.
+ *
+ * Andrey Kuprianov, 2024
+ *)
+
 ---- MODULE timelock_mon_txs ----
 
 EXTENDS timelock_mon
