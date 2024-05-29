@@ -48,6 +48,15 @@ describe('verify', () => {
             .run(done)
     })
 
+    it('reports success on okay monitor3', function (done) {
+        this.timeout(50000)
+        spawn(
+            'solarkraft verify --home test/e2e/tla/ --txHash timelock --monitor test/e2e/tla/timelock_mon3.tla'
+        )
+            .wait('[OK]')
+            .run(done)
+    })
+
     it('reports success on two okay monitors', function (done) {
         this.timeout(50000)
         spawn(
@@ -93,7 +102,7 @@ describe('verify', () => {
         '1bd53234a4eb4f9316f63bd77f4a2c191bded377ad3c53caeb7ed285f9d77d64',
         '406d278860b5531dd1443532f3457c5daa288e8eb0007d2a8e2aa0127e87949e',
     ]
-    txs.forEach(tx => {
+    txs.forEach((tx) => {
         it(`verifies the setter contract (tx ${tx})`, function (done) {
             this.timeout(150_000)
             spawn(
