@@ -36,7 +36,7 @@ next_token_balance(token, id) ==
 \* @type: ($address, $address, $address, Int) => Bool;
 token_transferred(token, from, to, amount) ==
     /\ next_token_balance(token, from) = token_balance(token, from) - amount
-    /\ next_token_balance(token, to) = token_balance(token, from) + amount
+    /\ next_token_balance(token, to) = token_balance(token, to) + amount
 
 
 
