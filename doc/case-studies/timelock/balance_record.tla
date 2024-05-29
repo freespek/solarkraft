@@ -19,8 +19,10 @@ MonitorTrigger_ContentChanged ==
 
 \* Only deposit and claim methods are allowed to alter balances
 MonitorEffect_AllowedToChange ==
-    \/ tx.method_name = "deposit"
-    \/ tx.method_name = "claim"
+    tx.status = TRUE => (
+        \/ tx.method_name = "deposit"
+        \/ tx.method_name = "claim"
+    )
 
 
 \* Everything below is deterministic, and will be generated automatically
