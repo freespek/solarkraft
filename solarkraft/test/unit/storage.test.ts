@@ -25,6 +25,7 @@ describe('storage tests', () => {
         const root = join(tmpdir(), 'solarkraft-storage-')
         mkdtempSync(root)
         const filename = saveContractCallEntry(root, {
+            timestamp: 1716393856,
             height: 1000,
             txHash: TX_HASH,
             contractId: CONTRACT_ID,
@@ -61,6 +62,7 @@ describe('storage tests', () => {
     it('load entry', async () => {
         const filename = storeEntry()[1]
         const entry = loadContractCallEntry(filename)
+        assert.equal(entry.timestamp, 1716393856)
         assert.equal(entry.height, 1000)
         assert.equal(entry.txHash, TX_HASH)
         assert.equal(entry.contractId, CONTRACT_ID)

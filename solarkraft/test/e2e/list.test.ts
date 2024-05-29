@@ -19,6 +19,7 @@ describe('list', () => {
         const root = join(tmpdir(), 'solarkraft-storage-')
         mkdtempSync(root)
         saveContractCallEntry(root, {
+            timestamp: 1716393856,
             height: 1000,
             txHash: TX_HASH,
             contractId: CONTRACT_ID,

@@ -62,6 +62,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             '9fb12935fbadcd28aa220d076f11be631590d22c60977a53997a746898322ca3'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
@@ -76,6 +77,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             '6e3b0f948326708f439036df4aa2b165de5be35448e23c56d7eb989e1112c807'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
@@ -93,6 +95,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             '5638fc047c2ba312e0ec5077bcb97788c56c6047ffdb9d966d1de674a7a651c0'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
@@ -114,6 +117,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             'bc280eb46635d7f9494b5723b8d6146186033489844b9610506af595864ad6a2'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
@@ -137,6 +141,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             '640615ad2c1b642920bcc25422c05503ab440bee3e0c04e193328ca7214afe25'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
@@ -162,6 +167,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             'afd928352182c7b1c93cb10052c56d290fbcdd9d99c1948f4d59b3c1853c1ffb'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
@@ -189,6 +195,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             '64f74cfe018d881cb6648e2311571b770304d471044187130791d179edd8cbb2'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
@@ -218,6 +225,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             '10aedf3c4368b1eaba990dfea9a8372d5d03c6da938b9ca5aa7be330dc9908a5'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
@@ -249,6 +257,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             '59621a7b161c9eccbf797ca1125817947cedc57d86b78c4397761a7e7312f09e'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
@@ -282,6 +291,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             '476ed0e3f0db900d5ecd50bd3eab65924c89acf6c78b2866ce09f17f65d702de'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
@@ -317,6 +327,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             'ff44c4f9ba29885f6e76ddc33f0f987a6e122682bbee99489b7594159036125c'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
@@ -354,6 +365,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             'dcea98f78c9ec655082cfeee76072ee736cf98a3d9df9243838ff4c1568c5bf1'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
@@ -393,6 +405,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             '85c63081689992b3b3f5013f083d74ecdad6ecab035ddd758323f634cd1cb1c8'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
@@ -439,6 +452,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             '5fcb114c5e55d286f8bec90b1b6c52a242884c9594d4d49d6f4ff11994e08786'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
@@ -488,6 +502,7 @@ describe('call decoder from Horizon', () => {
         const entry = await extractEntry(
             '4246f33f7d1258ccdfbbf3afde0f4ccd3de81e5bbecb355dcf3f557d31c7bb9c'
         )
+        assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)

@@ -34,6 +34,10 @@ export type VerificationStatus = 'ok' | 'fail' | 'unverified'
  */
 export interface ContractCallEntry {
     /**
+     * The number of seconds elapsed since unix epoch of when this ledger was closed.
+     */
+    timestamp: number
+    /**
      * The ledger number, which is also called the height or the block number in other systems.
      */
     height: number
@@ -142,6 +146,7 @@ export function loadContractCallEntry(filename: string): ContractCallEntry {
     const contents = readFileSync(filename)
     const loaded = JSONbig.parse(contents)
     return {
+        timestamp: loaded.timestamp as number,
         height: loaded.height as number,
         contractId: loaded.contractId as string,
         txHash: loaded.txHash as string,
