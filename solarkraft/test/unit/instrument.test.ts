@@ -124,6 +124,7 @@ describe('Apalache JSON instrumentor', () => {
             ],
         }
         const contractCall = {
+            timestamp: 1716393856,
             height: 100,
             txHash: '0xasdf',
             contractId: '0xqwer',
@@ -149,6 +150,7 @@ describe('Apalache JSON instrumentor', () => {
             ],
         }
         const contractCall = {
+            timestamp: 1716393856,
             height: 100,
             txHash: '0xasdf',
             contractId: '0xqwer',
@@ -180,6 +182,7 @@ describe('Apalache JSON instrumentor', () => {
             ],
         }
         const contractCall = {
+            timestamp: 1716393856,
             height: 100,
             txHash: '0xasdf',
             contractId: '0xqwer',

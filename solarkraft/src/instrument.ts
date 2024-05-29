@@ -113,13 +113,9 @@ export function instrumentMonitor(
     // Declaration of  "Init" (according to `contractCall.oldFields`)
     const oldInstrumented = tlaJsonAnd(
         oldFieldsToInstrument
-            .map((value, name) => {
-                return tlaJsonEq__NameEx__ValEx(
-                    name,
-                    false,
-                    tlaJsonOfNative(value)
-                )
-            })
+            .map((value, name) =>
+                tlaJsonEq__NameEx__ValEx(name, false, tlaJsonOfNative(value))
+            )
             .valueSeq()
             .toArray()
     )
@@ -135,6 +131,7 @@ export function instrumentMonitor(
     // Declaration of "Next" (according to `contractCall.fields` and `contractCall.method` / `.methodArgs`)
     const envRecord = tlaJsonRecord([
         { name: 'height', kind: 'TlaInt', value: contractCall.height },
+        { name: 'timestamp', kind: 'TlaInt', value: contractCall.timestamp },
     ])
 
     const currentInstrumented = tlaJsonAnd(
