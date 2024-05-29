@@ -18,8 +18,7 @@ VARIABLES
     (*  Soroban's environment 
         @type: {
             current_contract_address: $address,
-            ledger_timestamp: Int,
-            instance_storage: Set($dataKey)
+            ledger_timestamp: Int
         };
     *)
     env,
@@ -31,8 +30,12 @@ VARIABLES
             status: Bool 
         };
     *)
-    tx
+    tx,
 
+    (* Set of keys present in the instance storage
+       @type: Set($dataKey);
+    *)
+    instance_storage
 
 \************************
 \* Authorization
@@ -42,7 +45,7 @@ VARIABLES
 \* @type: ($address) => Bool;
 authorized(id) ==
     id \in tx.signatures
-    \* Should be as below, but we might need to mock that as below
+    \* Should be as above, but we might need to mock that as below
     \* TRUE
 
 
@@ -63,18 +66,18 @@ authorized(id) ==
 
 \* @type: ($dataKey) => Bool;
 instance_has(key) ==
-    key \in env.instance_storage
+    key \in instance_storage
 
 \* @type: ($dataKey) => Bool;
 next_instance_has(key) ==
-    key \in env.instance_storage'
+    key \in instance_storage'
 
 \* @type: ($dataKey) => Bool;
 instance_set(key) ==
-    env'.instance_storage = env.instance_storage \union {key}
+    instance_storage' = instance_storage \union {key}
 
 \* @type: ($dataKey) => Bool;
 instance_remove(key) ==
-    env'.instance_storage = env.instance_storage \ {key}
+    instance_storage' = instance_storage \ {key}
 
 ================================================
