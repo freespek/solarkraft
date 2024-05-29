@@ -24,7 +24,7 @@ MustFail_NoBalanceRecord(args) ==
 
 \* @type: ($claimArgs) => Bool;
 MustFail_NotClaimant(args) == 
-    \A i \in 1..Len(Balance.claimants): 
+    \A i \in DOMAIN Balance.claimants: 
         Balance.claimants[i] /= args.claimant
 
 \* One success condition: correctly claimed before time bound
