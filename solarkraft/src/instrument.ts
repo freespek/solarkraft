@@ -323,7 +323,7 @@ export function tlaJsonOfNative(v: any, forceVec: boolean = false): any {
  * @param conjuncts Body conjuncts
  * @returns The conjunction in Apalache IR JSON: https://apalache.informal.systems/docs/adr/005adr-json.html
  */
-function tlaJsonAnd(conjuncts: any): any {
+function tlaJsonAnd(conjuncts: any[]): any {
     return {
         type: 'Untyped',
         kind: 'OperEx',
