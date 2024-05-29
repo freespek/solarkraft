@@ -38,8 +38,10 @@ export async function extractContractCall(
 
     // In Soroban, `env.ledger().timestamp()` "[r]eturns a unix timestamp for when the ledger was closed":
     // https://docs.rs/soroban-sdk/latest/soroban_sdk/ledger/struct.Ledger.html#method.timestamp
-    // according to [this](https://stellar.stackexchange.com/questions/1852/transaction-created-at-and-ledger-close-time),
+    // According to [this](https://stellar.stackexchange.com/questions/1852/transaction-created-at-and-ledger-close-time),
     // the transaction object's `created_at` equals the ledger's `closed_at`.
+    // `created_at` and `env.ledger().timestamp()` have seconds-precision. We divide by 1000 here since `Date` internally
+    // represents the timestamp as milliseconds.
     const timestamp = new Date(op.created_at).getTime() / 1000
     const txHash = op.transaction_hash
     // decode the call parameters from XDR to native JS values
