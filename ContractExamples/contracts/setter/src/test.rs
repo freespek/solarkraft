@@ -93,12 +93,12 @@ fn test() {
     client.set_address(&addr);
     assert_eq!(client.get_address(), Some(addr.clone()));
 
-    client.set_my_struct(&MyStruct { a: 3u32, b: 4i128 });
-    assert_eq!(client.get_my_struct(), MyStruct { a: 3u32, b: 4i128 });
+    client.set_struct(&MyStruct { a: 3u32, b: 4i128 });
+    assert_eq!(client.get_struct(), MyStruct { a: 3u32, b: 4i128 });
 
-    client.set_my_enum(&MyEnum::A);
-    assert_eq!(client.get_my_enum(), MyEnum::A);
+    client.set_enum(&MyEnum::A(14u32));
+    assert_eq!(client.get_enum(), MyEnum::A(14u32));
 
-    client.set_my_enum(&MyEnum::B(123u32));
-    assert_eq!(client.get_my_enum(), MyEnum::B(123u32));
+    client.set_enum(&MyEnum::B(-10));
+    assert_eq!(client.get_enum(), MyEnum::B(-10));
 }

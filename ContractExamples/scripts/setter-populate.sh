@@ -18,7 +18,7 @@ NET=testnet
 (soroban network ls | grep -q $NET) || (echo "add testnet via soroban network"; exit 1)
 
 ACCOUNT=alice
-soroban keys address $ACCOUNT || (echo "add the account $ALICE via soroban keys generate"; exit 1)
+soroban keys address $ACCOUNT || (echo "add the account $ACCOUNT via soroban keys generate"; exit 1)
 
 
 set -x
@@ -26,6 +26,8 @@ set -x
 soroban contract build
 soroban contract deploy --wasm target/wasm32-unknown-unknown/release/setter.wasm \
       --source $ACCOUNT --network $NET | tee >.setter.id
+
+soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET -- init
 
 soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET \
       -- set_bool --v true
@@ -54,6 +56,6 @@ soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET 
 soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET \
       -- set_address --v GDIY6AQQ75WMD4W46EYB7O6UYMHOCGQHLAQGQTKHDX4J2DYQCHVCR4W4
 soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET \
-      -- set_my_struct --v '{ "a": 1, "b": "-100" }'
+      -- set_struct --v '{ "a": 1, "b": "-100" }'
 soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET \
-      -- set_my_enum --v A
+      -- set_enum --v '{ "B": "-200" }'

@@ -2,6 +2,13 @@
  * @license
  * [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
  */
+/**
+ * The `solarkraft verify` command.
+ *
+ * Verifies transactions against a set of Solarkraft monitor specifications.
+ *
+ * @author Thomas Pani, 2024
+ */
 
 import { spawnSync } from 'child_process'
 import { rmSync } from 'fs'
@@ -108,6 +115,7 @@ export function verify(args: any) {
     if (args.monitor.length < 1) {
         console.log(`No monitor given.`)
         console.log('[Error]')
+        return
     }
     for (const monitor of args.monitor) {
         if (!existsSync(monitor)) {

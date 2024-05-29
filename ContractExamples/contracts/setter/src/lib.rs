@@ -8,7 +8,7 @@
  * [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
  */
 
-use soroban_sdk::{contract, contractimpl, contracttype, log, symbol_short, vec, Address, Bytes, BytesN, Env, Map, Symbol, Vec};
+use soroban_sdk::{bytes, bytesn, contract, contractimpl, contracttype, log, symbol_short, vec, Address, Bytes, BytesN, Env, Map, String, Symbol, Vec};
 
 // scalar types
 const MY_BOOL: Symbol = symbol_short!("MY_BOOL");
@@ -45,8 +45,8 @@ pub struct MyStruct {
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum MyEnum {
-    A,
-    B(u32),
+    A(u32),
+    B(i128)
 }
 
 #[contract]
@@ -59,6 +59,36 @@ pub struct SetterContract;
  */
 #[contractimpl]
 impl SetterContract {
+    pub fn init(env: Env) {
+        let zero_u32: u32 = 0;
+        let zero_i32: i32 = 0;
+        let zero_u64: u64 = 0;
+        let zero_i64: i64 = 0;
+        let zero_u128: u128 = 0;
+        let zero_i128: i128 = 0;
+        let init_str: String = String::from_str(&env, "CCLCX5GS3NRUHDLKFBTHWT5CD5US5BUNWCX6H2BN3RKXMVUZMYRXJLBT");
+        let init_addr: Address = Address::from_string(&init_str);
+        let zero_bytes: Bytes = bytes!(&env, 0x0);
+        let init_bytes32: BytesN<32> = bytesn!(&env, 0xfded3f55dec47250a52a8c0bb7038e72fa6ffaae33562f77cd2b629ef7fd424d);
+        let zero_enum: MyEnum = MyEnum::A(0u32);
+        let zero_struct: MyStruct = MyStruct { a: 0u32, b: 0i128 };
+        env.storage().instance().set(&MY_BOOL, &false);
+        env.storage().instance().set(&MY_U32, &zero_u32);
+        env.storage().instance().set(&MY_I32, &zero_i32);
+        env.storage().instance().set(&MY_U64, &zero_u64);
+        env.storage().instance().set(&MY_I64, &zero_i64);
+        env.storage().instance().set(&MY_U128, &zero_u128);
+        env.storage().instance().set(&MY_I128, &zero_i128);
+        env.storage().instance().set(&MY_SYM, &symbol_short!(""));
+        env.storage().instance().set(&MY_ADDR, &init_addr);
+        env.storage().instance().set(&MY_BYTES, &zero_bytes);
+        env.storage().instance().set(&MY_BYTES32, &init_bytes32);
+        env.storage().instance().set(&MY_VEC, &Vec::<u128>::new(&env));
+        env.storage().instance().set(&MY_MAP, &Map::<String, u128>::new(&env));
+        env.storage().instance().set(&MY_ENUM, &zero_enum);
+        env.storage().instance().set(&MY_STRUCT, &zero_struct);
+    }
+
     pub fn set_bool(env: Env, v: bool) -> bool {
         let old: bool = env.storage().instance().get(&MY_BOOL).unwrap_or(false);
         env.storage().instance().set(&MY_BOOL, &v);
@@ -256,29 +286,29 @@ impl SetterContract {
         env.storage().instance().get(&MY_ADDR)
     }
 
-    pub fn set_my_struct(env: Env, v: MyStruct) -> () {
+    pub fn set_struct(env: Env, v: MyStruct) -> () {
         env.storage().instance().set(&MY_STRUCT, &v);
         log!(&env, "myStruct: {}", v);
         // bump the lifetime
         env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
     }
 
-    pub fn get_my_struct(env: Env) -> MyStruct {
+    pub fn get_struct(env: Env) -> MyStruct {
         env.storage().instance().get(&MY_STRUCT)
             .unwrap_or(MyStruct {
                 a: 0u32, b: 0i128
             })
     }
 
-    pub fn set_my_enum(env: Env, v: MyEnum) -> () {
+    pub fn set_enum(env: Env, v: MyEnum) -> () {
         env.storage().instance().set(&MY_ENUM, &v);
         log!(&env, "myEnum: {}", v);
         // bump the lifetime
         env.storage().instance().extend_ttl(env.storage().max_ttl() - 100, env.storage().max_ttl());
     }
 
-    pub fn get_my_enum(env: Env) -> MyEnum {
-        env.storage().instance().get(&MY_ENUM).unwrap_or(MyEnum::A)
+    pub fn get_enum(env: Env) -> MyEnum {
+        env.storage().instance().get(&MY_ENUM).unwrap_or(MyEnum::A(0u32))
     }
 }
 
