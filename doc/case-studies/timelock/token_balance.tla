@@ -15,7 +15,7 @@ MonitorTrigger_BalanceReduced ==
 
 \* Only claim method is allowed to reduce this contract token balance
 MonitorEffect_AllowedToReduce ==
-    tx.method_name = "claim"
+    tx.status = TRUE => tx.method_name = "claim"
 
 
 \* Everything below is deterministic, and will be generated automatically
