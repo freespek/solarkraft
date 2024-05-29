@@ -24,11 +24,11 @@ import { ContractCallEntry } from './fetcher/storage.js'
  * Expected monitor shape:
  * We assume the monitors are organized in the following way:
  *  - 1 central monitor specification `Spec`, which declares invariants relating to the pre- and post-transaction states.
- *    No invariant delcared in this specification reasons about contract methods or their internals.
- *  - 1 method monitor per method. For each method `foo`, we expect a `foo.tla` specification, which delcares no variables
+ *    No invariant declared in this specification reasons about contract methods or their internals.
+ *  - 1 method monitor per method. For each method `foo`, we expect a `foo.tla` specification, which declares no variables
  *    and defines a top-level operator `foo(...)`, representing the collection of all method invariants.
  *    This operator takes `k` arguments, where `k` is the number of arguments declared for the contract method `foo`,
- *    in the same order as the contract method `foo`. The operator  parameter names should, but are not required to,
+ *    in the same order as the contract method `foo`. The operator parameter names should, but are not required to,
  *    correspond to the parameter names of `foo`.
  *
  * It is assumed the central specification extends all method specifications. Alternitively, for small monitors, all such method operators could
@@ -76,10 +76,9 @@ export function instrumentMonitor(
     monitor: any,
     contractCall: ContractCallEntry
 ): any {
-    // Only instrument state variables that are delcared in the monitor spec
-    // (otherwise we provoke type errors in Apalache Snowcat, via undeclared variables)
     // Since `fields` and `oldFields` can have different entries, due to data storage lifetimes,
-    // we initialize all variables missing from either fields collection with Gen(1)
+    // we initialize all variables that appear in the monitor specification but are 
+    // missing from either fields collection, with Gen(1).
     //
     // Example:
     //   - Monitor declares variables A, B
@@ -96,13 +95,13 @@ export function instrumentMonitor(
         declaredMonitorVariables.includes(key)
     )
     const missingOldFields = declaredMonitorVariables.filter(
-        (k) => !contractCall.oldFields.keySeq().contains(k)
+        k => !contractCall.oldFields.has(k)
     )
     const fieldsToInstrument = contractCall.fields.filter((value, key) =>
         declaredMonitorVariables.includes(key)
     )
     const missingFields = declaredMonitorVariables.filter(
-        (k) => !contractCall.fields.keySeq().contains(k)
+        k => !contractCall.fields.has(k)
     )
 
     // TODO(#61): handle failed transactions
@@ -124,32 +123,31 @@ export function instrumentMonitor(
     )
 
     const oldMissing = tlaJsonAnd(
-        missingOldFields.map((name) =>
+        missingOldFields.map(name =>
             tlaJsonEq__NameEx__ValEx(name, false, GEN1)
         )
     )
 
     const tlaInit = tlaJsonOperDecl__And('Init', [oldInstrumented, oldMissing])
 
-    // Declaration of "Next" (according to `tx`)
+    // Declaration of "Next" (according to `contractCall.fields` and `contractCall.method` / `.methodArgs`)
     const envRecord = tlaJsonRecord([
         { name: 'height', kind: 'TlaInt', value: contractCall.height },
     ])
 
     const currentInstrumented = tlaJsonAnd(
         fieldsToInstrument
-            .map((value, name) => {
-                return tlaJsonEq__NameEx__ValEx(
+            .map((value, name) => tlaJsonEq__NameEx__ValEx(
                     name,
-                    true, // prime must be true in next
+                    true, // prime `name`
                     tlaJsonOfNative(value)
                 )
-            })
+            )
             .valueSeq()
             .toArray()
     )
     const currentMissing = tlaJsonAnd(
-        missingFields.map((name) => tlaJsonEq__NameEx__ValEx(name, true, GEN1)) // prime must be true in next
+        missingFields.map((name) => tlaJsonEq__NameEx__ValEx(name, true, GEN1)) // name' = Gen(1)
     )
 
     const tlaMethodArgs = contractCall.methodArgs.map((arg) =>
