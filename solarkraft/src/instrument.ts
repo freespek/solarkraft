@@ -30,6 +30,8 @@ import { ContractCallEntry } from './fetcher/storage.js'
  *    This operator takes `k` arguments, where `k` is the number of arguments declared for the contract method `foo`,
  *    in the same order as the contract method `foo`. The operator parameter names should, but are not required to,
  *    correspond to the parameter names of `foo`.
+ *    This enumeration counts the parameters in the contract source code, and assumes the first argument passed captures
+ *    the environment data.
  *
  * It is assumed the central specification extends all method specifications. Alternitively, for small monitors, all such method operators could
  * be delared directly in the central specification, though we recommend the modular approach for readability reasons.
@@ -77,7 +79,7 @@ export function instrumentMonitor(
     contractCall: ContractCallEntry
 ): any {
     // Since `fields` and `oldFields` can have different entries, due to data storage lifetimes,
-    // we initialize all variables that appear in the monitor specification but are 
+    // we initialize all variables that appear in the monitor specification but are
     // missing from either fields collection, with Gen(1).
     //
     // Example:
@@ -95,13 +97,13 @@ export function instrumentMonitor(
         declaredMonitorVariables.includes(key)
     )
     const missingOldFields = declaredMonitorVariables.filter(
-        k => !contractCall.oldFields.has(k)
+        (k) => !contractCall.oldFields.has(k)
     )
     const fieldsToInstrument = contractCall.fields.filter((value, key) =>
         declaredMonitorVariables.includes(key)
     )
     const missingFields = declaredMonitorVariables.filter(
-        k => !contractCall.fields.has(k)
+        (k) => !contractCall.fields.has(k)
     )
 
     // TODO(#61): handle failed transactions
@@ -123,7 +125,7 @@ export function instrumentMonitor(
     )
 
     const oldMissing = tlaJsonAnd(
-        missingOldFields.map(name =>
+        missingOldFields.map((name) =>
             tlaJsonEq__NameEx__ValEx(name, false, GEN1)
         )
     )
@@ -137,7 +139,8 @@ export function instrumentMonitor(
 
     const currentInstrumented = tlaJsonAnd(
         fieldsToInstrument
-            .map((value, name) => tlaJsonEq__NameEx__ValEx(
+            .map((value, name) =>
+                tlaJsonEq__NameEx__ValEx(
                     name,
                     true, // prime `name`
                     tlaJsonOfNative(value)
