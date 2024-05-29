@@ -7,6 +7,10 @@ const instrumentedMonitor = {
                     name: 'is_initialized',
                 },
                 {
+                    kind: 'TlaVarDecl',
+                    name: 'absent',
+                },
+                {
                     kind: 'TlaOperDecl',
                     name: 'Init',
                     type: 'Untyped',
@@ -48,7 +52,35 @@ const instrumentedMonitor = {
                                 kind: 'OperEx',
                                 oper: 'AND',
                                 type: 'Untyped',
-                                args: [],
+                                args: [
+                                    {
+                                        kind: 'OperEx',
+                                        oper: 'EQ',
+                                        type: 'Untyped',
+                                        args: [
+                                            {
+                                                kind: 'NameEx',
+                                                name: 'absent',
+                                                type: 'Untyped',
+                                            },
+                                            {
+                                                kind: 'OperEx',
+                                                oper: 'Apalache!Gen',
+                                                type: 'Untyped',
+                                                args: [
+                                                    {
+                                                        kind: 'ValEx',
+                                                        type: 'Untyped',
+                                                        value: {
+                                                            kind: 'TlaInt',
+                                                            value: 1,
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                ],
                             },
                         ],
                     },
@@ -145,7 +177,42 @@ const instrumentedMonitor = {
                                 kind: 'OperEx',
                                 oper: 'AND',
                                 type: 'Untyped',
-                                args: [],
+                                args: [
+                                    {
+                                        kind: 'OperEx',
+                                        oper: 'EQ',
+                                        type: 'Untyped',
+                                        args: [
+                                            {
+                                                kind: 'OperEx',
+                                                oper: 'PRIME',
+                                                type: 'Untyped',
+                                                args: [
+                                                    {
+                                                        kind: 'NameEx',
+                                                        name: 'absent',
+                                                        type: 'Untyped',
+                                                    },
+                                                ],
+                                            },
+                                            {
+                                                kind: 'OperEx',
+                                                oper: 'Apalache!Gen',
+                                                type: 'Untyped',
+                                                args: [
+                                                    {
+                                                        kind: 'ValEx',
+                                                        type: 'Untyped',
+                                                        value: {
+                                                            kind: 'TlaInt',
+                                                            value: 1,
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                ],
                             },
                         ],
                     },

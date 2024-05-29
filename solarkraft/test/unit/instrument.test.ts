@@ -13,6 +13,7 @@ import {
 } from '../../src/instrument.js'
 
 import { instrumentedMonitor as expected } from './verify.instrumentedMonitor.js'
+import { instrumentedMonitor as expected2 } from './verify.instrumentedMonitor2.js'
 
 // Assert that `tlaJsonOfNative` returns a proper TLA+ `ValEx` for the primitive JS value `v`
 function assertProperValExOfPrimitive(v: any) {
@@ -165,6 +166,31 @@ describe('Apalache JSON instrumentor', () => {
         }
         const instrumented = instrumentMonitor(monitor, contractCall)
         assert.deepEqual(expected, instrumented)
+    })
+
+    it('instruments variables declared in the monitor, but absent in the data', () => {
+        const monitor = {
+            modules: [
+                {
+                    declarations: [
+                        { kind: 'TlaVarDecl', name: 'is_initialized' },
+                        { kind: 'TlaVarDecl', name: 'absent' },
+                    ],
+                },
+            ],
+        }
+        const contractCall = {
+            height: 100,
+            txHash: '0xasdf',
+            contractId: '0xqwer',
+            returnValue: null,
+            method: 'Claim',
+            methodArgs: ['alice'],
+            fields: OrderedMap<string, any>([['is_initialized', false]]),
+            oldFields: OrderedMap<string, any>([['is_initialized', false]]),
+        }
+        const instrumented = instrumentMonitor(monitor, contractCall)
+        assert.deepEqual(expected2, instrumented)
     })
 
     it('decodes primitive Soroban values to Apalache JSON IR ValEx', () => {

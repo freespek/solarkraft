@@ -48,6 +48,15 @@ describe('verify', () => {
             .run(done)
     })
 
+    it('reports success on okay monitor3', function (done) {
+        this.timeout(50000)
+        spawn(
+            'solarkraft verify --home test/e2e/tla/ --txHash timelock --monitor test/e2e/tla/timelock_mon3.tla'
+        )
+            .wait('[OK]')
+            .run(done)
+    })
+
     it('reports success on two okay monitors', function (done) {
         this.timeout(50000)
         spawn(

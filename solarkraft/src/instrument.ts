@@ -21,6 +21,52 @@ import { assert } from 'console'
 import { ContractCallEntry } from './fetcher/storage.js'
 
 /**
+ * Expected monitor shape:
+ * We assume the monitors are organized in the following way:
+ *  - 1 central monitor specification `Spec`, which declares invariants relating to the pre- and post-transaction states.
+ *    No invariant delcared in this specification reasons about contract methods or their internals.
+ *  - 1 method monitor per method. For each method `foo`, we expect a `foo.tla` specification, which delcares no variables
+ *    and defines a top-level operator `foo(...)`, representing the collection of all method invariants.
+ *    This operator takes `k` arguments, where `k` is the number of arguments declared for the contract method `foo`,
+ *    in the same order as the contract method `foo`. The operator  parameter names should, but are not required to,
+ *    correspond to the parameter names of `foo`.
+ *
+ * It is assumed the central specification extends all method specifications. Alternitively, for small monitors, all such method operators could
+ * be delared directly in the central specification, though we recommend the modular approach for readability reasons.
+ *
+ * Given a transaction JSON with the shape:
+ * ```
+ * {
+ *  ...
+ *  "method": "foo",
+ *  "methodArgs": [arg1, ..., argK],
+ *  "fields": [
+ *     [v1, b1],
+ *     ...,
+ *     [vn, bn]
+ *  ],
+ *  "oldFields": [
+ *     [v1, a1],
+ *     ...,
+ *     [vn, an]
+ *  ]
+ * }
+ * ```
+ * the corresponding instrumented monitor specification has the shape:
+ * ```
+ * ...
+ * <Spec>
+ * ...
+ *
+ * Init == v1 = a1 /\ ...  /\ vn = an
+ * Next ==
+ *   /\ foo(arg1, ..., argK)
+ *   /\ v1' = b1 /\ ... /\ vn' = bn
+ * ```
+ * (we omit the conversion from JS values to TLA values for brevty)
+ */
+
+/**
  * Return an instrumented monitor specification.
  * @param monitor A TLA+ monitor, as returned from `apalache typecheck --output=temp.json`
  * @param contractCall The contract call, fetched from the ledger.
@@ -32,11 +78,31 @@ export function instrumentMonitor(
 ): any {
     // Only instrument state variables that are delcared in the monitor spec
     // (otherwise we provoke type errors in Apalache Snowcat, via undeclared variables)
+    // Since `fields` and `oldFields` can have different entries, due to data storage lifetimes,
+    // we initialize all variables missing from either fields collection with Gen(1)
+    //
+    // Example:
+    //   - Monitor declares variables A, B
+    //   - oldFields contains {A: a, C: c}
+    //
+    // then:
+    //   - declaredMonitorVariables = [A,B]
+    //   - oldFieldsToInstrument = {A: a}
+    //   - missingOldFields = [B]
     const declaredMonitorVariables = monitor.modules[0].declarations
         .filter(({ kind }) => kind == 'TlaVarDecl')
         .map(({ name }) => name)
-    const fieldsToInstrument = contractCall.oldFields.filter((value, key) =>
+    const oldFieldsToInstrument = contractCall.oldFields.filter((value, key) =>
         declaredMonitorVariables.includes(key)
+    )
+    const missingOldFields = declaredMonitorVariables.filter(
+        (k) => !contractCall.oldFields.keySeq().contains(k)
+    )
+    const fieldsToInstrument = contractCall.fields.filter((value, key) =>
+        declaredMonitorVariables.includes(key)
+    )
+    const missingFields = declaredMonitorVariables.filter(
+        (k) => !contractCall.fields.keySeq().contains(k)
     )
 
     // TODO(#61): handle failed transactions
@@ -44,9 +110,8 @@ export function instrumentMonitor(
     // fieldsToInstrument.push({ name: 'last_error', type: 'TlaStr', value: '' })
 
     // Declaration of  "Init" (according to `contractCall.oldFields`)
-    const tlaInit = tlaJsonOperDecl__And(
-        'Init',
-        fieldsToInstrument
+    const oldInstrumented = tlaJsonAnd(
+        oldFieldsToInstrument
             .map((value, name) => {
                 return tlaJsonEq__NameEx__ValEx(
                     name,
@@ -58,10 +123,35 @@ export function instrumentMonitor(
             .toArray()
     )
 
+    const oldMissing = tlaJsonAnd(
+        missingOldFields.map((name) =>
+            tlaJsonEq__NameEx__ValEx(name, false, GEN1)
+        )
+    )
+
+    const tlaInit = tlaJsonOperDecl__And('Init', [oldInstrumented, oldMissing])
+
     // Declaration of "Next" (according to `tx`)
     const envRecord = tlaJsonRecord([
         { name: 'height', kind: 'TlaInt', value: contractCall.height },
     ])
+
+    const currentInstrumented = tlaJsonAnd(
+        fieldsToInstrument
+            .map((value, name) => {
+                return tlaJsonEq__NameEx__ValEx(
+                    name,
+                    true, // prime must be true in next
+                    tlaJsonOfNative(value)
+                )
+            })
+            .valueSeq()
+            .toArray()
+    )
+    const currentMissing = tlaJsonAnd(
+        missingFields.map((name) => tlaJsonEq__NameEx__ValEx(name, true, GEN1)) // prime must be true in next
+    )
+
     const tlaMethodArgs = contractCall.methodArgs.map((arg) =>
         tlaJsonOfNative(arg)
     )
@@ -70,6 +160,8 @@ export function instrumentMonitor(
             contractCall.method,
             [envRecord].concat(tlaMethodArgs)
         ),
+        currentInstrumented,
+        currentMissing,
         // TODO(#61): handle failed transactions
         // tlaJsonEq__NameEx__ValEx(
         //     'last_error',
@@ -229,6 +321,20 @@ export function tlaJsonOfNative(v: any, forceVec: boolean = false): any {
 }
 
 /**
+ * Return an Apalache TLA+ expression of the form `conjuncts`_0 /\ ... /\ `conjuncts`_n.
+ * @param conjuncts Body conjuncts
+ * @returns The conjunction in Apalache IR JSON: https://apalache.informal.systems/docs/adr/005adr-json.html
+ */
+function tlaJsonAnd(conjuncts: any): any {
+    return {
+        type: 'Untyped',
+        kind: 'OperEx',
+        oper: 'AND',
+        args: conjuncts,
+    }
+}
+
+/**
  * Return an Apalache TLA+ operator declaration of the form `operDeclName` == `conjuncts`_0 /\ ... /\ `conjuncts`_n.
  * @param operDeclName Operator name
  * @param conjuncts Body conjuncts
@@ -241,12 +347,7 @@ function tlaJsonOperDecl__And(operDeclName: string, conjuncts: any): any {
         name: operDeclName,
         formalParams: [],
         isRecursive: false,
-        body: {
-            type: 'Untyped',
-            kind: 'OperEx',
-            oper: 'AND',
-            args: conjuncts,
-        },
+        body: tlaJsonAnd(conjuncts),
     }
 }
 
@@ -302,6 +403,16 @@ function tlaJsonApplication(operName: string, args: any): any {
         oper: 'OPER_APP',
         args: [tlaJsonNameEx(operName)].concat(args),
     }
+}
+
+/**
+ * The Apalache TLA+ expression `Gen(1)`.
+ */
+const GEN1 = {
+    type: 'Untyped',
+    kind: 'OperEx',
+    oper: 'Apalache!Gen',
+    args: [tlaJsonValEx('TlaInt', 1)],
 }
 
 /**
