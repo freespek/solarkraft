@@ -95,6 +95,22 @@ const instrumentedMonitor = {
                                                     value: 100,
                                                 },
                                             },
+                                            {
+                                                kind: 'ValEx',
+                                                type: 'Untyped',
+                                                value: {
+                                                    kind: 'TlaStr',
+                                                    value: 'timestamp',
+                                                },
+                                            },
+                                            {
+                                                kind: 'ValEx',
+                                                type: 'Untyped',
+                                                value: {
+                                                    kind: 'TlaInt',
+                                                    value: 1716393856,
+                                                },
+                                            },
                                         ],
                                     },
                                     {
