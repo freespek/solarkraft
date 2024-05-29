@@ -72,6 +72,7 @@ Next_2 ==
     /\ Balance' = Balance
     /\ deposit("alice", "TOK", 100, <<"alice", "bob">>, [kind |-> "Before", timestamp |-> 42])
 
+
 \* Failing deposit call: Too many claimants
 Init_3 == 
     /\ env = [ current_contract_address |-> "this", ledger_timestamp |-> 0 ]

@@ -46,9 +46,10 @@ Next_1 ==
             claimants |-> <<>>,
             time_bound |-> [kind |-> "", timestamp |-> 0]
         ]
-
+    /\ Monitor_BalanceRecord
 
 \* Failure: balance record removed by another call
+\* Apalache should report a deadlock!
 Init_2 == 
     /\ env = [ current_contract_address |-> "this", ledger_timestamp |-> 10 ]
     /\ tx = [ method_name |-> "withdraw", signatures |-> {"bob"}, status |-> TRUE ]
@@ -76,8 +77,10 @@ Next_2 ==
             claimants |-> <<>>,
             time_bound |-> [kind |-> "", timestamp |-> 0]
         ]
+    /\ Monitor_BalanceRecord
 
 \* Failure: balance record changed by another call
+\* Apalache should report a deadlock!
 Init_3 == 
     /\ env = [ current_contract_address |-> "this", ledger_timestamp |-> 10 ]
     /\ tx = [ method_name |-> "claim_part", signatures |-> {"bob"}, status |-> TRUE ]
@@ -105,5 +108,6 @@ Next_3 ==
             claimants |-> <<"alice", "bob">>,
             time_bound |-> [kind |-> "Before", timestamp |-> 42]
         ]
+    /\ Monitor_BalanceRecord
 
 ================================================

@@ -16,33 +16,33 @@ claim_typedefs == TRUE
 
 
 \* @type: ($claimArgs) => Bool;
-MustFail_Unauthorized(args) == 
+MustFail_claim_Unauthorized(args) == 
     ~authorized(args.claimant)
 
-MustFail_NoBalanceRecord(args) == 
+MustFail_claim_NoBalanceRecord(args) == 
     ~instance_has("Balance")
 
 \* @type: ($claimArgs) => Bool;
-MustFail_NotClaimant(args) == 
+MustFail_claim_NotClaimant(args) == 
     \A i \in DOMAIN Balance.claimants: 
         Balance.claimants[i] /= args.claimant
 
 \* One success condition: correctly claimed before time bound
-MustPass_BeforeTimeBound(args) ==
+MustPass_claim_BeforeTimeBound(args) ==
     /\ Balance.time_bound.kind = "Before" 
     /\ env.ledger_timestamp <= Balance.time_bound.timestamp
 
 \* Another success condition: correctly claimed after time bound
-MustPass_AfterTimeBound(args) ==
+MustPass_claim_AfterTimeBound(args) ==
     /\ Balance.time_bound.kind = "After" 
     /\ env.ledger_timestamp >= Balance.time_bound.timestamp
 
 \* @type: ($claimArgs) => Bool;
-MustHold_TokenTransferred(args) ==
+MustHold_claim_TokenTransferred(args) ==
     token_transferred(
         Balance.token, env.current_contract_address, args.claimant, Balance.amount)
 
-MustHold_BalanceRecordRemoved(args) ==
+MustHold_claim_BalanceRecordRemoved(args) ==
     ~next_instance_has("Balance")
 
 
@@ -52,55 +52,55 @@ MustHold_BalanceRecordRemoved(args) ==
 
 \* Auxiliary predicate describing the failure condition
 \* (formed as a disjunction of all "MustFail" predicates)
-MustFail(args) ==
-    \/ MustFail_Unauthorized(args)
-    \/ MustFail_NoBalanceRecord(args)
-    \/ MustFail_NotClaimant(args)
+MustFail_claim(args) ==
+    \/ MustFail_claim_Unauthorized(args)
+    \/ MustFail_claim_NoBalanceRecord(args)
+    \/ MustFail_claim_NotClaimant(args)
 
 \* Auxiliary predicate describing the success condition
 \* (formed as a disjunction of all "MustPass" predicates)
-MustPass(args) ==
-    \/ MustPass_BeforeTimeBound(args)
-    \/ MustPass_AfterTimeBound(args)
+MustPass_claim(args) ==
+    \/ MustPass_claim_BeforeTimeBound(args)
+    \/ MustPass_claim_AfterTimeBound(args)
 
 \* Auxiliary predicate describing the effect
 \* (formed as a conjunction of all "MustHold" predicates)
-MustHold(args) ==
-    /\ MustHold_TokenTransferred(args)
-    /\ MustHold_BalanceRecordRemoved(args)
+MustHold_claim(args) ==
+    /\ MustHold_claim_TokenTransferred(args)
+    /\ MustHold_claim_BalanceRecordRemoved(args)
 
 
 \* Monitor invariants to be checked
 \* (encode the expected interpretation of monitor predicates)
-Inv_MustFail(args) ==
+Inv_MustFail_claim(args) ==
     (   /\ tx.method_name = "claim" 
-        /\ MustFail(args)
+        /\ MustFail_claim(args)
     )   => tx.status = FALSE
 
-Inv_MustPass(args) ==
+Inv_MustPass_claim(args) ==
     (   /\ tx.method_name = "claim" 
-        /\ ~MustFail(args)
-        /\ MustPass(args)
+        /\ ~MustFail_claim(args)
+        /\ MustPass_claim(args)
     )   => tx.status = TRUE
 
-Inv_MustHold(args) ==
+Inv_MustHold_claim(args) ==
     (   /\ tx.method_name = "claim"
         /\ tx.status = TRUE
-    )   => MustHold(args)
+    )   => MustHold_claim(args)
 
 
 \* The main invariant
 \* (formed as a conjunction of all auxiliary invariants)
 \* @type: ($claimArgs) => Bool;
-Inv(args) ==
-    /\ Inv_MustFail(args)
-    /\ Inv_MustPass(args)
-    /\ Inv_MustHold(args)
+Inv_claim(args) ==
+    /\ Inv_MustFail_claim(args)
+    /\ Inv_MustPass_claim(args)
+    /\ Inv_MustHold_claim(args)
 
 claim(claimant) ==
     LET args == [ 
         claimant |-> claimant
     ] IN 
-    Inv(args)
+    Inv_claim(args)
 
 ================================================
