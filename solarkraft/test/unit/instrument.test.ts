@@ -10,6 +10,7 @@ import {
     tlaJsonTypeOfPrimitive,
     tlaJsonOfNative,
     isTlaName,
+    tlaJsonOptionOfNative,
 } from '../../src/instrument.js'
 
 import { instrumentedMonitor as expected } from './verify.instrumentedMonitor.js'
@@ -256,5 +257,42 @@ describe('Apalache JSON instrumentor', () => {
 
         assert.isFalse(isTlaName('3'))
         assert.isFalse(isTlaName('_'))
+    })
+
+    it('converts option types', () => {
+        const tlaJsonNone = {
+            type: 'Untyped',
+            kind: 'OperEx',
+            oper: 'OPER_APP',
+            args: [
+                {
+                    type: 'Untyped',
+                    kind: 'NameEx',
+                    name: 'None',
+                },
+            ],
+        }
+        assert.deepEqual(tlaJsonOptionOfNative(null), tlaJsonNone)
+        assert.deepEqual(tlaJsonOptionOfNative(undefined), tlaJsonNone)
+        assert.deepEqual(tlaJsonOptionOfNative(42), {
+            type: 'Untyped',
+            kind: 'OperEx',
+            oper: 'OPER_APP',
+            args: [
+                {
+                    type: 'Untyped',
+                    kind: 'NameEx',
+                    name: 'Some',
+                },
+                {
+                    type: 'Untyped',
+                    kind: 'ValEx',
+                    value: {
+                        kind: 'TlaInt',
+                        value: 42,
+                    },
+                },
+            ],
+        })
     })
 })

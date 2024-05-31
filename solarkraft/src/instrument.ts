@@ -150,6 +150,10 @@ export function instrumentMonitor(
             name: 'invoked_function_name',
             value: tlaJsonValEx('TlaStr', contractCall.method),
         },
+        {
+            name: 'invoked_function_return_value',
+            value: tlaJsonOptionOfNative(contractCall.returnValue)
+        },
     ])
 
     const currentInstrumented = tlaJsonAnd(
@@ -342,6 +346,31 @@ export function tlaJsonOfNative(v: any, forceVec: boolean = false): any {
 }
 
 /**
+ * Return the Apalache JSON IR representation of a native JS value `v`, wrapped inside an option type.
+ *
+ * If `v` is `null` or `undefined`, returns `None`. Otherwise, returns `Some(nativeValue)`.
+ */
+export function tlaJsonOptionOfNative(v: any): any {
+    if (v) {
+        return {
+            type: 'Untyped',
+            kind: 'OperEx',
+            oper: 'OPER_APP',
+            args: [
+                {
+                    type: 'Untyped',
+                    kind: 'NameEx',
+                    name: 'Some',
+                },
+                tlaJsonOfNative(v),
+            ],
+        }
+    } else {
+        return tlaJsonNone
+    }
+}
+
+/**
  * Return an Apalache TLA+ expression of the form `conjuncts`_0 /\ ... /\ `conjuncts`_n.
  * @param conjuncts Body conjuncts
  * @returns The conjunction in Apalache IR JSON: https://apalache.informal.systems/docs/adr/005adr-json.html
@@ -424,6 +453,23 @@ function tlaJsonApplication(operName: string, args: any): any {
         oper: 'OPER_APP',
         args: [tlaJsonNameEx(operName)].concat(args),
     }
+}
+
+/**
+ * The Apalache TLA+ expression `None` (of type `None(UNIT)`)
+ * See https://apalache.informal.systems/docs/lang/option-types.html
+ */
+const tlaJsonNone = {
+    type: 'Untyped',
+    kind: 'OperEx',
+    oper: 'OPER_APP',
+    args: [
+        {
+            type: 'Untyped',
+            kind: 'NameEx',
+            name: 'None',
+        },
+    ],
 }
 
 /**
