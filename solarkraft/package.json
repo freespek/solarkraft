@@ -31,13 +31,14 @@
   ],
   "scripts": {
     "compile": "genversion -e src/version.ts && tsc",
-    "e2e": "mocha --loader=ts-node/esm test/e2e/**/*.test.ts",
     "format": "prettier --config .prettierrc 'src/**/*.ts' 'test/**/*.ts' --write",
     "license": "source-licenser --config-file licenser-config.yaml .",
     "lint": "eslint src test",
     "prepare": "cd .. && husky solarkraft/.husky",
     "snapshot": "git archive --format=tar.gz -o solarkraft-`git rev-parse --short HEAD`.tar.gz --prefix=solarkraft/ HEAD",
-    "test": "mocha --loader=ts-node/esm --exclude test/e2e/**/*.test.ts test/**/*.test.ts"
+    "e2e": "mocha --loader=ts-node/esm test/e2e/**/*.test.ts",
+    "integration": "mocha --loader=ts-node/esm test/integration/**/*.test.ts",
+    "test": "mocha --loader=ts-node/esm --exclude test/e2e/**/*.test.ts --exclude test/integration/**/*.test.ts test/**/*.test.ts"
   },
   "dependencies": {
     "@stellar/stellar-base": "^11.0.1",
