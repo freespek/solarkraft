@@ -11,8 +11,8 @@ const CONTRACT_ID = 'CDXBZCCRCCIHSHHXONEFX4DOD5XSM34EA7M22JIVU35ZDQ6ZBADIARLB'
 // const LocalRPC = 'https://localhost:8000/'
 const TestnetRPC = 'https://soroban-testnet.stellar.org:443'
 
-describe('Alert contract invocation', () => {
-    it('Submits a NoViolation', async function () {
+describe('alert contract invocation', () => {
+    it('successfully submits a NoViolation', async function () {
         this.timeout(50000)
 
         // set up a new account adn initial funds, to submit txs from
