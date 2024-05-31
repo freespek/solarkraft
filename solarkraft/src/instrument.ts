@@ -130,8 +130,26 @@ export function instrumentMonitor(
 
     // Declaration of "Next" (according to `contractCall.fields` and `contractCall.method` / `.methodArgs`)
     const envRecord = tlaJsonRecord([
-        { name: 'height', kind: 'TlaInt', value: contractCall.height },
-        { name: 'timestamp', kind: 'TlaInt', value: contractCall.timestamp },
+        // env.ledger().sequence()
+        {
+            name: 'sequence',
+            value: tlaJsonValEx('TlaInt', contractCall.height),
+        },
+        // env.ledger().timestamp()
+        {
+            name: 'timestamp',
+            value: tlaJsonValEx('TlaInt', contractCall.timestamp),
+        },
+        // env.current_contract_address()
+        {
+            name: 'current_contract_address',
+            value: tlaJsonValEx('TlaStr', contractCall.contractId),
+        },
+        // extra environment that's useful in monitor specifications
+        {
+            name: 'invoked_function_name',
+            value: tlaJsonValEx('TlaStr', contractCall.method),
+        },
     ])
 
     const currentInstrumented = tlaJsonAnd(
@@ -229,6 +247,11 @@ export function isTlaName(name: string): boolean {
  *   { "2": 3, "4": 5 }  ~~>  SetAsFun({ <<"2", 3>>, <<"4", 5>> })
  */
 export function tlaJsonOfNative(v: any, forceVec: boolean = false): any {
+    assert(
+        v !== null && v !== undefined,
+        `Expected value, got null or undefined`
+    )
+
     if (typeof v === 'object') {
         if (Array.isArray(v)) {
             // a JS array
@@ -376,14 +399,14 @@ function tlaJsonValEx(kind: string, value: any): any {
  * @param bindings Interleaved array of field names and field values.
  * @returns The record in Apalache IR JSON: https://apalache.informal.systems/docs/adr/005adr-json.html
  */
-function tlaJsonRecord(bindings: any): any {
+function tlaJsonRecord(bindings: { name; value }[]): any {
     return {
         type: 'Untyped',
         kind: 'OperEx',
         oper: 'RECORD',
-        args: bindings.flatMap((binding) => [
-            tlaJsonValEx('TlaStr', binding.name),
-            tlaJsonValEx(binding.kind, binding.value),
+        args: bindings.flatMap(({ name, value }) => [
+            tlaJsonValEx('TlaStr', name),
+            value,
         ]),
     }
 }
