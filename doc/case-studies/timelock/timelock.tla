@@ -1,6 +1,8 @@
 (*
  * Typedefs and variables for the Timelock contract
  *
+ * Modeled from https://github.com/stellar/soroban-examples/blob/v20.0.0/timelock/src/lib.rs
+ *
  * Andrey Kuprianov, 2024
  *)
 ---- MODULE timelock ----
