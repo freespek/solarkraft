@@ -106,7 +106,7 @@ export function instrumentMonitor(
         (k) => !contractCall.fields.has(k)
     )
 
-    const typeHints = contractCall.typeHints
+    const typeHints = contractCall.typeHints ?? {}
     const varHints = typeHints['variables'] ?? {}
 
     // TODO(#61): handle failed transactions
@@ -250,6 +250,7 @@ export function tlaJsonOfNative(
             // a JS array
             // we require a hint in the case of ambiguous inputs
             const mustHaveHint =
+                !forceVec &&
                 1 <= v.length &&
                 v.length <= 2 &&
                 typeof v[0] === 'string' &&
@@ -257,7 +258,7 @@ export function tlaJsonOfNative(
 
             if (mustHaveHint && hint === undefined)
                 throw new TypeError(
-                    'Ambiguous type detected. Please `fetch` with --typemap provided.'
+                    `Ambiguous type detected for ${v}. Please \`fetch\` with --typemap provided.`
                 )
 
             if (

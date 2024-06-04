@@ -43,7 +43,7 @@ function assertProperVec(v: any[], forceVec: boolean = true) {
     assert.deepPropertyVal(
         tla,
         'args',
-        v.map((arg) => tlaJsonOfNative(arg))
+        v.map((arg) => tlaJsonOfNative(arg, forceVec))
     )
 }
 
