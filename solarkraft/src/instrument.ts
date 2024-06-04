@@ -106,6 +106,9 @@ export function instrumentMonitor(
         (k) => !contractCall.fields.has(k)
     )
 
+    const typeHints = contractCall.typeHints
+    const varHints = typeHints['variables'] ?? {}
+
     // TODO(#61): handle failed transactions
     // Add a special variable `last_error` that tracks error messages of failed transactions
     // fieldsToInstrument.push({ name: 'last_error', type: 'TlaStr', value: '' })
@@ -114,7 +117,11 @@ export function instrumentMonitor(
     const oldInstrumented = tlaJsonAnd(
         oldFieldsToInstrument
             .map((value, name) =>
-                tlaJsonEq__NameEx__ValEx(name, false, tlaJsonOfNative(value))
+                tlaJsonEq__NameEx__ValEx(
+                    name,
+                    false,
+                    tlaJsonOfNative(value, false, varHints[name])
+                )
             )
             .valueSeq()
             .toArray()
@@ -140,7 +147,7 @@ export function instrumentMonitor(
                 tlaJsonEq__NameEx__ValEx(
                     name,
                     true, // prime `name`
-                    tlaJsonOfNative(value)
+                    tlaJsonOfNative(value, false, varHints[name])
                 )
             )
             .valueSeq()
@@ -150,8 +157,13 @@ export function instrumentMonitor(
         missingFields.map((name) => tlaJsonEq__NameEx__ValEx(name, true, GEN1)) // name' = Gen(1)
     )
 
-    const tlaMethodArgs = contractCall.methodArgs.map((arg) =>
-        tlaJsonOfNative(arg)
+    const methodArgHints =
+        contractCall.method in typeHints
+            ? typeHints[contractCall.method][0]
+            : Array(contractCall.methodArgs.length).fill(undefined)
+
+    const tlaMethodArgs = contractCall.methodArgs.map((arg, i) =>
+        tlaJsonOfNative(arg, false, methodArgHints[i])
     )
     const tlaNext = tlaJsonOperDecl__And('Next', [
         tlaJsonApplication(
@@ -228,24 +240,54 @@ export function isTlaName(name: string): boolean {
  *   { "a": 3, "b": 5 }  ~~>  [ a |-> 3, b |-> 5 ]
  *   { "2": 3, "4": 5 }  ~~>  SetAsFun({ <<"2", 3>>, <<"4", 5>> })
  */
-export function tlaJsonOfNative(v: any, forceVec: boolean = false): any {
+export function tlaJsonOfNative(
+    v: any,
+    forceVec: boolean = false,
+    hint?: any
+): any {
     if (typeof v === 'object') {
         if (Array.isArray(v)) {
             // a JS array
+            // we require a hint in the case of ambiguous inputs
+            const mustHaveHint =
+                1 <= v.length &&
+                v.length <= 2 &&
+                typeof v[0] === 'string' &&
+                (v.length === 1 || typeof v[1] === 'string')
+
+            if (mustHaveHint && hint === undefined)
+                throw new TypeError(
+                    'Ambiguous type detected. Please `fetch` with --typemap provided.'
+                )
+
             if (
                 v.length == 0 ||
                 forceVec ||
-                v.every((elem) => typeof elem === typeof v[0])
+                (!mustHaveHint &&
+                    v.every((elem) => typeof elem === typeof v[0])) ||
+                (mustHaveHint && hint !== 'ENUM')
             ) {
                 // a Soroban `Vec`
                 // [ 1, 2, 3 ]  ~~>  << 1, 2, 3 >>
+                const childHints: any[] =
+                    hint === undefined
+                        ? Array(v.length).fill(undefined)
+                        : 'vec' in hint
+                          ? Array(v.length).fill(hint['vec'])
+                          : hint
                 return {
                     type: 'Untyped',
                     kind: 'OperEx',
                     oper: 'TUPLE',
-                    args: v.map((arg) => tlaJsonOfNative(arg)),
+                    args: v.map((arg, i) =>
+                        tlaJsonOfNative(arg, forceVec, childHints[i])
+                    ),
                 }
-            } else if (v.length > 0 && typeof v[0] === 'string') {
+            } else if (
+                v.length > 0 &&
+                typeof v[0] === 'string' &&
+                (!mustHaveHint || hint === 'ENUM')
+            ) {
                 // a Soroban `enum`
                 // [ 'A', 42 ]   ~~>  Variant("A", 42)
                 const tlaUnit = {
@@ -254,13 +296,16 @@ export function tlaJsonOfNative(v: any, forceVec: boolean = false): any {
                     oper: 'OPER_APP',
                     args: [{ type: 'Untyped', kind: 'NameEx', name: 'UNIT' }],
                 }
+                // Enums can't contain other enums, so we don't need deeper hints
                 return {
                     type: 'Untyped',
                     kind: 'OperEx',
                     oper: 'Variants!Variant',
                     args:
                         v.length > 1
-                            ? v.map((arg) => tlaJsonOfNative(arg))
+                            ? v.map((arg) =>
+                                  tlaJsonOfNative(arg, forceVec, undefined)
+                              )
                             : [...v.map(tlaJsonApplication), tlaUnit],
                 }
             } else {
@@ -287,16 +332,34 @@ export function tlaJsonOfNative(v: any, forceVec: boolean = false): any {
                 (key) => typeof key === 'string' && isTlaName(key)
             )
         ) {
+            const entries = Object.entries(v)
+            const flatEntries: any[] = entries.flat()
+            const childHints = entries
+                .map((arg) => {
+                    const k: string = arg[0]
+                    return [
+                        'Str',
+                        hint === undefined
+                            ? undefined
+                            : k in hint
+                              ? hint[k]
+                              : undefined,
+                    ]
+                })
+                .flat()
+
             return {
                 type: 'Untyped',
                 kind: 'OperEx',
                 oper: 'RECORD',
-                args: Object.entries(v)
-                    .flat()
-                    .map((arg) => tlaJsonOfNative(arg)),
+                args: flatEntries.map((arg, i) =>
+                    tlaJsonOfNative(arg, forceVec, childHints[i])
+                ),
             }
         }
         // { "2": 3, "4": 5 }  ~~>  SetAsFun({ <<"2", 3>>, <<"4", 5>> })
+        const childHints =
+            hint === undefined || !('map' in hint) ? undefined : hint['map']
         return {
             type: 'Untyped',
             kind: 'OperEx',
@@ -307,7 +370,7 @@ export function tlaJsonOfNative(v: any, forceVec: boolean = false): any {
                     kind: 'OperEx',
                     oper: 'SET_ENUM',
                     args: Object.entries(v).map(([key, value]) =>
-                        tlaJsonOfNative([key, value], true)
+                        tlaJsonOfNative([key, value], true, childHints)
                     ),
                 },
             ],

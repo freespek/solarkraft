@@ -9,6 +9,39 @@
  * Igor Konnov, 2024
  */
 
+/**
+ * The fetch command optionally accepts a --typemap argument, which should be a .json file with the following structure:
+ *  {
+ *   "methods":{
+ *       "m1": [[T1_1, ..., T1_N1], R1],
+ *        ...
+ *       "mK": [[TK_1, ..., TK_NK], RK],
+ *      },
+ *   "variables": {
+ *       "v1": T1
+ *       ...
+ *       "vM": TM
+ *      }
+ *  }
+ *
+ * Where `mi` keys are the names of the methods, `vi` keys the names of variables,
+ * `Ti_j` is the type of the `j`-th argument to method `mi`,
+ * `Ri` is the return type of method `mi`,
+ *  and `Ti` is the type of the variable `vi`.
+ *
+ * Type syntax uses the following constructors:
+ *  - { "vec": elemT } for Vec - typed values
+ *  - { "map": [domT, cdmT]} for Map - typed values
+ *  - { a1: T1, ..., an: Tn } for Struct - typed values
+ *  - ENUM for enums
+ * other literal types (e.g. Int) aren't required so they can be any string.
+ *
+ * Note that typemap types are used as hints, and as such are redundant for any method/variable where the type is unambiguous
+ * from the transaction data json structure.
+ * Concretely, type hints are only _necessary_ when dealing with nularry Enum values, or Enum values indexed by Symbols/Strings, since
+ * those values are indistinguishable from vectors at the transaction data layer.
+ */
+
 import { Horizon } from '@stellar/stellar-sdk'
 import { extractContractCall } from './fetcher/callDecoder.js'
 import {
@@ -16,6 +49,7 @@ import {
     saveContractCallEntry,
     saveFetcherState,
 } from './fetcher/storage.js'
+import { existsSync, readFileSync } from 'node:fs'
 
 // how often to query for the latest synchronized height
 const HEIGHT_FETCHING_PERIOD = 100
@@ -42,6 +76,11 @@ export async function fetch(args: any) {
     } else {
         lastHeight = args.height
     }
+
+    const typemap = args.typemap
+    const typemapJson = existsSync(typemap)
+        ? JSON.parse(readFileSync(typemap, 'utf8'))
+        : ({} as JSON)
 
     console.log(`Fetching fresh transactions from: ${args.rpc}...`)
 
@@ -73,7 +112,8 @@ export async function fetch(args: any) {
                 if (msg.transaction_successful) {
                     const callEntryMaybe = await extractContractCall(
                         msg,
-                        (id) => contractId === id
+                        (id) => contractId === id,
+                        typemapJson
                     )
                     if (callEntryMaybe.isJust()) {
                         const entry = callEntryMaybe.value

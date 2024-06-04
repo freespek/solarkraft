@@ -1,0 +1,8 @@
+{
+	"methods":{
+		"set_enum": [["ENUM"], "UNIT"]
+	},
+	"variables": {
+		"MY_ENUM": "ENUM"
+	}
+}
