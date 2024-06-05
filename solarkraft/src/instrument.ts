@@ -306,7 +306,10 @@ export function tlaJsonOfNative(
                             ? v.map((arg, i) =>
                                   tlaJsonOfNative(arg, forceVec, childHints[i])
                               )
-                            : [...v.map(tlaJsonApplication), tlaUnit],
+                            : [
+                                  ...v.map((x) => tlaJsonApplication(x, [])),
+                                  tlaUnit,
+                              ],
                 }
             } else {
                 assert(false, `Unexpected native value: ${v}`)

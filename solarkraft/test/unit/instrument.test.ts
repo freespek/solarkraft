@@ -14,6 +14,7 @@ import {
 
 import { instrumentedMonitor as expected } from './verify.instrumentedMonitor.js'
 import { instrumentedMonitor as expected2 } from './verify.instrumentedMonitor2.js'
+import { instrumentedMonitor as expected3 } from './verify.instrumentedMonitor3.js'
 
 // Assert that `tlaJsonOfNative` returns a proper TLA+ `ValEx` for the primitive JS value `v`
 function assertProperValExOfPrimitive(v: any) {
@@ -194,6 +195,57 @@ describe('Apalache JSON instrumentor', () => {
         }
         const instrumented = instrumentMonitor(monitor, contractCall)
         assert.deepEqual(expected2, instrumented)
+    })
+
+    it('fails when type hint is needed but not given', () => {
+        const monitor = {
+            modules: [
+                {
+                    declarations: [
+                        { kind: 'TlaVarDecl', name: 'is_initialized' },
+                    ],
+                },
+            ],
+        }
+        const contractCall = {
+            timestamp: 1716393856,
+            height: 100,
+            txHash: '0xasdf',
+            contractId: '0xqwer',
+            returnValue: null,
+            method: 'Claim',
+            methodArgs: [['MaybeEnum']],
+            fields: OrderedMap<string, any>([['is_initialized', false]]),
+            oldFields: OrderedMap<string, any>([['is_initialized', false]]),
+            typeHints: undefined,
+        }
+        assert.throws(() => instrumentMonitor(monitor, contractCall))
+    })
+
+    it('succeeds when type hint is correctly supplied', () => {
+        const monitor = {
+            modules: [
+                {
+                    declarations: [],
+                },
+            ],
+        }
+        const contractCall = {
+            timestamp: 1716393856,
+            height: 100,
+            txHash: '0xasdf',
+            contractId: '0xqwer',
+            returnValue: null,
+            method: 'foo',
+            methodArgs: [['MaybeEnum'], ['MaybeVec']],
+            fields: OrderedMap<string, any>(),
+            oldFields: OrderedMap<string, any>(),
+            typeHints: {
+                methods: { foo: [[{ enum: [] }, { vec: 'Str' }], 'BAR'] },
+            },
+        }
+        const instrumented = instrumentMonitor(monitor, contractCall)
+        assert.deepEqual(expected3, instrumented)
     })
 
     it('decodes primitive Soroban values to Apalache JSON IR ValEx', () => {
