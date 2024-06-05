@@ -12,7 +12,8 @@ EXTENDS deposit, claim, balance_record, token_balance
 
 monitor == 
     /\ Monitor_BalanceRecord
-    /\ Monitor_TokenBalance
+    \* Checking of the condition(s) below is not yet supported 
+    \* /\ Monitor_TokenBalance
 
 
 ================================================

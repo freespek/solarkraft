@@ -79,7 +79,7 @@ Next_2 ==
     /\ monitor
 
 
-\* Failure: Contract token balance is reduced by another call (caught by "monitor")
+\* Failure: Contract balance record is changed by another call (caught by "monitor")
 \* Apalache should report a deadlock!
 Init_3 == 
     /\ env = [ current_contract_address |-> "this", ledger_timestamp |-> 10 ]
@@ -100,13 +100,13 @@ Next_3 ==
     /\ tx' = tx
     /\ instance_storage' = {}
     /\ token_balances' = SetAsFun({
-        << "TOK", SetAsFun({ <<"alice", 100>>, <<"bob", 200>>, <<"this", 0>>}) >>
+        << "TOK", SetAsFun({ <<"alice", 100>>, <<"bob", 250>>, <<"this", 50>>}) >>
        })
     /\ Balance' = [
-            token |-> "", 
-            amount |-> 0, 
-            claimants |-> <<>>,
-            time_bound |-> [kind |-> "", timestamp |-> 0]
+            token |-> "TOK", 
+            amount |-> 50, 
+            claimants |-> <<"alice", "bob">>,
+            time_bound |-> [kind |-> "Before", timestamp |-> 42]
         ]
     /\ monitor
 

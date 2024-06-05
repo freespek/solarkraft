@@ -53,9 +53,10 @@ MustHold_claim_BalanceRecordRemoved(args) ==
 \* Auxiliary predicate describing the failure condition
 \* (formed as a disjunction of all "MustFail" predicates)
 MustFail_claim(args) ==
-    \/ MustFail_claim_Unauthorized(args)
     \/ MustFail_claim_NoBalanceRecord(args)
     \/ MustFail_claim_NotClaimant(args)
+    \* Checking of the condition(s) below is not yet supported 
+    \* \/ MustFail_claim_Unauthorized(args)
 
 \* Auxiliary predicate describing the success condition
 \* (formed as a disjunction of all "MustPass" predicates)
@@ -66,8 +67,9 @@ MustPass_claim(args) ==
 \* Auxiliary predicate describing the effect
 \* (formed as a conjunction of all "MustHold" predicates)
 MustHold_claim(args) ==
-    /\ MustHold_claim_TokenTransferred(args)
     /\ MustHold_claim_BalanceRecordRemoved(args)
+    \* Checking of the condition(s) below is not yet supported 
+    \* /\ MustHold_claim_TokenTransferred(args)
 
 
 \* Monitor invariants to be checked

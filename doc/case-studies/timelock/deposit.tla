@@ -67,9 +67,10 @@ MustHold_deposit_TokenTransferred(args) ==
 \* (formed as a disjunction of all "MustFail" predicates)
 MustFail_deposit(args) ==
     \/ MustFail_deposit_TooManyClaimants(args)
-    \/ MustFail_deposit_Unauthorized(args)
-    \/ MustFail_deposit_NotEnoughBalance(args)
     \/ MustFail_deposit_AlreadyInitialized(args)
+    \* Checking of the condition(s) below is not yet supported 
+    \* \/ MustFail_deposit_Unauthorized(args)
+    \* \/ MustFail_deposit_NotEnoughBalance(args)
 
 \* Auxiliary predicate describing the success condition
 \* (formed as a disjunction of all "MustPass" predicates)
@@ -81,7 +82,8 @@ MustPass_deposit(args) ==
 MustHold_deposit(args) ==
     /\ MustHold_deposit_BalanceRecordCreated(args)
     /\ MustHold_deposit_BalanceRecordCorrect(args)
-    /\ MustHold_deposit_TokenTransferred(args)
+    \* Checking of the condition(s) below is not yet supported 
+    \* /\ MustHold_deposit_TokenTransferred(args)
 
 \* Monitor invariants to be checked
 \* (encode the expected interpretation of monitor predicates)
