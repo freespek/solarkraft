@@ -33,12 +33,12 @@
  *  - { "vec": elemT } for Vec - typed values
  *  - { "map": [domT, cdmT]} for Map - typed values
  *  - { a1: T1, ..., an: Tn } for Struct - typed values
- *  - ENUM for enums
- * other literal types (e.g. Int) aren't required so they can be any string.
+ *  - { "enum": [T1, ..., Tn]} for enums
+ * other literal types (e.g. Int) aren't required so they can be any string (which will be ignored).
  *
  * Note that typemap types are used as hints, and as such are redundant for any method/variable where the type is unambiguous
  * from the transaction data json structure.
- * Concretely, type hints are only _necessary_ when dealing with nularry Enum values, or Enum values indexed by Symbols/Strings, since
+ * Concretely, type hints are only _necessary_ when dealing with nullary Enum values, or Enum values indexed by Symbols/Strings, since
  * those values are indistinguishable from vectors at the transaction data layer.
  */
 
@@ -59,6 +59,14 @@ const HEIGHT_FETCHING_PERIOD = 100
  * @param args the arguments parsed by yargs
  */
 export async function fetch(args: any) {
+    const typemap = args.typemap
+
+    if (typemap !== undefined && !existsSync(typemap)) {
+        console.log(`The typemap file ${typemap} does not exist.`)
+        console.log('[Error]')
+        return
+    }
+
     const server = new Horizon.Server(args.rpc)
 
     const contractId = args.id
@@ -77,7 +85,6 @@ export async function fetch(args: any) {
         lastHeight = args.height
     }
 
-    const typemap = args.typemap
     const typemapJson = existsSync(typemap)
         ? JSON.parse(readFileSync(typemap, 'utf8'))
         : ({} as JSON)

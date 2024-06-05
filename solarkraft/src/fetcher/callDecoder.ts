@@ -60,13 +60,13 @@ export async function extractContractCall(
     const methodArgs = params.slice(2)
 
     // Now we look into the typemap file, to see if we're given type hints. This is effectively required
-    // for vector-like arguments, which could be encodings of enums
+    // for vector-like arguments, which could be encodings of enums:
+    // https://developers.stellar.org/docs/learn/smart-contract-internals/types/custom-types#enum-unit-and-tuple-variants
     // Could be undefined, in which case we should fail on ambiguous input
     const typeHints = {
-        variables: typemapJson['variables'],
+        methods: typemapJson['methods'] ?? {},
+        variables: typemapJson['variables'] ?? {},
     }
-    typeHints[method] =
-        'methods' in typemapJson ? typemapJson['methods'][method] : undefined
 
     const tx = await op.transaction()
     // Get the containing ledger number:

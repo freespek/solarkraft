@@ -1,8 +1,17 @@
 {
-	"methods":{
-		"set_enum": [["ENUM"], "UNIT"]
+	"methods": {
+		"set_enum": [
+			[
+				{
+					"enum": []
+				}
+			],
+			"UNIT"
+		]
 	},
 	"variables": {
-		"MY_ENUM": "ENUM"
+		"MY_ENUM": {
+			"enum": []
+		}
 	}
 }

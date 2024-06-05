@@ -41,7 +41,7 @@ const fetchCmd = {
             .option('typemap', {
                 desc: 'File containing contract method type annotations',
                 type: 'string',
-                default: 'typemap.json',
+                require: false,
             })
             .option('rpc', {
                 desc: 'URL of a Horizon endpoint',
