@@ -76,6 +76,11 @@ const verifyCmd = {
                 desc: 'Monitors to check against',
                 type: 'array',
                 demandOption: true,
+            })
+            .option('alert', {
+                desc: 'Alert contract ID. WIll not alert if this paremeter is not provided.',
+                type: 'string',
+                require: false,
             }),
     handler: verify,
 }

@@ -15,9 +15,13 @@ import { rmSync } from 'fs'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { Keypair, Networks } from '@stellar/stellar-sdk'
+
 import { globSync } from 'glob'
 import { temporaryFile } from 'tempy'
 import { Either, left, right, mergeInOne } from '@sweet-monads/either'
+
+import { invokeAlert } from './invokeAlert.js'
 
 import {
     loadContractCallEntry,
@@ -26,6 +30,7 @@ import {
     VerificationStatus,
 } from './fetcher/storage.js'
 import { instrumentMonitor } from './instrument.js'
+import { MonitorAnalysisStatus } from './MonitorAnalysis.js'
 
 type Result<T> = Either<string, T>
 type ApalacheResult = Result<void>
@@ -100,6 +105,50 @@ function apalacheCheck(monitor: string): Result<ApalacheResult> {
             return left(
                 `Internal error: Apalache failed with error code ${child.status}\n\n${child.stdout}`
             )
+    }
+}
+
+// For now, our solution is TESTNET-ONLY!, so
+// we don't need to supply all of the parameters, but if
+// we decide to implement mainnet support, we should revisit this
+
+// Creates a fresh keypair to sign transactions with, and funds it.
+async function generateFundedKeypair() {
+    const keypair = Keypair.random()
+    await fetch(
+        `https://friendbot.stellar.org?addr=${encodeURIComponent(keypair.publicKey())}`
+    )
+    return keypair
+}
+
+// Trigger the alert contract, if an alert contract ID is provided, otherwise do nothing
+async function conditionalAlert(
+    monitorAnalysisStatus: MonitorAnalysisStatus,
+    txHash: string,
+    alertContractID?: string
+): Promise<void> {
+    if (alertContractID !== undefined) {
+        if (!/^[A-Z0-9]{56}$/g.test(alertContractID)) {
+            console.log(`Invalid contract ID: ${alertContractID}`)
+            console.log(`No alert submitted.`)
+            return
+        }
+        try {
+            console.log('Preparing to submit alert.')
+            const keypair = await generateFundedKeypair()
+            invokeAlert(
+                'https://soroban-testnet.stellar.org:443',
+                keypair,
+                Networks.TESTNET,
+                alertContractID,
+                txHash,
+                monitorAnalysisStatus
+            )
+        } catch (e) {
+            console.log(`Invoking the alert contract failed: ${e}`)
+            console.log(`[Error]`)
+            throw e
+        }
     }
 }
 
@@ -184,6 +233,14 @@ export function verify(args: any) {
                   ),
         'unverified' // only returned if array is empty
     )
+
+    const monitorStatus =
+        verificationStatus === 'ok'
+            ? MonitorAnalysisStatus.NoViolation
+            : MonitorAnalysisStatus.Violation
+
+    // PR comment: call only if Violation?
+    conditionalAlert(monitorStatus, args.txHash, args.alert)
 
     saveContractCallEntry(args.home, {
         ...contractCall,

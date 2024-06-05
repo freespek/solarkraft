@@ -69,9 +69,7 @@ export async function invokeAlert(
 
     // Let's see the base64-encoded XDR of the transaction we just built.
     console.log(
-        `Signed prepared transaction XDR: ${preparedTransaction
-            .toEnvelope()
-            .toXDR('base64')}`
+        `Signed prepared transaction for alert contract ${alertContractId}`
     )
 
     // Submit the transaction to the Soroban-RPC server. The RPC server will
@@ -79,13 +77,11 @@ export async function invokeAlert(
     // wait, polling `getTransaction` until the transaction completes.
     try {
         const sendResponse = await server.sendTransaction(preparedTransaction)
-        console.log(`Sent transaction: ${JSON.stringify(sendResponse)}`)
 
         if (sendResponse.status === 'PENDING') {
             let getResponse = await server.getTransaction(sendResponse.hash)
             // Poll `getTransaction` until the status is not "NOT_FOUND"
             while (getResponse.status === Api.GetTransactionStatus.NOT_FOUND) {
-                console.log('Waiting for transaction confirmation...')
                 // See if the transaction is complete
                 getResponse = await server.getTransaction(sendResponse.hash)
                 // Wait one second
