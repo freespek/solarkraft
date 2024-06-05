@@ -82,6 +82,11 @@ export interface ContractCallEntry {
      * Flag which tracks whether this particular entry has already been verified, and, if it has been, the verification result.
      */
     verificationStatus?: VerificationStatus
+
+    /**
+     * Type hints for enum/vector disambiguation, if present.
+     */
+    typeHints?: any
 }
 
 /**
@@ -156,6 +161,7 @@ export function loadContractCallEntry(filename: string): ContractCallEntry {
         fields: OrderedMap<string, any>(loaded.fields),
         oldFields: OrderedMap<string, any>(loaded.oldFields),
         verificationStatus: loaded.verificationStatus ?? 'unverified',
+        typeHints: loaded.typeHints ?? {},
     }
 }
 

@@ -21,7 +21,8 @@ import { OrderedMap } from 'immutable'
  */
 export async function extractContractCall(
     op: any,
-    matcher: (contractId: string) => boolean
+    matcher: (contractId: string) => boolean,
+    typemapJson: any = {}
 ): Promise<Maybe<ContractCallEntry>> {
     // https://developers.stellar.org/network/horizon/api-reference/resources/operations/object/invoke-host-function
     if (op.function !== 'HostFunctionTypeHostFunctionTypeInvokeContract') {
@@ -57,6 +58,15 @@ export async function extractContractCall(
     // continue with extracting transaction data and ledger updates
     const method = params[1]
     const methodArgs = params.slice(2)
+
+    // Now we look into the typemap file, to see if we're given type hints. This is effectively required
+    // for vector-like arguments, which could be encodings of enums:
+    // https://developers.stellar.org/docs/learn/smart-contract-internals/types/custom-types#enum-unit-and-tuple-variants
+    // Could be undefined, in which case we should fail on ambiguous input
+    const typeHints = {
+        methods: typemapJson['methods'] ?? {},
+        variables: typemapJson['variables'] ?? {},
+    }
 
     const tx = await op.transaction()
     // Get the containing ledger number:
@@ -116,6 +126,7 @@ export async function extractContractCall(
         returnValue,
         fields,
         oldFields,
+        typeHints,
     })
 }
 
