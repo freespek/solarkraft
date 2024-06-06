@@ -89,11 +89,10 @@ function apalacheCheck(monitor: string): Result<ApalacheResult> {
     // Check the instrumented spec with Apalache
     const child = spawnSync(APALACHE_BIN, ['check', '--length=1', tempfile])
 
-    rmSync(tempfile)
-
     // Report results
     switch (child.status) {
         case 0:
+            rmSync(tempfile)
             return right(right(null))
         case 12:
             return right(left('unable to reproduce the transaction'))

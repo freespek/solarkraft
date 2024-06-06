@@ -21,7 +21,8 @@ import { OrderedMap } from 'immutable'
  */
 export async function extractContractCall(
     op: any,
-    matcher: (contractId: string) => boolean
+    matcher: (contractId: string) => boolean,
+    typemapJson: any = {}
 ): Promise<Maybe<ContractCallEntry>> {
     // https://developers.stellar.org/network/horizon/api-reference/resources/operations/object/invoke-host-function
     if (op.function !== 'HostFunctionTypeHostFunctionTypeInvokeContract') {
@@ -38,8 +39,10 @@ export async function extractContractCall(
 
     // In Soroban, `env.ledger().timestamp()` "[r]eturns a unix timestamp for when the ledger was closed":
     // https://docs.rs/soroban-sdk/latest/soroban_sdk/ledger/struct.Ledger.html#method.timestamp
-    // according to [this](https://stellar.stackexchange.com/questions/1852/transaction-created-at-and-ledger-close-time),
+    // According to [this](https://stellar.stackexchange.com/questions/1852/transaction-created-at-and-ledger-close-time),
     // the transaction object's `created_at` equals the ledger's `closed_at`.
+    // `created_at` and `env.ledger().timestamp()` have seconds-precision. We divide by 1000 here since `Date` internally
+    // represents the timestamp as milliseconds.
     const timestamp = new Date(op.created_at).getTime() / 1000
     const txHash = op.transaction_hash
     // decode the call parameters from XDR to native JS values
@@ -55,6 +58,15 @@ export async function extractContractCall(
     // continue with extracting transaction data and ledger updates
     const method = params[1]
     const methodArgs = params.slice(2)
+
+    // Now we look into the typemap file, to see if we're given type hints. This is effectively required
+    // for vector-like arguments, which could be encodings of enums:
+    // https://developers.stellar.org/docs/learn/smart-contract-internals/types/custom-types#enum-unit-and-tuple-variants
+    // Could be undefined, in which case we should fail on ambiguous input
+    const typeHints = {
+        methods: typemapJson['methods'] ?? {},
+        variables: typemapJson['variables'] ?? {},
+    }
 
     const tx = await op.transaction()
     // Get the containing ledger number:
@@ -114,6 +126,7 @@ export async function extractContractCall(
         returnValue,
         fields,
         oldFields,
+        typeHints,
     })
 }
 
