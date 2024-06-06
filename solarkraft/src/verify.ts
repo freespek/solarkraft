@@ -15,17 +15,21 @@ import { rmSync } from 'fs'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { Keypair, Networks } from '@stellar/stellar-sdk'
+
 import { globSync } from 'glob'
 import { temporaryFile } from 'tempy'
 import { Either, left, right, mergeInOne } from '@sweet-monads/either'
+
+import { invokeAlert } from './invokeAlert.js'
 
 import {
     loadContractCallEntry,
     saveContractCallEntry,
     storagePath,
-    VerificationStatus,
 } from './fetcher/storage.js'
 import { instrumentMonitor } from './instrument.js'
+import { VerificationStatus } from './VerificationStatus.js'
 
 type Result<T> = Either<string, T>
 type ApalacheResult = Result<void>
@@ -103,6 +107,50 @@ function apalacheCheck(monitor: string): Result<ApalacheResult> {
     }
 }
 
+// For now, our solution is TESTNET-ONLY! (see #97), so
+// we don't need to supply all of the parameters, but if
+// we decide to implement mainnet support, we should revisit this
+
+// Creates a fresh keypair to sign transactions with, and funds it.
+async function generateFundedKeypair() {
+    const keypair = Keypair.random()
+    await fetch(
+        `https://friendbot.stellar.org?addr=${encodeURIComponent(keypair.publicKey())}`
+    )
+    return keypair
+}
+
+// Trigger the alert contract, if an alert contract ID is provided, otherwise do nothing
+async function conditionalAlert(
+    verificationStatus: VerificationStatus,
+    txHash: string,
+    alertContractID?: string
+): Promise<void> {
+    if (alertContractID !== undefined) {
+        if (!/^C[A-Z0-9]{55}$/g.test(alertContractID)) {
+            console.log(`Invalid contract ID: ${alertContractID}`)
+            console.log(`No alert submitted.`)
+            return
+        }
+        try {
+            console.log('Preparing to submit alert.')
+            const keypair = await generateFundedKeypair()
+            invokeAlert(
+                'https://soroban-testnet.stellar.org:443',
+                keypair,
+                Networks.TESTNET,
+                alertContractID,
+                txHash,
+                verificationStatus
+            )
+        } catch (e) {
+            console.log(`Invoking the alert contract failed: ${e}`)
+            console.log(`[Error]`)
+            throw e
+        }
+    }
+}
+
 /**
  * Verify transactions fetched from the ledger
  * @param args the arguments parsed by yargs
@@ -170,20 +218,30 @@ export function verify(args: any) {
     )
 
     const verificationStatus = resultsPerMonitor.reduce<VerificationStatus>(
-        (status, result) =>
-            // any one monitor failure marks a 'fail'
-            status === 'fail'
-                ? status
-                : result.fold(
-                      () => 'fail', // internal error marks a 'fail'
-                      (apalacheResult) =>
-                          apalacheResult.fold(
-                              () => 'fail', // apalache result error marks a 'fail'
-                              () => 'ok'
-                          )
-                  ),
-        'unverified' // only returned if array is empty
+        (status, result) => {
+            // any one monitor failure marks a violation
+            if (status === VerificationStatus.Violation) {
+                return VerificationStatus.Violation
+            }
+            const res = result.fold(
+                // Internal error marks an unknown result. Should any _other_
+                // monitor fail, that failure outcome will dominate the result
+                () => VerificationStatus.Unknown,
+                (apalacheResult) =>
+                    apalacheResult.fold(
+                        () => VerificationStatus.Violation, // Apalache found a violation
+                        () => VerificationStatus.NoViolation
+                    )
+            )
+            return status === VerificationStatus.Unknown &&
+                res !== VerificationStatus.Violation
+                ? VerificationStatus.Unknown // Unknown on one monitor + NoViolation on another gives us Unknown overall
+                : res // NoViolation on monitors so far gives us whatever the current result is
+        },
+        VerificationStatus.Unknown // Array is empty
     )
+
+    conditionalAlert(verificationStatus, args.txHash, args.alert)
 
     saveContractCallEntry(args.home, {
         ...contractCall,

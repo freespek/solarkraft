@@ -16,11 +16,11 @@ fn test() {
     let client = AlertClient::new(&env, &contract_id);
 
 
-    assert_eq!(client.emit_and_store_violation(&tx_hash, &MonitorAnalysisStatus::NoViolation), MonitorAnalysisStatus::NoViolation);
+    assert_eq!(client.emit_and_store_violation(&tx_hash, &VerificationStatus::NoViolation), VerificationStatus::NoViolation);
     // NoViolation triggers an emit but no store
     assert_eq!(
         env.events().all(),
-        vec![&env, (contract_id.clone(),(ALERTS, OK).into_val(&env),MonitorAnalysisStatus::NoViolation.into_val(&env))]
+        vec![&env, (contract_id.clone(),(ALERTS, OK).into_val(&env),VerificationStatus::NoViolation.into_val(&env))]
     );
 
     // should be empty
@@ -28,12 +28,12 @@ fn test() {
     assert!(alerts.is_empty());
 
     // Violation triggers an emit and a store
-    assert_eq!(client.emit_and_store_violation(&tx_hash, &MonitorAnalysisStatus::Violation), MonitorAnalysisStatus::Violation);
+    assert_eq!(client.emit_and_store_violation(&tx_hash, &VerificationStatus::Violation), VerificationStatus::Violation);
     assert_eq!(
         env.events().all(),
         vec![&env, 
-            (contract_id.clone(),(ALERTS, OK).into_val(&env),MonitorAnalysisStatus::NoViolation.into_val(&env)),
-            (contract_id.clone(),(ALERTS, VIOLATION).into_val(&env),MonitorAnalysisStatus::Violation.into_val(&env))
+            (contract_id.clone(),(ALERTS, OK).into_val(&env),VerificationStatus::NoViolation.into_val(&env)),
+            (contract_id.clone(),(ALERTS, VIOLATION).into_val(&env),VerificationStatus::Violation.into_val(&env))
         ]
     );
 
