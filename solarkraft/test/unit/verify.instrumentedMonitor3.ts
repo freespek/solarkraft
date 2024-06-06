@@ -59,7 +59,7 @@ const instrumentedMonitor = {
                                                 type: 'Untyped',
                                                 value: {
                                                     kind: 'TlaStr',
-                                                    value: 'height',
+                                                    value: 'sequence',
                                                 },
                                             },
                                             {
@@ -84,6 +84,38 @@ const instrumentedMonitor = {
                                                 value: {
                                                     kind: 'TlaInt',
                                                     value: 1716393856,
+                                                },
+                                            },
+                                            {
+                                                kind: 'ValEx',
+                                                type: 'Untyped',
+                                                value: {
+                                                    kind: 'TlaStr',
+                                                    value: 'current_contract_address',
+                                                },
+                                            },
+                                            {
+                                                kind: 'ValEx',
+                                                type: 'Untyped',
+                                                value: {
+                                                    kind: 'TlaStr',
+                                                    value: '0xqwer',
+                                                },
+                                            },
+                                            {
+                                                kind: 'ValEx',
+                                                type: 'Untyped',
+                                                value: {
+                                                    kind: 'TlaStr',
+                                                    value: 'invoked_function_name',
+                                                },
+                                            },
+                                            {
+                                                kind: 'ValEx',
+                                                type: 'Untyped',
+                                                value: {
+                                                    kind: 'TlaStr',
+                                                    value: 'foo',
                                                 },
                                             },
                                         ],

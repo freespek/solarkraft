@@ -8,7 +8,7 @@ on:
 name: build
 
 jobs:
-  unit-tests:
+  tests:
     runs-on: ${{ matrix.operating-system }}
     strategy:
       fail-fast: false
@@ -27,6 +27,8 @@ jobs:
         run: cd ./solarkraft && npm run compile
       - name: unit tests
         run: cd ./solarkraft && npm run test
+      - name: integration tests
+        run: cd ./solarkraft && npm run integration
 
   housekeeping:
     runs-on: ubuntu-latest
