@@ -4,7 +4,7 @@ import { spawn } from 'nexpect'
 
 import { invokeAlert } from '../../src/invokeAlert.js'
 import { Keypair, Networks } from '@stellar/stellar-sdk'
-import { MonitorAnalysisStatus } from '../../src/MonitorAnalysis.js'
+import { VerificationStatus } from '../../src/VerificationStatus.js'
 
 // hard-coded contract id that has to be changed,
 // when the Setter contract is redeployed via alert-deploy.sh
@@ -36,10 +36,10 @@ describe('Alert contract invocation', () => {
             Networks.TESTNET,
             CONTRACT_ID,
             txHash,
-            MonitorAnalysisStatus.NoViolation
+            VerificationStatus.NoViolation
         )
 
-        assert(ret === MonitorAnalysisStatus.NoViolation)
+        assert(ret === VerificationStatus.NoViolation)
     })
 
     it('errors on bogus alert id', function (done) {

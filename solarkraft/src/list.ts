@@ -12,9 +12,21 @@
 import { existsSync, readdirSync } from 'fs'
 import { storagePath, yieldListEntriesForContract } from './fetcher/storage.js'
 import { join } from 'node:path'
+import { VerificationStatus } from './VerificationStatus.js'
 
 // the length of a contract id in its string representation
 const CONTRACT_ID_LENGTH = 56
+
+function getStringRepresentation(status: VerificationStatus): string {
+    switch (status) {
+        case VerificationStatus.NoViolation:
+            return 'ok'
+        case VerificationStatus.Violation:
+            return 'fail'
+        case VerificationStatus.Unknown:
+            return 'unverified'
+    }
+}
 
 /**
  * List the transactions fetched from the ledger.
@@ -39,7 +51,9 @@ export function list(args: any) {
                     dirent.name,
                     join(storageRoot, dirent.name)
                 )) {
-                    console.log(`  [${e.verificationStatus}]`)
+                    console.log(
+                        `  [${getStringRepresentation(e.verificationStatus)}]`
+                    )
                     console.log(`    height: ${e.height}`)
                     console.log(`    tx: ${e.txHash}`)
                     console.log('')

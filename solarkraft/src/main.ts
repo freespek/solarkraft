@@ -78,7 +78,7 @@ const verifyCmd = {
                 demandOption: true,
             })
             .option('alert', {
-                desc: 'Alert contract ID. WIll not alert if this paremeter is not provided.',
+                desc: 'Alert contract ID. Will not alert if this parameter is not provided.',
                 type: 'string',
                 require: false,
             }),

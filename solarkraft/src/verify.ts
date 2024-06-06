@@ -27,10 +27,9 @@ import {
     loadContractCallEntry,
     saveContractCallEntry,
     storagePath,
-    VerificationStatus,
 } from './fetcher/storage.js'
 import { instrumentMonitor } from './instrument.js'
-import { MonitorAnalysisStatus } from './MonitorAnalysis.js'
+import { VerificationStatus } from './VerificationStatus.js'
 
 type Result<T> = Either<string, T>
 type ApalacheResult = Result<void>
@@ -108,7 +107,7 @@ function apalacheCheck(monitor: string): Result<ApalacheResult> {
     }
 }
 
-// For now, our solution is TESTNET-ONLY!, so
+// For now, our solution is TESTNET-ONLY! (see #97), so
 // we don't need to supply all of the parameters, but if
 // we decide to implement mainnet support, we should revisit this
 
@@ -123,12 +122,12 @@ async function generateFundedKeypair() {
 
 // Trigger the alert contract, if an alert contract ID is provided, otherwise do nothing
 async function conditionalAlert(
-    monitorAnalysisStatus: MonitorAnalysisStatus,
+    verificationStatus: VerificationStatus,
     txHash: string,
     alertContractID?: string
 ): Promise<void> {
     if (alertContractID !== undefined) {
-        if (!/^[A-Z0-9]{56}$/g.test(alertContractID)) {
+        if (!/^C[A-Z0-9]{55}$/g.test(alertContractID)) {
             console.log(`Invalid contract ID: ${alertContractID}`)
             console.log(`No alert submitted.`)
             return
@@ -142,7 +141,7 @@ async function conditionalAlert(
                 Networks.TESTNET,
                 alertContractID,
                 txHash,
-                monitorAnalysisStatus
+                verificationStatus
             )
         } catch (e) {
             console.log(`Invoking the alert contract failed: ${e}`)
@@ -219,28 +218,30 @@ export function verify(args: any) {
     )
 
     const verificationStatus = resultsPerMonitor.reduce<VerificationStatus>(
-        (status, result) =>
-            // any one monitor failure marks a 'fail'
-            status === 'fail'
-                ? status
-                : result.fold(
-                      () => 'fail', // internal error marks a 'fail'
-                      (apalacheResult) =>
-                          apalacheResult.fold(
-                              () => 'fail', // apalache result error marks a 'fail'
-                              () => 'ok'
-                          )
-                  ),
-        'unverified' // only returned if array is empty
+        (status, result) => {
+            // any one monitor failure marks a violation
+            if (status === VerificationStatus.Violation) {
+                return VerificationStatus.Violation
+            }
+            const res = result.fold(
+                // Internal error marks an unknown result. Should any _other_
+                // monitor fail, that failure outcome will dominate the result
+                () => VerificationStatus.Unknown,
+                (apalacheResult) =>
+                    apalacheResult.fold(
+                        () => VerificationStatus.Violation, // Apalache found a violation
+                        () => VerificationStatus.NoViolation
+                    )
+            )
+            return status === VerificationStatus.Unknown &&
+                res !== VerificationStatus.Violation
+                ? VerificationStatus.Unknown // Unknown on one monitor + NoViolation on another gives us Unknown overall
+                : res // NoViolation on monitors so far gives us whatever the current result is
+        },
+        VerificationStatus.Unknown // Array is empty
     )
 
-    const monitorStatus =
-        verificationStatus === 'ok'
-            ? MonitorAnalysisStatus.NoViolation
-            : MonitorAnalysisStatus.Violation
-
-    // PR comment: call only if Violation?
-    conditionalAlert(monitorStatus, args.txHash, args.alert)
+    conditionalAlert(verificationStatus, args.txHash, args.alert)
 
     saveContractCallEntry(args.home, {
         ...contractCall,

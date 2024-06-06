@@ -8,7 +8,7 @@ import {
     Keypair,
     scValToNative,
 } from '@stellar/stellar-sdk'
-import { MonitorAnalysisStatus } from './MonitorAnalysis.js'
+import { VerificationStatus } from './VerificationStatus.js'
 import { Api } from '@stellar/stellar-sdk/lib/soroban/api.js'
 
 /**
@@ -19,7 +19,7 @@ import { Api } from '@stellar/stellar-sdk/lib/soroban/api.js'
 const AlertMethodName = 'emit_and_store_violation'
 
 /**
- * When we have obtained a `MonitorAnalysisStatus` for a given monitor, we can submit it to the
+ * When we have obtained a `VerificationStatus` for a given monitor, we can submit it to the
  * alert contract via the Soroban rpc.
  *
  * adapted from https://developers.stellar.org/docs/learn/smart-contract-internals/contract-interactions/stellar-transaction
@@ -30,15 +30,15 @@ export async function invokeAlert(
     networkType: Networks,
     alertContractId: string,
     txHash: string,
-    monitorAnalysisStatus: MonitorAnalysisStatus
-): Promise<MonitorAnalysisStatus> {
+    verificationStatus: VerificationStatus
+): Promise<VerificationStatus> {
     const alertContract = new Contract(alertContractId)
     const server = new SorobanRpc.Server(sorobanRpcServer)
 
     // We have to build the method params from the JS ones
     const txHashAsScVal = xdr.ScVal.scvString(txHash)
     // Enums are equivalent to their u32 values
-    const monitorAnalysisStatusAsScVal = xdr.ScVal.scvU32(monitorAnalysisStatus)
+    const verificationStatusAsScVal = xdr.ScVal.scvU32(verificationStatus)
 
     const sourceAccount = await server.getAccount(sourceKeypair.publicKey())
 
@@ -50,7 +50,7 @@ export async function invokeAlert(
             alertContract.call(
                 AlertMethodName,
                 txHashAsScVal,
-                monitorAnalysisStatusAsScVal
+                verificationStatusAsScVal
             )
         )
         // This transaction will be valid for the next 30 seconds
@@ -67,7 +67,6 @@ export async function invokeAlert(
     // Sign the transaction with the source account's keypair.
     preparedTransaction.sign(sourceKeypair)
 
-    // Let's see the base64-encoded XDR of the transaction we just built.
     console.log(
         `Signed prepared transaction for alert contract ${alertContractId}`
     )
@@ -93,7 +92,7 @@ export async function invokeAlert(
                 const returnValue = getResponse.returnValue
                 console.log(`Transaction successful`)
 
-                return scValToNative(returnValue) as MonitorAnalysisStatus
+                return scValToNative(returnValue) as VerificationStatus
             } else {
                 throw `Transaction failed: ${getResponse.resultXdr}`
             }
@@ -105,6 +104,6 @@ export async function invokeAlert(
         console.log('Sending transaction failed')
         console.log(JSON.stringify(err))
 
-        return MonitorAnalysisStatus.Unknown
+        return VerificationStatus.Unknown
     }
 }

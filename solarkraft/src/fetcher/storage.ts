@@ -19,6 +19,7 @@ import {
     readdirSync,
     writeFileSync,
 } from 'node:fs'
+import { VerificationStatus } from '../VerificationStatus.js'
 
 const JSONbig = JSONbigint({ useNativeBigInt: true })
 
@@ -28,7 +29,6 @@ const JSONbig = JSONbigint({ useNativeBigInt: true })
  */
 export type FieldsMap = OrderedMap<string, any>
 
-export type VerificationStatus = 'ok' | 'fail' | 'unverified'
 /**
  * A storage entry for a performed contract call.
  */
@@ -128,7 +128,7 @@ export function storagePath(solarkraftHome: string): string {
 export function saveContractCallEntry(home: string, entry: ContractCallEntry) {
     const filename = getEntryFilename(storagePath(home), entry)
     const verificationStatus: VerificationStatus =
-        entry.verificationStatus ?? 'unverified'
+        entry.verificationStatus ?? VerificationStatus.Unknown
     // convert OrderedMaps to arrays
     const simplified = {
         ...entry,
@@ -160,7 +160,8 @@ export function loadContractCallEntry(filename: string): ContractCallEntry {
         returnValue: loaded.returnValue,
         fields: OrderedMap<string, any>(loaded.fields),
         oldFields: OrderedMap<string, any>(loaded.oldFields),
-        verificationStatus: loaded.verificationStatus ?? 'unverified',
+        verificationStatus:
+            loaded.verificationStatus ?? VerificationStatus.Unknown,
         typeHints: loaded.typeHints ?? {},
     }
 }
@@ -196,7 +197,8 @@ export function* yieldListEntriesForContract(
                         readFileSync(filename, 'utf-8')
                     )
                     const status =
-                        contents['verificationStatus'] ?? 'unverified'
+                        contents['verificationStatus'] ??
+                        VerificationStatus.Unknown
                     yield {
                         contractId,
                         height,
