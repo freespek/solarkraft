@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Deploys a token contract, initializes it and mints tokens, then deploys a timelock contract adn deposits
+# Deploys a token contract, initializes it and mints tokens, then deploys a timelock contract and deposits
 #
 # Jure Kukovec, 2024
 #
@@ -19,14 +19,12 @@ soroban keys address $BOB || (echo "add the account $BOB via soroban keys genera
 
 set -x
 
-TOKEN="`
+TOKEN=$(
     soroban contract deploy \
     --source-account alice \
-    --network testnet\
-    --rpc-url $RPC\
-    --network-passphrase "Test SDF Network ; September 2015"\
-    --wasm $SCRIPT_DIR/../contracts/token/target/wasm32-unknown-unknown/release/soroban_token_contract.wasm\
-    `";
+    --network testnet \
+    --wasm $SCRIPT_DIR/../contracts/token/target/wasm32-unknown-unknown/release/soroban_token_contract.wasm
+)
 
 echo "Token contract ID: $TOKEN";
 
@@ -58,20 +56,13 @@ TIMELOCK="`soroban contract deploy \
 echo "Timelock contract ID: $TIMELOCK"
 
 soroban contract invoke \
-    --id $TIMELOCK\
+    --id $TIMELOCK \
     --source alice \
     --network testnet \
     -- \
     deposit \
     --from alice \
-    --token $TOKEN\
+    --token $TOKEN \
     --amount 1 \
     --claimants "[\"$(soroban keys address bob)\"]"\
     --time_bound '{"kind": "After", "timestamp": 0}'
-
-
-
-
-
-
-
