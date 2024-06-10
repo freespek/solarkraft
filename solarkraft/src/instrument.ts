@@ -160,6 +160,30 @@ export function instrumentMonitor(
             name: 'invoked_function_name',
             value: tlaJsonValEx('TlaStr', contractCall.method),
         },
+        // Keys in `fields`
+        {
+            name: 'storage_after',
+            value: {
+                type: 'Untyped',
+                kind: 'OperEx',
+                oper: 'SET_ENUM',
+                args: [...fieldsToInstrument.keys()].map((name) =>
+                    tlaJsonValEx('TlaStr', name)
+                ),
+            },
+        },
+        // Keys in `oldFields`
+        {
+            name: 'storage_before',
+            value: {
+                type: 'Untyped',
+                kind: 'OperEx',
+                oper: 'SET_ENUM',
+                args: [...oldFieldsToInstrument.keys()].map((name) =>
+                    tlaJsonValEx('TlaStr', name)
+                ),
+            },
+        },
     ])
 
     const currentInstrumented = tlaJsonAnd(
@@ -186,12 +210,12 @@ export function instrumentMonitor(
         tlaJsonOfNative(arg, false, methodArgHints[i])
     )
     const tlaNext = tlaJsonOperDecl__And('Next', [
+        currentInstrumented,
+        currentMissing,
         tlaJsonApplication(
             contractCall.method,
             [envRecord].concat(tlaMethodArgs)
         ),
-        currentInstrumented,
-        currentMissing,
         // TODO(#61): handle failed transactions
         // tlaJsonEq__NameEx__ValEx(
         //     'last_error',
@@ -312,9 +336,8 @@ export function tlaJsonOfNative(
                 // [ 'A', 42 ]   ~~>  Variant("A", 42)
                 const tlaUnit = {
                     type: 'Untyped',
-                    kind: 'OperEx',
-                    oper: 'OPER_APP',
-                    args: [{ type: 'Untyped', kind: 'NameEx', name: 'UNIT' }],
+                    kind: 'ValEx',
+                    value: { kind: 'TlaStr', value: 'U_OF_UNIT' },
                 }
                 const childHints: any[] =
                     (hint ?? {})['enum'] ?? Array(v.length).fill(undefined)
@@ -329,7 +352,7 @@ export function tlaJsonOfNative(
                                   tlaJsonOfNative(arg, forceVec, childHints[i])
                               )
                             : [
-                                  ...v.map((x) => tlaJsonApplication(x, [])),
+                                  ...v.map((x) => tlaJsonValEx('TlaStr', x)),
                                   tlaUnit,
                               ],
                 }
