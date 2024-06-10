@@ -98,6 +98,81 @@ const instrumentedMonitor = {
                         args: [
                             {
                                 kind: 'OperEx',
+                                oper: 'AND',
+                                type: 'Untyped',
+                                args: [
+                                    {
+                                        kind: 'OperEx',
+                                        oper: 'EQ',
+                                        type: 'Untyped',
+                                        args: [
+                                            {
+                                                kind: 'OperEx',
+                                                oper: 'PRIME',
+                                                type: 'Untyped',
+                                                args: [
+                                                    {
+                                                        kind: 'NameEx',
+                                                        name: 'is_initialized',
+                                                        type: 'Untyped',
+                                                    },
+                                                ],
+                                            },
+                                            {
+                                                kind: 'ValEx',
+                                                type: 'Untyped',
+                                                value: {
+                                                    kind: 'TlaBool',
+                                                    value: false,
+                                                },
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                            {
+                                kind: 'OperEx',
+                                oper: 'AND',
+                                type: 'Untyped',
+                                args: [
+                                    {
+                                        kind: 'OperEx',
+                                        oper: 'EQ',
+                                        type: 'Untyped',
+                                        args: [
+                                            {
+                                                kind: 'OperEx',
+                                                oper: 'PRIME',
+                                                type: 'Untyped',
+                                                args: [
+                                                    {
+                                                        kind: 'NameEx',
+                                                        name: 'absent',
+                                                        type: 'Untyped',
+                                                    },
+                                                ],
+                                            },
+                                            {
+                                                kind: 'OperEx',
+                                                oper: 'Apalache!Gen',
+                                                type: 'Untyped',
+                                                args: [
+                                                    {
+                                                        kind: 'ValEx',
+                                                        type: 'Untyped',
+                                                        value: {
+                                                            kind: 'TlaInt',
+                                                            value: 1,
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                            {
+                                kind: 'OperEx',
                                 oper: 'OPER_APP',
                                 type: 'Untyped',
                                 args: [
@@ -175,6 +250,52 @@ const instrumentedMonitor = {
                                                     value: 'Claim',
                                                 },
                                             },
+                                            {
+                                                kind: 'ValEx',
+                                                type: 'Untyped',
+                                                value: {
+                                                    kind: 'TlaStr',
+                                                    value: 'storage_after',
+                                                },
+                                            },
+                                            {
+                                                kind: 'OperEx',
+                                                oper: 'SET_ENUM',
+                                                type: 'Untyped',
+                                                args: [
+                                                    {
+                                                        kind: 'ValEx',
+                                                        type: 'Untyped',
+                                                        value: {
+                                                            kind: 'TlaStr',
+                                                            value: 'is_initialized',
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                            {
+                                                kind: 'ValEx',
+                                                type: 'Untyped',
+                                                value: {
+                                                    kind: 'TlaStr',
+                                                    value: 'storage_before',
+                                                },
+                                            },
+                                            {
+                                                kind: 'OperEx',
+                                                oper: 'SET_ENUM',
+                                                type: 'Untyped',
+                                                args: [
+                                                    {
+                                                        kind: 'ValEx',
+                                                        type: 'Untyped',
+                                                        value: {
+                                                            kind: 'TlaStr',
+                                                            value: 'is_initialized',
+                                                        },
+                                                    },
+                                                ],
+                                            },
                                         ],
                                     },
                                     {
@@ -184,81 +305,6 @@ const instrumentedMonitor = {
                                             kind: 'TlaStr',
                                             value: 'alice',
                                         },
-                                    },
-                                ],
-                            },
-                            {
-                                kind: 'OperEx',
-                                oper: 'AND',
-                                type: 'Untyped',
-                                args: [
-                                    {
-                                        kind: 'OperEx',
-                                        oper: 'EQ',
-                                        type: 'Untyped',
-                                        args: [
-                                            {
-                                                kind: 'OperEx',
-                                                oper: 'PRIME',
-                                                type: 'Untyped',
-                                                args: [
-                                                    {
-                                                        kind: 'NameEx',
-                                                        name: 'is_initialized',
-                                                        type: 'Untyped',
-                                                    },
-                                                ],
-                                            },
-                                            {
-                                                kind: 'ValEx',
-                                                type: 'Untyped',
-                                                value: {
-                                                    kind: 'TlaBool',
-                                                    value: false,
-                                                },
-                                            },
-                                        ],
-                                    },
-                                ],
-                            },
-                            {
-                                kind: 'OperEx',
-                                oper: 'AND',
-                                type: 'Untyped',
-                                args: [
-                                    {
-                                        kind: 'OperEx',
-                                        oper: 'EQ',
-                                        type: 'Untyped',
-                                        args: [
-                                            {
-                                                kind: 'OperEx',
-                                                oper: 'PRIME',
-                                                type: 'Untyped',
-                                                args: [
-                                                    {
-                                                        kind: 'NameEx',
-                                                        name: 'absent',
-                                                        type: 'Untyped',
-                                                    },
-                                                ],
-                                            },
-                                            {
-                                                kind: 'OperEx',
-                                                oper: 'Apalache!Gen',
-                                                type: 'Untyped',
-                                                args: [
-                                                    {
-                                                        kind: 'ValEx',
-                                                        type: 'Untyped',
-                                                        value: {
-                                                            kind: 'TlaInt',
-                                                            value: 1,
-                                                        },
-                                                    },
-                                                ],
-                                            },
-                                        ],
                                     },
                                 ],
                             },

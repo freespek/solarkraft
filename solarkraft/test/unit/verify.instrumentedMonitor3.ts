@@ -41,6 +41,18 @@ const instrumentedMonitor = {
                         args: [
                             {
                                 kind: 'OperEx',
+                                oper: 'AND',
+                                type: 'Untyped',
+                                args: [],
+                            },
+                            {
+                                kind: 'OperEx',
+                                oper: 'AND',
+                                type: 'Untyped',
+                                args: [],
+                            },
+                            {
+                                kind: 'OperEx',
                                 oper: 'OPER_APP',
                                 type: 'Untyped',
                                 args: [
@@ -118,6 +130,34 @@ const instrumentedMonitor = {
                                                     value: 'foo',
                                                 },
                                             },
+                                            {
+                                                kind: 'ValEx',
+                                                type: 'Untyped',
+                                                value: {
+                                                    kind: 'TlaStr',
+                                                    value: 'storage_after',
+                                                },
+                                            },
+                                            {
+                                                kind: 'OperEx',
+                                                oper: 'SET_ENUM',
+                                                type: 'Untyped',
+                                                args: [],
+                                            },
+                                            {
+                                                kind: 'ValEx',
+                                                type: 'Untyped',
+                                                value: {
+                                                    kind: 'TlaStr',
+                                                    value: 'storage_before',
+                                                },
+                                            },
+                                            {
+                                                kind: 'OperEx',
+                                                oper: 'SET_ENUM',
+                                                type: 'Untyped',
+                                                args: [],
+                                            },
                                         ],
                                     },
                                     {
@@ -126,28 +166,20 @@ const instrumentedMonitor = {
                                         oper: 'Variants!Variant',
                                         args: [
                                             {
+                                                kind: 'ValEx',
                                                 type: 'Untyped',
-                                                kind: 'OperEx',
-                                                oper: 'OPER_APP',
-                                                args: [
-                                                    {
-                                                        kind: 'NameEx',
-                                                        type: 'Untyped',
-                                                        name: 'MaybeEnum',
-                                                    },
-                                                ],
+                                                value: {
+                                                    kind: 'TlaStr',
+                                                    value: 'MaybeEnum',
+                                                },
                                             },
                                             {
+                                                kind: 'ValEx',
                                                 type: 'Untyped',
-                                                kind: 'OperEx',
-                                                oper: 'OPER_APP',
-                                                args: [
-                                                    {
-                                                        type: 'Untyped',
-                                                        kind: 'NameEx',
-                                                        name: 'UNIT',
-                                                    },
-                                                ],
+                                                value: {
+                                                    kind: 'TlaStr',
+                                                    value: 'U_OF_UNIT',
+                                                },
                                             },
                                         ],
                                     },
@@ -167,18 +199,6 @@ const instrumentedMonitor = {
                                         ],
                                     },
                                 ],
-                            },
-                            {
-                                kind: 'OperEx',
-                                oper: 'AND',
-                                type: 'Untyped',
-                                args: [],
-                            },
-                            {
-                                kind: 'OperEx',
-                                oper: 'AND',
-                                type: 'Untyped',
-                                args: [],
                             },
                         ],
                     },

@@ -12,11 +12,11 @@ VARIABLES
 Deposit(env, from, token, amount, claimants, time_bound) ==
     \/ /\ balance' = amount
        /\ last_error' = ""
-    \/ /\ UNCHANGED balance
+    \/ /\ balance' = balance
        /\ last_error' = "contract is not initialized"
 
 Claim(env, claimant) ==
-    \/ /\ UNCHANGED balance
+    \/ /\ balance' = balance
        /\ last_error' \in { "", "contract is not initialized" }
     \/ /\ balance' = 0
        /\ last_error' = ""
