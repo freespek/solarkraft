@@ -10,7 +10,6 @@
 set -e
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-RPC="https://soroban-testnet.stellar.org:443"
 
 ALICE=alice
 soroban keys address $ALICE || (echo "add the account $ALICE via soroban keys generate"; exit 1)
@@ -48,10 +47,10 @@ soroban contract invoke \
     --to alice \
     --amount 100;
 
-TIMELOCK="`soroban contract deploy \
+TIMELOCK=$(soroban contract deploy \
     --wasm $SCRIPT_DIR/../contracts/timelock/target/wasm32-unknown-unknown/release/soroban_timelock_contract.wasm \
     --source alice \
-    --network testnet`";
+    --network testnet);
 
 echo "Timelock contract ID: $TIMELOCK"
 

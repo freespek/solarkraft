@@ -18,6 +18,7 @@ EXTENDS state, typedefs
 *)
 deposit_typedefs == TRUE
 
+\* `deposit` reverts if invoked with too many claimants.
 \* @type: ($depositArgs) => Bool;
 MustFail_deposit_TooManyClaimants(args) == 
     Len(args.claimants) > 10
@@ -27,8 +28,9 @@ MustFail_deposit_TooManyClaimants(args) ==
 \* MustFail_deposit_Unauthorized(args, env) == 
     \* ~authorized(args.from, env)
 
-\* Balance is externally relevant; Init flag is not
-\* What matters for users is that balance is not overwritten
+\* `deposit` reverts if the contract is already initialized.
+\* The contract internally checks the "Init" flag, however
+\* what matters for users is that balance is not overwritten.
 \* @type: ($env) => Bool;
 MustFail_deposit_AlreadyInitialized(env) == 
     instance_has("Balance", env)
