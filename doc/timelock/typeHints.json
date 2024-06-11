@@ -1,0 +1,36 @@
+{
+    "methods": {
+        "deposit": [
+            [
+                "STR",
+                "STR",
+                "INT",
+                {
+                    "vec": "STR"
+                },
+                {
+                    "kind": {
+                        "enum": []
+                    },
+                    "timestamp": "INT"
+                }
+            ],
+            "UNIT"
+        ]
+    },
+    "variables": {
+        "Balance": {
+            "amount": "INT",
+            "claimants": {
+                "vec": "STR"
+            },
+            "time_bound": {
+                "kind": {
+                    "enum": []
+                },
+                "timestamp": "INT"
+            },
+            "token": "STR"
+        }
+    }
+}

@@ -1,0 +1,3 @@
+[submodule "ContractExamples/soroban-examples"]
+	path = ContractExamples/soroban-examples
+	url = https://github.com/stellar/soroban-examples

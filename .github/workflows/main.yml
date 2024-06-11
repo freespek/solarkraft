@@ -57,6 +57,8 @@ jobs:
           - stable
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
       - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
       - run: rustup target add wasm32-unknown-unknown
       - uses: stellar/binaries@v22
@@ -66,9 +68,10 @@ jobs:
           # version 21 is not available in stellar/binaries yet
           #version: '21.0.0-preview.1'
       - name: build
-        run: cd ContractExamples && cargo build --verbose
+        run: cd ContractExamples && cargo build --verbose --workspace --exclude "soroban-timelock-contract" --exclude "soroban-token-contract"
       - name: unit tests
-        run: cd ContractExamples && cargo test --verbose
+        run: cd ContractExamples && cargo test --verbose --workspace --exclude "soroban-timelock-contract" --exclude "soroban-token-contract"
+
       # v21 is not available in stellar/binaries yet
       #- name: populating Setter
       #  run: |

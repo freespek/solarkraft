@@ -14,16 +14,16 @@ Deposit(env, from, token, amount, claimants, time_bound) ==
        /\ is_initialized' = TRUE
        /\ last_error' = ""
     \/ /\ is_initialized
-       /\ UNCHANGED is_initialized
+       /\ is_initialized' = is_initialized
        /\ last_error' = "contract has been already initialized"
 
 Claim(env, claimant) ==
     \/ /\ ~is_initialized
-       /\ UNCHANGED is_initialized
+       /\ is_initialized' = is_initialized
        (* the contract simply panics instead of reporting a nice error *)
        /\ last_error' = "contract is not initialized"
     \/ /\ is_initialized
-       /\ UNCHANGED is_initialized
+       /\ is_initialized' = is_initialized
        /\ last_error' \in {
             "",
             "time predicate is not fulfilled",
