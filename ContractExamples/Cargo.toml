@@ -2,6 +2,8 @@
 resolver = "2"
 members = [
   "contracts/*",
+  "soroban-examples/token/",
+  "soroban-examples/timelock/"
 ]
 
 [workspace.dependencies]

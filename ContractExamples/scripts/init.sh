@@ -22,4 +22,6 @@ soroban keys generate bob --network testnet
 
 cd ${SCRIPT_DIR}/..
 
+git submodule init
+
 soroban contract build
