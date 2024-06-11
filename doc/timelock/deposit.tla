@@ -7,7 +7,7 @@
  * compositions are fully deterministic.
  *
  * As this monitor is written to illustrate our intended approach, these compositions are written manually from their respective 
- * sub-components, follwoing the shape utlined in the above README.
+ * sub-components, following the shape outlined in the above README.
  *
  * Andrey Kuprianov, Jure Kukovec, 2024
  *)
