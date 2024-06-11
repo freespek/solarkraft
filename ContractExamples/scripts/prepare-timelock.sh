@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Deploys a token contract, initializes it and mints tokens, then deploys a timelock contract and deposits
+# Deploys a token contract, initializes it and mints tokens, then deploys a timelock contract, deposits and claims
 #
 # Jure Kukovec, 2024
 #
