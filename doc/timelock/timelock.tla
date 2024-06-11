@@ -7,6 +7,6 @@
  *)
 ---- MODULE timelock ----
 
-EXTENDS deposit
+EXTENDS deposit, claim
 
 ================================================
