@@ -10,19 +10,16 @@
 
 set -e
 
-dir=$(cd `dirname $0`; pwd -P)
-
-cd ${dir}/..
-
-NET=testnet
-(soroban network ls | grep -q $NET) || (echo "add testnet via soroban network"; exit 1)
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 ACCOUNT=alice
 soroban keys address $ACCOUNT || (echo "add the account $ACCOUNT via soroban keys generate"; exit 1)
 
-
 set -x
 
-soroban contract build
-soroban contract deploy --wasm target/wasm32-unknown-unknown/release/alert.wasm \
-      --source $ACCOUNT --network $NET
+ALERT=$(soroban contract deploy \
+    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/alert.wasm \
+    --source $ACCOUNT \
+    --network testnet)
+
+echo "Alert contract ID: $ALERT"
