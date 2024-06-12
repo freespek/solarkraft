@@ -20,7 +20,7 @@ const HORIZON_URL = 'https://horizon-testnet.stellar.org'
 
 // hard-coded contract id that has to be changed,
 // when the Setter contract is redeployed via setter-populate.sh
-const CONTRACT_ID = 'CC22QGTOUMERDNIYN7TPNX3V6EMPHQXVSRR3XY56EADF7YTFISD2ROND'
+const CONTRACT_ID = 'CA6DAY7MPOKVL5BB3CVKMAPX3UGFURQCNLTT4DPPF6MDNA3RSERQZ55Y'
 
 // 0xbeef
 const beef = Buffer.from([0xbe, 0xef])
@@ -60,7 +60,7 @@ async function extractEntry(txHash: string): Promise<ContractCallEntry> {
 describe('call decoder from Horizon', () => {
     it('call #1: Setter.set_bool(true)', async () => {
         const entry = await extractEntry(
-            '9fb12935fbadcd28aa220d076f11be631590d22c60977a53997a746898322ca3'
+            '169ae9177a0e36d89c64c54e2367969d956f75d07a5c0f5d809b39b4b5a437e1'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
@@ -75,7 +75,7 @@ describe('call decoder from Horizon', () => {
 
     it('call #2: Setter.set_u32([42u32])', async () => {
         const entry = await extractEntry(
-            '6e3b0f948326708f439036df4aa2b165de5be35448e23c56d7eb989e1112c807'
+            '86d5004773275ba2581c366eacf0e8ab4441d40d75ebf0a4697c9feffcc0d279'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
@@ -93,7 +93,7 @@ describe('call decoder from Horizon', () => {
 
     it('call #3: Setter.set_i32([-42u32])', async () => {
         const entry = await extractEntry(
-            '5638fc047c2ba312e0ec5077bcb97788c56c6047ffdb9d966d1de674a7a651c0'
+            '40e0c91dca003d11ac2317cf522bdf947e8048e41a9bf59cd85e8232bc4a9fab'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
@@ -115,7 +115,7 @@ describe('call decoder from Horizon', () => {
 
     it('call #4: Setter.set_u64([42u64])', async () => {
         const entry = await extractEntry(
-            'bc280eb46635d7f9494b5723b8d6146186033489844b9610506af595864ad6a2'
+            '06f61c92360915e8155ee3c1eb1c7aa3d0a3227c4cac10975dad4f56f8b59c11'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
@@ -139,7 +139,7 @@ describe('call decoder from Horizon', () => {
 
     it('call #5: Setter.set_i64([-42i64])', async () => {
         const entry = await extractEntry(
-            '640615ad2c1b642920bcc25422c05503ab440bee3e0c04e193328ca7214afe25'
+            '8bbbae5a0803e6d8cfdc67c0285083a22f32423ced0d423313e32d4e9c7b943f'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
@@ -165,7 +165,7 @@ describe('call decoder from Horizon', () => {
 
     it('call #6: Setter.set_u128([42u128])', async () => {
         const entry = await extractEntry(
-            'afd928352182c7b1c93cb10052c56d290fbcdd9d99c1948f4d59b3c1853c1ffb'
+            '45dd47df1201a67f4a91762af6405d9df63315fdcec09815fef8e0fd5e8ab498'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
@@ -193,7 +193,7 @@ describe('call decoder from Horizon', () => {
 
     it('call #7: Setter.set_i128([-42i128])', async () => {
         const entry = await extractEntry(
-            '64f74cfe018d881cb6648e2311571b770304d471044187130791d179edd8cbb2'
+            'e9b2e056dc2889e3c974b9b5d3aeedbe0718c37bb1e7219b1e8cdda16416e8ed'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
@@ -223,7 +223,7 @@ describe('call decoder from Horizon', () => {
 
     it('call #8: Setter.set_sym("hello")', async () => {
         const entry = await extractEntry(
-            '10aedf3c4368b1eaba990dfea9a8372d5d03c6da938b9ca5aa7be330dc9908a5'
+            '653f5e2c316d174b6cb653b9eae28f1dc0c1d296cde98f2eb85ba82d7b71b8a3'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
@@ -255,7 +255,7 @@ describe('call decoder from Horizon', () => {
 
     it('call #9: Setter.set_bytes(0xbeef)', async () => {
         const entry = await extractEntry(
-            '59621a7b161c9eccbf797ca1125817947cedc57d86b78c4397761a7e7312f09e'
+            'ac2d10afb665dc154f486f60575e336997e9b45da8f7dbc6c4c7ecc184638c1a'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
@@ -289,7 +289,7 @@ describe('call decoder from Horizon', () => {
 
     it('call #10: Setter.set_bytes32(...)', async () => {
         const entry = await extractEntry(
-            '476ed0e3f0db900d5ecd50bd3eab65924c89acf6c78b2866ce09f17f65d702de'
+            'bcd7eea353e28f8f2232bb703c9c350290fd6705574cebab046eff3f52159857'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
@@ -325,7 +325,7 @@ describe('call decoder from Horizon', () => {
 
     it('call #11: Setter.set_vec([[1i32, -2i32, 3i32]])', async () => {
         const entry = await extractEntry(
-            'ff44c4f9ba29885f6e76ddc33f0f987a6e122682bbee99489b7594159036125c'
+            'b8106ddd3a4e6533a1543d9d0c471f9c23c059f9523ef552f21340db8571bd11'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
@@ -363,7 +363,7 @@ describe('call decoder from Horizon', () => {
 
     it('call #12: Setter.set_map([{2u32: 3i32, 4u32: 5i32}])', async () => {
         const entry = await extractEntry(
-            'dcea98f78c9ec655082cfeee76072ee736cf98a3d9df9243838ff4c1568c5bf1'
+            'efa5382b575d95d56a3386d5727f1405e840a64b790522b956a5e9d89c9b4bc7'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
@@ -403,7 +403,7 @@ describe('call decoder from Horizon', () => {
 
     it('call #13: Setter.set_address([GDIY...R4W4]', async () => {
         const entry = await extractEntry(
-            '85c63081689992b3b3f5013f083d74ecdad6ecab035ddd758323f634cd1cb1c8'
+            'f2ffa0da716a75a1ac99740856eb2451caefe512679f89ac5b9da587fee025fa'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
@@ -448,15 +448,15 @@ describe('call decoder from Horizon', () => {
         ])
     })
 
-    it('call #14: Setter.set_my_struct([{"a"sym: 1u32, "b"sym: -100i128}])', async () => {
+    it('call #14: Setter.set_struct([{"a"sym: 1u32, "b"sym: -100i128}])', async () => {
         const entry = await extractEntry(
-            '5fcb114c5e55d286f8bec90b1b6c52a242884c9594d4d49d6f4ff11994e08786'
+            '0c3ae16ab47e78ae665ad8129cc54c615800c2a416c4518dfc7dd98aae2d8937'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
-        assert.equal(entry.method, 'set_my_struct')
+        assert.equal(entry.method, 'set_struct')
         assert.deepEqual(entry.methodArgs, [{ a: 1, b: -100n }])
         assert.deepEqual(entry.returnValue, null)
         assert.deepEqual(entry.oldFields.toArray(), [
@@ -498,16 +498,16 @@ describe('call decoder from Horizon', () => {
         ])
     })
 
-    it('call #15: Setter.set_my_enum([["A"sym]])', async () => {
+    it('call #15: Setter.set_enum([["B"sym, -200i128]])', async () => {
         const entry = await extractEntry(
-            '4246f33f7d1258ccdfbbf3afde0f4ccd3de81e5bbecb355dcf3f557d31c7bb9c'
+            '9fb49e22ba82c36f2c02e69ecf0cc9755c00cc057c5fede469be2877ba6fa3b7'
         )
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.isDefined(entry.txHash)
-        assert.equal(entry.method, 'set_my_enum')
-        assert.deepEqual(entry.methodArgs, [['A']])
+        assert.equal(entry.method, 'set_enum')
+        assert.deepEqual(entry.methodArgs, [['B', -200n]])
         assert.deepEqual(entry.returnValue, null)
         assert.deepEqual(entry.oldFields.toArray(), [
             [
@@ -536,7 +536,7 @@ describe('call decoder from Horizon', () => {
             ['MY_BOOL', true],
             ['MY_BTES32', bytes32],
             ['MY_BYTES', beef],
-            ['MY_ENUM', ['A']],
+            ['MY_ENUM', ['B', -200n]],
             ['MY_I128', -42n],
             ['MY_I32', -42],
             ['MY_I64', -42n],

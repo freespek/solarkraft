@@ -8,7 +8,7 @@ import { VerificationStatus } from '../../src/VerificationStatus.js'
 
 // hard-coded contract id that has to be changed,
 // when the Setter contract is redeployed via alert-deploy.sh
-const CONTRACT_ID = 'CDXBZCCRCCIHSHHXONEFX4DOD5XSM34EA7M22JIVU35ZDQ6ZBADIARLB'
+const CONTRACT_ID = 'CCJJRZ4C2UW3CYAI7AFMIJQWSNQUFZFKPEPWPI7DJD27MIFNL4HA4BYL'
 // const LocalRPC = 'https://localhost:8000/'
 const TestnetRPC = 'https://soroban-testnet.stellar.org:443'
 
@@ -55,7 +55,7 @@ describe('alert contract invocation', () => {
     it('alerts the contrat when specified', function (done) {
         this.timeout(50000)
         spawn(
-            'solarkraft verify --home test/e2e/tla/ --txHash 406d278860b5531dd1443532f3457c5daa288e8eb0007d2a8e2aa0127e87949e --monitor test/e2e/tla/setter_mon.tla --alert CDXBZCCRCCIHSHHXONEFX4DOD5XSM34EA7M22JIVU35ZDQ6ZBADIARLB'
+            `solarkraft verify --home test/e2e/tla/ --txHash 406d278860b5531dd1443532f3457c5daa288e8eb0007d2a8e2aa0127e87949e --monitor test/e2e/tla/setter_mon.tla --alert ${CONTRACT_ID}`
         )
             .wait('Preparing to submit alert.')
             .wait('Transaction successful')
