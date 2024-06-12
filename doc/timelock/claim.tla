@@ -38,7 +38,7 @@ MustRevert_claim_NotClaimant(args) ==
     \A i \in DOMAIN Balance.claimants: 
         Balance.claimants[i] /= args.claimant
 
-\* A note on MustPass_*: Our instrumentation only accepts succesful transactions. If we were to design invartiants of the shape
+\* A note on MustPass_*: Our instrumentation only accepts successful transactions (see #61). If we were to design invariants of the shape
 \* X => tx_is_succesful (i.e. the proposed MustPass_* format), they would be vacuously true, regardless of the shape of X.
 \* To this end, we instead negate MustPass_* properties, and turn them into MustRevert_* properties. (see https://github.com/freespek/solarkraft/pull/58#discussion_r1629575199)
 
