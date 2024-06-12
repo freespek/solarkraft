@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Deploys a token contract, initializes it and mints tokens, then deploys a timelock contract and deposits
+# Deploys a token contract, initializes it and mints tokens, then deploys a timelock contract, deposits and claims
 #
 # Jure Kukovec, 2024
 #
@@ -22,10 +22,10 @@ TOKEN=$(
     soroban contract deploy \
     --source-account alice \
     --network testnet \
-    --wasm $SCRIPT_DIR/../contracts/token/target/wasm32-unknown-unknown/release/soroban_token_contract.wasm
+    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/soroban_token_contract.wasm
 )
 
-echo "Token contract ID: $TOKEN";
+echo "Token contract ID: $TOKEN"
 
 soroban contract invoke \
     --id $TOKEN \
@@ -36,7 +36,7 @@ soroban contract invoke \
     --admin alice \
     --decimal 18 \
     --name '"TOK"' \
-    --symbol '"TOK"';
+    --symbol '"TOK"'
 
 soroban contract invoke \
     --id $TOKEN \
@@ -45,12 +45,12 @@ soroban contract invoke \
     -- \
     mint \
     --to alice \
-    --amount 100;
+    --amount 100
 
 TIMELOCK=$(soroban contract deploy \
-    --wasm $SCRIPT_DIR/../contracts/timelock/target/wasm32-unknown-unknown/release/soroban_timelock_contract.wasm \
+    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/soroban_timelock_contract.wasm \
     --source alice \
-    --network testnet);
+    --network testnet)
 
 echo "Timelock contract ID: $TIMELOCK"
 
@@ -65,3 +65,11 @@ soroban contract invoke \
     --amount 1 \
     --claimants "[\"$(soroban keys address bob)\"]"\
     --time_bound '{"kind": "After", "timestamp": 0}'
+
+soroban contract invoke \
+    --id $TIMELOCK \
+    --source bob \
+    --network testnet \
+    -- \
+    claim \
+    --claimant bob
