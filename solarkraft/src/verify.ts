@@ -238,7 +238,7 @@ export function verify(args: any) {
                 ? VerificationStatus.Unknown // Unknown on one monitor + NoViolation on another gives us Unknown overall
                 : res // NoViolation on monitors so far gives us whatever the current result is
         },
-        VerificationStatus.Unknown // Array is empty
+        VerificationStatus.NoViolation // Array is empty
     )
 
     conditionalAlert(verificationStatus, args.txHash, args.alert)
