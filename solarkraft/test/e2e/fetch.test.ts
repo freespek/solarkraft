@@ -4,12 +4,15 @@ import { describe, it } from 'mocha'
 
 import { spawn } from 'nexpect'
 
+// Tests against the last tx of the deployed setter contract
+
 describe('fetch', () => {
     it('fails to fetch when provided typemap does not exist', function (done) {
         this.timeout(50000)
         spawn(
-            'solarkraft fetch --typemap bogusFile --rpc https://horizon-testnet.stellar.org --id CC22QGTOUMERDNIYN7TPNX3V6EMPHQXVSRR3XY56EADF7YTFISD2ROND --height 1638368 --timeout 10'
+            'solarkraft fetch --typemap bogusFile --rpc https://horizon-testnet.stellar.org --id CA6DAY7MPOKVL5BB3CVKMAPX3UGFURQCNLTT4DPPF6MDNA3RSERQZ55Y --height 9391 --timeout 10'
         )
+            .wait('The typemap file bogusFile does not exist.')
             .wait('[Error]')
             .run(done)
     })
@@ -17,13 +20,13 @@ describe('fetch', () => {
     it('fetches transactions', function (done) {
         this.timeout(50000)
         spawn(
-            'solarkraft fetch --rpc https://horizon-testnet.stellar.org --id CC22QGTOUMERDNIYN7TPNX3V6EMPHQXVSRR3XY56EADF7YTFISD2ROND --height 1638368 --timeout 10'
+            'solarkraft fetch --rpc https://horizon-testnet.stellar.org --id CA6DAY7MPOKVL5BB3CVKMAPX3UGFURQCNLTT4DPPF6MDNA3RSERQZ55Y --height 9391 --timeout 10'
         )
             .wait(
-                'Target contract: CC22QGTOUMERDNIYN7TPNX3V6EMPHQXVSRR3XY56EADF7YTFISD2ROND'
+                'Target contract: CA6DAY7MPOKVL5BB3CVKMAPX3UGFURQCNLTT4DPPF6MDNA3RSERQZ55Y'
             )
-            .wait('Fetching the ledger for 1638368')
-            .wait('+ save: 1638383')
+            .wait('Fetching the ledger for 9391')
+            .wait('+ save: 9391')
             .run(done)
     })
 })
