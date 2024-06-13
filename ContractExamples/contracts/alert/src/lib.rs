@@ -23,8 +23,8 @@ pub enum VerificationStatus {
 type AlertVec = Vec<String>;
 
 /*
-    The Alert contract gets called by the monitor executor, whenever a transaction gets analyzed.
-    If the monitor detected a property violation, then the Alert contract emits a warning.
+    The Alert contract gets called by `solarkraft verify`, whenever a transaction gets analyzed, if the `--alert` flag is set.
+    It stores a list of all previously detected violations.
 
     For each tx hash, for which alert was called, stores VerificationStatus, the value of which
     depends on whether the monitor detected a violation for that transaction.
@@ -32,11 +32,12 @@ type AlertVec = Vec<String>;
 #[contractimpl]
 impl Alert {
 
+    // Main entry-point. Emits and returns `status`, and stores it iff it is a violation.
     pub fn emit_and_store_violation(env: Env, tx_hash: String, status: VerificationStatus) -> VerificationStatus {
         // Get the current alerts
         let mut alerts: AlertVec = env.storage().instance().get(&ALERTS).unwrap_or(AlertVec::new(&env));
 
-        // We always 
+        // We always publish an event, but we only store violations.
         match status {
             VerificationStatus::NoViolation => {
                 env.events().publish((ALERTS, OK), status);
@@ -55,6 +56,7 @@ impl Alert {
         return status
     }
 
+    // Returns the list of all detected violations.
     pub fn alerts(env: Env) -> AlertVec {
         return env.storage().instance().get(&ALERTS).unwrap_or(AlertVec::new(&env));
     }
