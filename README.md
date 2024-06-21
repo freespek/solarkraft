@@ -2,18 +2,21 @@
 
 Solarkraft is a runtime monitoring tool for [Soroban][], powered by [TLA+][] and [Apalache][].
 
-The project is in the boostrapping phase now. Preparing for Warp 5.
-
-We are grateful to the [Stellar Community Fund][] for supporting our project via
-the Activation Award. Check our [3-minute pitch][], and the [project details](#project-details) below.
-
-![activation award](./assets/solarkraft-stellar-activation.png)
+We have finished the activation phase and developed an MVP. See a
+[demo](https://youtu.be/E99TNzTHLXI) by Jure Kukovec.
 
 ### Project Details
 
 Solarkraft is a tool for runtime monitoring of [Soroban smart contracts][Soroban]. It tests whether a smart contract conforms to its specification during contract development, testing, and after contract deployment on the [Stellar blockchain][Stellar]. The contract specification is written as an ensemble of [TLA+][] specifications, each capturing a property of the contract’s expected behavior.
 
 Solarkraft inspects invocations of the timelock contract’s methods in the history of Stellar transactions. Whenever Solarkraft finds a deviation from the expected behavior (as prescribed by the monitor specifications) it reports a monitoring alert. Importantly, monitors are small snippets of code, not an entire specification. This makes them more accessible formal artifacts than usual.
+
+### Activation Award
+
+We are grateful to the [Stellar Community Fund][] for supporting our project via
+the Activation Award. Check our [3-minute pitch][], and the [project details](#project-details) below.
+
+![activation award](./assets/solarkraft-stellar-activation.png)
 
 [Stellar]: https://stellar.org/
 [Soroban]: https://developers.stellar.org/docs/smart-contracts/getting-started/setup
