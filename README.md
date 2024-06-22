@@ -23,11 +23,6 @@ the Activation Award. Check our [3-minute pitch][], and the [project details](#p
 
 ![activation award](./assets/solarkraft-stellar-activation.png)
 
-## License
-
-[Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
-
-
 [Stellar]: https://stellar.org/
 [Soroban]: https://developers.stellar.org/docs/smart-contracts/getting-started/setup
 [TLA+]: https://lamport.azurewebsites.net/tla/tla.html
@@ -39,4 +34,6 @@ the Activation Award. Check our [3-minute pitch][], and the [project details](#p
 [guardians]: https://thpani.net/2024/06/small-and-modular-runtime-monitors-in-tla-for-soroban-smart-contracts-solarkraft-2/
 [howto]: https://protocols-made-fun.com/solarkraft/2024/06/19/solarkraft-part3.html
 
+## License
 
+[Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
