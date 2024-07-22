@@ -35,8 +35,8 @@ the Activation Award. Check our [3-minute pitch][], and the [project details](#p
 [new hope]: https://thpani.net/2024/06/why-smart-contract-bugs-matter-and-how-runtime-monitoring-saves-the-day-solarkraft-1/
 [guardians]: https://thpani.net/2024/06/small-and-modular-runtime-monitors-in-tla-for-soroban-smart-contracts-solarkraft-2/
 [howto]: https://protocols-made-fun.com/solarkraft/2024/06/19/solarkraft-part3.html
-[part4]: https://protocols-made-fun.com/solarkraft/2024/06/24/solarkraft-part4.html
-[part5]: https://protocols-made-fun.com/solarkraft/2024/07/19/solarkraft-part5.html
+[part4]: https://systems-made-simple.dev/solarkraft/2024/06/24/solarkraft-hybrid-monitors.html
+[part5]: https://systems-made-simple.dev/solarkraft/2024/07/04/solarkraft-monitor-verification.html
 
 ## License
 
