@@ -9,6 +9,8 @@ a series of our blog posts:
  - Part 1: [A New Hope – Why Smart Contract Bugs Matter and How Runtime Monitoring Saves the Day][new hope]
  - Part 2: [Guardians of the Blockchain: Small and Modular Runtime Monitors in TLA+ for Soroban Smart Contracts][guardians]
  - Part 3: [How to Run Solarkraft][howto]
+ - Part 4: [The Force Awakens: Hybrid Blockchain Runtime Monitors][part4]
+ - Part 5: [The Rise of Model Checker: Verifying Blockchain Monitors In and Near Realtime][part5]
 
 ### Project Details
 
@@ -33,6 +35,8 @@ the Activation Award. Check our [3-minute pitch][], and the [project details](#p
 [new hope]: https://thpani.net/2024/06/why-smart-contract-bugs-matter-and-how-runtime-monitoring-saves-the-day-solarkraft-1/
 [guardians]: https://thpani.net/2024/06/small-and-modular-runtime-monitors-in-tla-for-soroban-smart-contracts-solarkraft-2/
 [howto]: https://protocols-made-fun.com/solarkraft/2024/06/19/solarkraft-part3.html
+[part4]: https://protocols-made-fun.com/solarkraft/2024/06/24/solarkraft-part4.html
+[part5]: https://protocols-made-fun.com/solarkraft/2024/07/19/solarkraft-part5.html
 
 ## License
 
