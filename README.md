@@ -2,9 +2,10 @@
 
 Solarkraft is a runtime monitoring tool for [Soroban][], powered by [TLA+][] and [Apalache][].
 
-We have finished the activation phase and developed an MVP. See a 10-minute
-[demo](https://youtu.be/E99TNzTHLXI) by Jure Kukovec. If you like it, read
-a series of our blog posts:
+We have finished the activation phase and developed an MVP.  
+🎥 Watch the [10-minute demo video](https://youtu.be/E99TNzTHLXI) by Jure Kukovec.
+
+For more explanation, read our series of blog posts:
 
  - Part 1: [A New Hope – Why Smart Contract Bugs Matter and How Runtime Monitoring Saves the Day][new hope]
  - Part 2: [Guardians of the Blockchain: Small and Modular Runtime Monitors in TLA+ for Soroban Smart Contracts][guardians]
@@ -18,10 +19,10 @@ Solarkraft is a tool for runtime monitoring of [Soroban smart contracts][Soroban
 
 Solarkraft inspects invocations of the timelock contract’s methods in the history of Stellar transactions. Whenever Solarkraft finds a deviation from the expected behavior (as prescribed by the monitor specifications) it reports a monitoring alert. Importantly, monitors are small snippets of code, not an entire specification. This makes them more accessible formal artifacts than usual.
 
-### Activation Award
+### SCF Activation Award
 
-We are grateful to the [Stellar Community Fund][] for supporting our project via
-the Activation Award. Check our [3-minute pitch][], and the [project details](#project-details) below.
+We are grateful to the [Stellar Community Fund][] for supporting our project via an Activation Award.  
+Check our [latest pitch][] for our Community Award submission.
 
 ![activation award](./assets/solarkraft-stellar-activation.png)
 
@@ -30,7 +31,7 @@ the Activation Award. Check our [3-minute pitch][], and the [project details](#p
 [TLA+]: https://lamport.azurewebsites.net/tla/tla.html
 [Apalache]: https://github.com/informalsystems/apalache
 [Stellar Community Fund]: https://communityfund.stellar.org/
-[3-minute pitch]: https://www.youtube.com/watch?v=Ogdy4AHfMRA
+[latest pitch]: https://youtu.be/shVFqoUl-5A
 [timelock contract]: https://github.com/stellar/soroban-examples/tree/main/timelock
 [new hope]: https://thpani.net/2024/06/why-smart-contract-bugs-matter-and-how-runtime-monitoring-saves-the-day-solarkraft-1/
 [guardians]: https://thpani.net/2024/06/small-and-modular-runtime-monitors-in-tla-for-soroban-smart-contracts-solarkraft-2/
