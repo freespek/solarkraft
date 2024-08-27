@@ -26,8 +26,8 @@ import {
     storagePath,
     VerificationStatus,
 } from './fetcher/storage.js'
-import { instrumentMonitor } from './instrument.js'
-import { invokeAlert } from './invokeAlert.js'
+import { instrumentMonitor } from './verifier/instrument.js'
+import { invokeAlert } from './verifier/invokeAlert.js'
 
 type Result<T> = Either<string, T>
 type ApalacheResult = Result<void>

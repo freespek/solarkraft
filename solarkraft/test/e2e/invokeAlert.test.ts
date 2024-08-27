@@ -2,7 +2,7 @@ import { assert } from 'chai'
 import { describe, it } from 'mocha'
 import { spawn } from 'nexpect'
 
-import { invokeAlert } from '../../src/invokeAlert.js'
+import { invokeAlert } from '../../src/verifier/invokeAlert.js'
 import { Keypair, Networks } from '@stellar/stellar-sdk'
 import { VerificationStatus } from '../../src/fetcher/storage.js'
 
