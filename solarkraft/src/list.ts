@@ -10,9 +10,12 @@
  */
 
 import { existsSync, readdirSync } from 'fs'
-import { storagePath, yieldListEntriesForContract } from './fetcher/storage.js'
+import {
+    storagePath,
+    yieldListEntriesForContract,
+    VerificationStatus,
+} from './fetcher/storage.js'
 import { join } from 'node:path'
-import { VerificationStatus } from './VerificationStatus.js'
 
 // the length of a contract id in its string representation
 const CONTRACT_ID_LENGTH = 56

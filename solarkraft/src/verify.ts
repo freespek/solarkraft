@@ -15,21 +15,19 @@ import { rmSync } from 'fs'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
-import { Keypair, Networks } from '@stellar/stellar-sdk'
-
 import { globSync } from 'glob'
 import { temporaryFile } from 'tempy'
 import { Either, left, right, mergeInOne } from '@sweet-monads/either'
-
-import { invokeAlert } from './invokeAlert.js'
+import { Keypair, Networks } from '@stellar/stellar-sdk'
 
 import {
     loadContractCallEntry,
     saveContractCallEntry,
     storagePath,
+    VerificationStatus,
 } from './fetcher/storage.js'
 import { instrumentMonitor } from './instrument.js'
-import { VerificationStatus } from './VerificationStatus.js'
+import { invokeAlert } from './invokeAlert.js'
 
 type Result<T> = Either<string, T>
 type ApalacheResult = Result<void>

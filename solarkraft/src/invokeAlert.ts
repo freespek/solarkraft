@@ -8,8 +8,8 @@ import {
     Keypair,
     scValToNative,
 } from '@stellar/stellar-sdk'
-import { VerificationStatus } from './VerificationStatus.js'
 import { Api } from '@stellar/stellar-sdk/rpc'
+import { VerificationStatus } from './fetcher/storage.js'
 
 /**
  * @license

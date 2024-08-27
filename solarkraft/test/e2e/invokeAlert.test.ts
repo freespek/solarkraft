@@ -4,7 +4,7 @@ import { spawn } from 'nexpect'
 
 import { invokeAlert } from '../../src/invokeAlert.js'
 import { Keypair, Networks } from '@stellar/stellar-sdk'
-import { VerificationStatus } from '../../src/VerificationStatus.js'
+import { VerificationStatus } from '../../src/fetcher/storage.js'
 
 // hard-coded contract id that has to be changed,
 // when the Setter contract is redeployed via alert-deploy.sh
