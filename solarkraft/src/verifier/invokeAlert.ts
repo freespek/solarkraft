@@ -9,7 +9,7 @@ import {
     scValToNative,
 } from '@stellar/stellar-sdk'
 import { Api } from '@stellar/stellar-sdk/rpc'
-import { VerificationStatus } from './fetcher/storage.js'
+import { VerificationStatus } from '../fetcher/storage.js'
 
 /**
  * @license

@@ -10,7 +10,7 @@ import {
     tlaJsonTypeOfPrimitive,
     tlaJsonOfNative,
     isTlaName,
-} from '../../src/instrument.js'
+} from '../../src/verifier/instrument.js'
 
 import { instrumentedMonitor as expected } from './verify.instrumentedMonitor.js'
 import { instrumentedMonitor as expected2 } from './verify.instrumentedMonitor2.js'

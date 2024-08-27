@@ -18,7 +18,7 @@
  */
 
 import { assert } from 'console'
-import { ContractCallEntry } from './fetcher/storage.js'
+import { ContractCallEntry } from '../fetcher/storage.js'
 
 /**
  * Expected monitor shape:
