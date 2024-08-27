@@ -9,7 +9,7 @@ import {
     scValToNative,
 } from '@stellar/stellar-sdk'
 import { VerificationStatus } from './VerificationStatus.js'
-import { Api } from '@stellar/stellar-sdk/lib/soroban/api.js'
+import { Api } from '@stellar/stellar-sdk/rpc'
 
 /**
  * @license
