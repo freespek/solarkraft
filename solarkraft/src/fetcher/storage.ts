@@ -19,7 +19,6 @@ import {
     readdirSync,
     writeFileSync,
 } from 'node:fs'
-import { VerificationStatus } from '../VerificationStatus.js'
 
 const JSONbig = JSONbigint({ useNativeBigInt: true })
 
@@ -28,6 +27,16 @@ const JSONbig = JSONbigint({ useNativeBigInt: true })
  * as produced by Stellar SDK.
  */
 export type FieldsMap = OrderedMap<string, any>
+
+/**
+ * Result of `solarkraft verify`.
+ * `Unknown` is the default if `verify` hasn't been run.
+ */
+export enum VerificationStatus {
+    NoViolation = 0,
+    Violation = 1,
+    Unknown = 2,
+}
 
 /**
  * A storage entry for a performed contract call.
