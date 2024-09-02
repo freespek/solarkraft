@@ -6,3 +6,6 @@ USER vscode
 RUN cargo install --locked stellar-cli --features opt
 
 RUN rustup target add wasm32-unknown-unknown
+
+RUN stellar keys generate --global alice --network testnet
+RUN stellar keys generate --global bob --network testnet
