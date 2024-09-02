@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/rust:latest
+FROM mcr.microsoft.com/devcontainers/rust:dev-bookworm
 
 USER vscode
 RUN cargo install --locked soroban-cli@=21.0.0-rc.1
