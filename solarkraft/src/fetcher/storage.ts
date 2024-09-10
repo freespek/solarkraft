@@ -27,6 +27,33 @@ const JSONbig = JSONbigint({ useNativeBigInt: true })
  * as produced by Stellar SDK.
  */
 export type FieldsMap = OrderedMap<string, any>
+export function emptyFieldsMap(): FieldsMap {
+    return OrderedMap<string, any>()
+}
+
+/**
+ * Storage of a contract.
+ */
+export type ContractStorage = {
+    instance: FieldsMap
+    persistent: FieldsMap
+    temporary: FieldsMap
+}
+export function emptyContractStorage(): ContractStorage {
+    return {
+        instance: emptyFieldsMap(),
+        persistent: emptyFieldsMap(),
+        temporary: emptyFieldsMap(),
+    }
+}
+
+/**
+ * Storage of multiple contracts, keyed by contract address.
+ */
+export type MultiContractStorage = OrderedMap<string, ContractStorage>
+export function emptyMultiContractStorage(): MultiContractStorage {
+    return OrderedMap<string, ContractStorage>()
+}
 
 /**
  * Result of `solarkraft verify`.

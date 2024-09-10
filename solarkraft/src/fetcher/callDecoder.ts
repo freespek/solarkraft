@@ -2,17 +2,23 @@
  * @license
  * [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
  */
-
 /**
- * The code to extract Stellar operations that correspond to Soroban contract calls.
+ * Extract Stellar operations that correspond to Soroban contract calls.
  *
- * Igor Konnov, 2024.
+ * @author Igor Konnov, 2024
+ * @author Thomas Pani, 2024
+ * @license [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
  */
 
 import sdk, { Address } from '@stellar/stellar-sdk'
-import { ContractCallEntry, FieldsMap } from './storage.js'
+import {
+    ContractCallEntry,
+    emptyContractStorage,
+    emptyFieldsMap,
+    emptyMultiContractStorage,
+    MultiContractStorage,
+} from './storage.js'
 import { Maybe, just, none } from '@sweet-monads/maybe'
-import { OrderedMap } from 'immutable'
 
 /**
  * Decode a contract call from a Horizon operation.
@@ -87,31 +93,27 @@ export async function extractContractCall(
     }
 
     const meta3 = meta.value() as sdk.xdr.TransactionMetaV3
-    const fieldsUpdates: FieldsMap[] = meta3
+
+    const [preStorage, postStorage]: [
+        MultiContractStorage,
+        MultiContractStorage,
+    ] = meta3
         .operations()
-        .map((o) =>
-            o
-                .changes()
-                .map(ledgerEntry(contractId))
-                .filter((c) => c.isJust())
-                .map((c) => c.value)
+        .reduce(
+            ([preStorage, postStorage], op) =>
+                op
+                    .changes()
+                    .reduce(
+                        ([preStorage, postStorage], change) =>
+                            applyLedgerEntryChange(
+                                preStorage,
+                                postStorage,
+                                change
+                            ),
+                        [preStorage, postStorage]
+                    ),
+            [emptyMultiContractStorage(), emptyMultiContractStorage()]
         )
-        .flat()
-
-    if (fieldsUpdates.length > 2) {
-        console.error(`Transaction ${txHash} has over two contract states`)
-    }
-
-    // contract storage after the operations were applied
-    const fields =
-        fieldsUpdates.length >= 1
-            ? fieldsUpdates.pop()
-            : OrderedMap<string, any>()
-    // contract storage before the operations were applied
-    const oldFields =
-        fieldsUpdates.length >= 1
-            ? fieldsUpdates.pop()
-            : OrderedMap<string, any>()
 
     // decode return value
     const returnValue = sdk.scValToNative(meta3.sorobanMeta().returnValue())
@@ -124,70 +126,114 @@ export async function extractContractCall(
         method,
         methodArgs,
         returnValue,
-        fields,
-        oldFields,
+        oldFields: preStorage.get(contractId, emptyContractStorage()).instance,
+        fields: postStorage.get(contractId, emptyContractStorage()).instance,
+        preStorage,
+        postStorage,
         typeHints,
     })
 }
 
-// decode a contract entry that is changed by a contract call
-function ledgerEntry(
-    contractId: string
-): (entry: sdk.xdr.LedgerEntryChange) => Maybe<FieldsMap> {
-    return (entry: sdk.xdr.LedgerEntryChange) => {
-        switch (entry.switch().name) {
-            case 'ledgerEntryCreated':
-                return contractData(contractId, entry.created().data())
+// Return storage mutated to reflect the ledger state before and after the ledger entry change
+function applyLedgerEntryChange(
+    preStorage: MultiContractStorage,
+    postStorage: MultiContractStorage,
+    change: sdk.xdr.LedgerEntryChange
+): [MultiContractStorage, MultiContractStorage] {
+    switch (change.switch().name) {
+        case 'ledgerEntryCreated':
+            return [
+                preStorage,
+                contractData(change.created().data(), postStorage),
+            ]
 
-            case 'ledgerEntryUpdated':
-                return contractData(contractId, entry.updated().data())
+        case 'ledgerEntryUpdated':
+            return [
+                preStorage,
+                contractData(change.updated().data(), postStorage),
+            ]
 
-            case 'ledgerEntryState':
-                return contractData(contractId, entry.state().data())
+        case 'ledgerEntryState':
+            return [
+                contractData(change.state().data(), preStorage),
+                postStorage
+            ]
 
-            case 'ledgerEntryRemoved':
-                // TODO: is it ever triggered by a Soroban contract?
-                return none()
-        }
+        case 'ledgerEntryRemoved':
+            // TODO(#122): is it ever triggered by a Soroban contract?
+            console.warn(
+                "Found 'ledgerEntryRemoved' LedgerEntryChange: not implemented"
+            )
+            return [preStorage, postStorage]
     }
 }
 
-// extract contract storage from ledger entry data, if it's there
+// return `storage`, mutated by the contract data change
 function contractData(
-    contractId: string,
-    data: sdk.xdr.LedgerEntryData
-): Maybe<FieldsMap> {
+    data: sdk.xdr.LedgerEntryData,
+    storage: MultiContractStorage
+): MultiContractStorage {
     if (data.switch().name !== 'contractData') {
-        return none()
+        return storage
+    }
+
+    const contract = Address.fromScAddress(
+        data.contractData().contract()
+    ).toString()
+    const contractDataVal = data.contractData().val()
+
+    // All instance storage fields are stored together with the contract code in the singleton "instance" ledger e ntry.
+    // For temporary and persistent entries, each field is stored in a separate ledger entry.
+    if (contractDataVal.switch().name === 'scvContractInstance') {
+        // the contract instance chanaged
+
+        const instanceStorage = contractDataVal.instance().storage()
+        if (instanceStorage === undefined) {
+            // instance storage may be empty
+
+            // console.log(`instance storage of ${contract}: empty`)
+
+            const contractStorage = storage.get(
+                contract,
+                emptyContractStorage()
+            )
+            return storage.set(contract, {
+                ...contractStorage,
+                instance: emptyFieldsMap(),
+            })
+        } else {
+            const contractStorage = storage.get(
+                contract,
+                emptyContractStorage()
+            )
+            const fields = instanceStorage.reduce((map, entry) => {
+                const key = sdk.scValToNative(entry.key()).toString()
+                const val = sdk.scValToNative(entry.val())
+                // console.log(`instance storage of ${contract} changed: ${key} -> ${util.inspect(val)}`)
+                return map.set(key, val)
+            }, contractStorage.instance)
+            return storage.set(contract, {
+                ...contractStorage,
+                instance: fields,
+            })
+        }
     } else {
-        const contractDataVal = data.contractData().val()
-        if (
-            Address.fromScAddress(data.contractData().contract()).toString() !==
-            contractId
-        ) {
-            // this update does not apply to the target contract
-            return none()
-        }
-        if (contractDataVal.switch().name === 'scvContractInstance') {
-            // the contract instance gives us the storage
-            const instance = contractDataVal.instance()
+        // a temporary or persistent entry changed
+        const durability = data.contractData().durability().name
+        const key = sdk.scValToNative(data.contractData().key()).toString()
+        const val = sdk.scValToNative(contractDataVal)
 
-            if (instance.storage() === undefined) {
-                // the previous state, which is undefined when no storage was ever created
-                return just(OrderedMap<string, any>())
-            } else {
-                const fields: FieldsMap = instance
-                    .storage()
-                    .reduce((map, entry) => {
-                        const key = sdk.scValToNative(entry.key()).toString()
-                        const val = sdk.scValToNative(entry.val())
-                        return map.set(key, val)
-                    }, OrderedMap<string, any>())
+        // console.log(`${durability} storage of ${contract} changed: ${key} -> ${util.inspect(val)}`)
 
-                return just(fields)
-            }
-        }
-
-        return none()
+        const contractStorage = storage.get(contract, emptyContractStorage())
+        const durabilityStorage = (
+            durability === 'temporary'
+                ? contractStorage.temporary
+                : contractStorage.persistent
+        ).set(key, val)
+        return storage.set(contract, {
+            ...contractStorage,
+            [durability]: durabilityStorage,
+        })
     }
 }
