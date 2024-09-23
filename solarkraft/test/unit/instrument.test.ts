@@ -15,6 +15,7 @@ import {
 import { instrumentedMonitor as expected } from './verify.instrumentedMonitor.js'
 import { instrumentedMonitor as expected2 } from './verify.instrumentedMonitor2.js'
 import { instrumentedMonitor as expected3 } from './verify.instrumentedMonitor3.js'
+import { ContractStorage, emptyFieldsMap } from '../../src/fetcher/storage.js'
 
 // Assert that `tlaJsonOfNative` returns a proper TLA+ `ValEx` for the primitive JS value `v`
 function assertProperValExOfPrimitive(v: any) {
@@ -134,6 +135,30 @@ describe('Apalache JSON instrumentor', () => {
             methodArgs: ['alice'],
             fields: OrderedMap<string, any>([['is_initialized', false]]),
             oldFields: OrderedMap<string, any>([['is_initialized', false]]),
+            oldStorage: OrderedMap<string, ContractStorage>([
+                [
+                    '0xqwer',
+                    {
+                        instance: OrderedMap<string, any>([
+                            ['is_initialized', false],
+                        ]),
+                        persistent: emptyFieldsMap(),
+                        temporary: emptyFieldsMap(),
+                    },
+                ],
+            ]),
+            storage: OrderedMap<string, ContractStorage>([
+                [
+                    '0xqwer',
+                    {
+                        instance: OrderedMap<string, any>([
+                            ['is_initialized', false],
+                        ]),
+                        persistent: emptyFieldsMap(),
+                        temporary: emptyFieldsMap(),
+                    },
+                ],
+            ]),
         }
 
         const instrumented = instrumentMonitor(monitor, contractCall)
@@ -166,6 +191,32 @@ describe('Apalache JSON instrumentor', () => {
                 ['is_initialized', false],
                 ['additional_variable', false],
             ]),
+            oldStorage: OrderedMap<string, ContractStorage>([
+                [
+                    '0xqwer',
+                    {
+                        instance: OrderedMap<string, any>([
+                            ['is_initialized', false],
+                            ['additional_variable', false],
+                        ]),
+                        persistent: emptyFieldsMap(),
+                        temporary: emptyFieldsMap(),
+                    },
+                ],
+            ]),
+            storage: OrderedMap<string, ContractStorage>([
+                [
+                    '0xqwer',
+                    {
+                        instance: OrderedMap<string, any>([
+                            ['is_initialized', false],
+                            ['additional_variable', false],
+                        ]),
+                        persistent: emptyFieldsMap(),
+                        temporary: emptyFieldsMap(),
+                    },
+                ],
+            ]),
         }
         const instrumented = instrumentMonitor(monitor, contractCall)
         assert.deepEqual(expected, instrumented)
@@ -192,6 +243,32 @@ describe('Apalache JSON instrumentor', () => {
             methodArgs: ['alice'],
             fields: OrderedMap<string, any>([['is_initialized', false]]),
             oldFields: OrderedMap<string, any>([['is_initialized', false]]),
+            oldStorage: OrderedMap<string, ContractStorage>([
+                [
+                    '0xqwer',
+                    {
+                        instance: OrderedMap<string, any>([
+                            ['is_initialized', false],
+                            ['additional_variable', false],
+                        ]),
+                        persistent: emptyFieldsMap(),
+                        temporary: emptyFieldsMap(),
+                    },
+                ],
+            ]),
+            storage: OrderedMap<string, ContractStorage>([
+                [
+                    '0xqwer',
+                    {
+                        instance: OrderedMap<string, any>([
+                            ['is_initialized', false],
+                            ['additional_variable', false],
+                        ]),
+                        persistent: emptyFieldsMap(),
+                        temporary: emptyFieldsMap(),
+                    },
+                ],
+            ]),
         }
         const instrumented = instrumentMonitor(monitor, contractCall)
         assert.deepEqual(expected2, instrumented)
@@ -217,6 +294,30 @@ describe('Apalache JSON instrumentor', () => {
             methodArgs: [['MaybeEnum']],
             fields: OrderedMap<string, any>([['is_initialized', false]]),
             oldFields: OrderedMap<string, any>([['is_initialized', false]]),
+            oldStorage: OrderedMap<string, ContractStorage>([
+                [
+                    '0xqwer',
+                    {
+                        instance: OrderedMap<string, any>([
+                            ['is_initialized', false],
+                        ]),
+                        persistent: emptyFieldsMap(),
+                        temporary: emptyFieldsMap(),
+                    },
+                ],
+            ]),
+            storage: OrderedMap<string, ContractStorage>([
+                [
+                    '0xqwer',
+                    {
+                        instance: OrderedMap<string, any>([
+                            ['is_initialized', false],
+                        ]),
+                        persistent: emptyFieldsMap(),
+                        temporary: emptyFieldsMap(),
+                    },
+                ],
+            ]),
             typeHints: undefined,
         }
         assert.throws(() => instrumentMonitor(monitor, contractCall))
@@ -240,6 +341,26 @@ describe('Apalache JSON instrumentor', () => {
             methodArgs: [['MaybeEnum'], ['MaybeVec']],
             fields: OrderedMap<string, any>(),
             oldFields: OrderedMap<string, any>(),
+            oldStorage: OrderedMap<string, ContractStorage>([
+                [
+                    '0xqwer',
+                    {
+                        instance: emptyFieldsMap(),
+                        persistent: emptyFieldsMap(),
+                        temporary: emptyFieldsMap(),
+                    },
+                ],
+            ]),
+            storage: OrderedMap<string, ContractStorage>([
+                [
+                    '0xqwer',
+                    {
+                        instance: emptyFieldsMap(),
+                        persistent: emptyFieldsMap(),
+                        temporary: emptyFieldsMap(),
+                    },
+                ],
+            ]),
             typeHints: {
                 methods: { foo: [[{ enum: [] }, { vec: 'Str' }], 'BAR'] },
             },

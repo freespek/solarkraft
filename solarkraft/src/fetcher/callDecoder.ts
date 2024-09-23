@@ -94,26 +94,24 @@ export async function extractContractCall(
 
     const meta3 = meta.value() as sdk.xdr.TransactionMetaV3
 
-    const [preStorage, postStorage]: [
-        MultiContractStorage,
-        MultiContractStorage,
-    ] = meta3
-        .operations()
-        .reduce(
-            ([preStorage, postStorage], op) =>
-                op
-                    .changes()
-                    .reduce(
-                        ([preStorage, postStorage], change) =>
-                            applyLedgerEntryChange(
-                                preStorage,
-                                postStorage,
-                                change
-                            ),
-                        [preStorage, postStorage]
-                    ),
-            [emptyMultiContractStorage(), emptyMultiContractStorage()]
-        )
+    const [oldStorage, storage]: [MultiContractStorage, MultiContractStorage] =
+        meta3
+            .operations()
+            .reduce(
+                ([oldStorage, storage], op) =>
+                    op
+                        .changes()
+                        .reduce(
+                            ([oldStorage, storage], change) =>
+                                applyLedgerEntryChange(
+                                    oldStorage,
+                                    storage,
+                                    change
+                                ),
+                            [oldStorage, storage]
+                        ),
+                [emptyMultiContractStorage(), emptyMultiContractStorage()]
+            )
 
     // decode return value
     const returnValue = sdk.scValToNative(meta3.sorobanMeta().returnValue())
@@ -126,45 +124,36 @@ export async function extractContractCall(
         method,
         methodArgs,
         returnValue,
-        oldFields: preStorage.get(contractId, emptyContractStorage()).instance,
-        fields: postStorage.get(contractId, emptyContractStorage()).instance,
-        preStorage,
-        postStorage,
+        oldFields: oldStorage.get(contractId, emptyContractStorage()).instance,
+        fields: storage.get(contractId, emptyContractStorage()).instance,
+        oldStorage,
+        storage,
         typeHints,
     })
 }
 
 // Return storage mutated to reflect the ledger state before and after the ledger entry change
 function applyLedgerEntryChange(
-    preStorage: MultiContractStorage,
-    postStorage: MultiContractStorage,
+    oldStorage: MultiContractStorage,
+    storage: MultiContractStorage,
     change: sdk.xdr.LedgerEntryChange
 ): [MultiContractStorage, MultiContractStorage] {
     switch (change.switch().name) {
         case 'ledgerEntryCreated':
-            return [
-                preStorage,
-                contractData(change.created().data(), postStorage),
-            ]
+            return [oldStorage, contractData(change.created().data(), storage)]
 
         case 'ledgerEntryUpdated':
-            return [
-                preStorage,
-                contractData(change.updated().data(), postStorage),
-            ]
+            return [oldStorage, contractData(change.updated().data(), storage)]
 
         case 'ledgerEntryState':
-            return [
-                contractData(change.state().data(), preStorage),
-                postStorage
-            ]
+            return [contractData(change.state().data(), oldStorage), storage]
 
         case 'ledgerEntryRemoved':
             // TODO(#122): is it ever triggered by a Soroban contract?
             console.warn(
                 "Found 'ledgerEntryRemoved' LedgerEntryChange: not implemented"
             )
-            return [preStorage, postStorage]
+            return [oldStorage, storage]
     }
 }
 
