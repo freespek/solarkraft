@@ -20,13 +20,13 @@ describe('fetch', () => {
     it('fetches transactions', function (done) {
         this.timeout(50000)
         spawn(
-            'solarkraft fetch --rpc https://horizon-testnet.stellar.org --id CA6DAY7MPOKVL5BB3CVKMAPX3UGFURQCNLTT4DPPF6MDNA3RSERQZ55Y --height 9391 --timeout 10'
+            'solarkraft fetch --rpc https://horizon-testnet.stellar.org --id CD4MXYZJKHXHEP7YK72L6K4Y6ANFVSXSTI3VPJXV5M4QFGF5PGH5PDDJ --height 96034 --timeout 10'
         )
             .wait(
-                'Target contract: CA6DAY7MPOKVL5BB3CVKMAPX3UGFURQCNLTT4DPPF6MDNA3RSERQZ55Y'
+                'Target contract: CD4MXYZJKHXHEP7YK72L6K4Y6ANFVSXSTI3VPJXV5M4QFGF5PGH5PDDJ'
             )
-            .wait('Fetching the ledger for 9391')
-            .wait('+ save: 9391')
+            .wait('Fetching the ledger for 96034')
+            .wait('+ save: 96035')
             .run(done)
     })
 })
