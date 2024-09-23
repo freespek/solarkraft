@@ -8,7 +8,7 @@ import { VerificationStatus } from '../../src/fetcher/storage.js'
 
 // hard-coded contract id that has to be changed,
 // when the Setter contract is redeployed via alert-deploy.sh
-const CONTRACT_ID = 'CCJJRZ4C2UW3CYAI7AFMIJQWSNQUFZFKPEPWPI7DJD27MIFNL4HA4BYL'
+const CONTRACT_ID = 'CDRCCMLPCAKOZSEECX7EEXIPNPU32JGEKG3QMHKM7ZNO5IRBUE66DQ6O'
 // const LocalRPC = 'https://localhost:8000/'
 const TestnetRPC = 'https://soroban-testnet.stellar.org:443'
 
