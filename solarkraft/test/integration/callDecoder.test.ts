@@ -71,6 +71,16 @@ describe('call decoder from Horizon', () => {
         assert.deepEqual(entry.returnValue, false)
         assert.deepEqual(entry.oldFields.toArray(), [])
         assert.deepEqual(entry.fields.toArray(), [['MY_BOOL', true]])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: { instance: {}, temporary: {}, persistent: {} },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: { MY_BOOL: true },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 
     it('call #2: Setter.set_u32([42u32])', async () => {
@@ -89,6 +99,20 @@ describe('call decoder from Horizon', () => {
             ['MY_BOOL', true],
             ['MY_U32', 42],
         ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: { MY_BOOL: true },
+                temporary: {},
+                persistent: {},
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: { MY_BOOL: true, MY_U32: 42 },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 
     it('call #3: Setter.set_i32([-42u32])', async () => {
@@ -111,6 +135,20 @@ describe('call decoder from Horizon', () => {
             ['MY_I32', -42],
             ['MY_U32', 42],
         ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: { MY_BOOL: true, MY_U32: 42 },
+                temporary: {},
+                persistent: {},
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: { MY_BOOL: true, MY_U32: 42, MY_I32: -42 },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 
     it('call #4: Setter.set_u64([42u64])', async () => {
@@ -135,6 +173,25 @@ describe('call decoder from Horizon', () => {
             ['MY_U32', 42],
             ['MY_U64', 42n],
         ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: { MY_BOOL: true, MY_U32: 42, MY_I32: -42 },
+                temporary: {},
+                persistent: {},
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 
     it('call #5: Setter.set_i64([-42i64])', async () => {
@@ -161,6 +218,31 @@ describe('call decoder from Horizon', () => {
             ['MY_U32', 42],
             ['MY_U64', 42n],
         ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 
     it('call #6: Setter.set_u128([42u128])', async () => {
@@ -189,6 +271,33 @@ describe('call decoder from Horizon', () => {
             ['MY_U32', 42],
             ['MY_U64', 42n],
         ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 
     it('call #7: Setter.set_i128([-42i128])', async () => {
@@ -219,6 +328,35 @@ describe('call decoder from Horizon', () => {
             ['MY_U32', 42],
             ['MY_U64', 42n],
         ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 
     it('call #8: Setter.set_sym("hello")', async () => {
@@ -251,6 +389,37 @@ describe('call decoder from Horizon', () => {
             ['MY_U32', 42],
             ['MY_U64', 42n],
         ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_SYM: 'hello',
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 
     it('call #9: Setter.set_bytes(0xbeef)', async () => {
@@ -285,6 +454,39 @@ describe('call decoder from Horizon', () => {
             ['MY_U32', 42],
             ['MY_U64', 42n],
         ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_SYM: 'hello',
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 
     it('call #10: Setter.set_bytes32(...)', async () => {
@@ -321,6 +523,41 @@ describe('call decoder from Horizon', () => {
             ['MY_U32', 42],
             ['MY_U64', 42n],
         ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                    MY_BTES32: bytes32,
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 
     it('call #11: Setter.set_vec([[1i32, -2i32, 3i32]])', async () => {
@@ -359,6 +596,43 @@ describe('call decoder from Horizon', () => {
             ['MY_U64', 42n],
             ['MY_VEC', [1, -2, 3]],
         ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                    MY_BTES32: bytes32,
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                    MY_BTES32: bytes32,
+                    MY_VEC: [1, -2, 3],
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 
     it('call #12: Setter.set_map([{2u32: 3i32, 4u32: 5i32}])', async () => {
@@ -399,6 +673,45 @@ describe('call decoder from Horizon', () => {
             ['MY_U64', 42n],
             ['MY_VEC', [1, -2, 3]],
         ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                    MY_BTES32: bytes32,
+                    MY_VEC: [1, -2, 3],
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                    MY_BTES32: bytes32,
+                    MY_VEC: [1, -2, 3],
+                    MY_MAP: { '2': 3, '4': 5 },
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 
     it('call #13: Setter.set_address([GDIY...R4W4]', async () => {
@@ -446,6 +759,48 @@ describe('call decoder from Horizon', () => {
             ['MY_U64', 42n],
             ['MY_VEC', [1, -2, 3]],
         ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                    MY_BTES32: bytes32,
+                    MY_VEC: [1, -2, 3],
+                    MY_MAP: { '2': 3, '4': 5 },
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_ADDR:
+                        'GDIY6AQQ75WMD4W46EYB7O6UYMHOCGQHLAQGQTKHDX4J2DYQCHVCR4W4',
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                    MY_BTES32: bytes32,
+                    MY_VEC: [1, -2, 3],
+                    MY_MAP: { '2': 3, '4': 5 },
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 
     it('call #14: Setter.set_struct([{"a"sym: 1u32, "b"sym: -100i128}])', async () => {
@@ -496,6 +851,51 @@ describe('call decoder from Horizon', () => {
             ['MY_U64', 42n],
             ['MY_VEC', [1, -2, 3]],
         ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_ADDR:
+                        'GDIY6AQQ75WMD4W46EYB7O6UYMHOCGQHLAQGQTKHDX4J2DYQCHVCR4W4',
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                    MY_BTES32: bytes32,
+                    MY_VEC: [1, -2, 3],
+                    MY_MAP: { '2': 3, '4': 5 },
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_ADDR:
+                        'GDIY6AQQ75WMD4W46EYB7O6UYMHOCGQHLAQGQTKHDX4J2DYQCHVCR4W4',
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_STRUCT: { a: 1, b: -100n },
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                    MY_BTES32: bytes32,
+                    MY_VEC: [1, -2, 3],
+                    MY_MAP: { '2': 3, '4': 5 },
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 
     it('call #15: Setter.set_enum([["B"sym, -200i128]])', async () => {
@@ -548,5 +948,52 @@ describe('call decoder from Horizon', () => {
             ['MY_U64', 42n],
             ['MY_VEC', [1, -2, 3]],
         ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_ADDR:
+                        'GDIY6AQQ75WMD4W46EYB7O6UYMHOCGQHLAQGQTKHDX4J2DYQCHVCR4W4',
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_STRUCT: { a: 1, b: -100n },
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                    MY_BTES32: bytes32,
+                    MY_VEC: [1, -2, 3],
+                    MY_MAP: { '2': 3, '4': 5 },
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_ADDR:
+                        'GDIY6AQQ75WMD4W46EYB7O6UYMHOCGQHLAQGQTKHDX4J2DYQCHVCR4W4',
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_ENUM: ['B', -200n],
+                    MY_STRUCT: { a: 1, b: -100n },
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                    MY_BTES32: bytes32,
+                    MY_VEC: [1, -2, 3],
+                    MY_MAP: { '2': 3, '4': 5 },
+                },
+                temporary: {},
+                persistent: {},
+            },
+        })
     })
 })

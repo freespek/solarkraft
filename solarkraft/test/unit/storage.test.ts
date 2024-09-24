@@ -105,5 +105,19 @@ describe('storage tests', () => {
             ['a', 1],
             ['b', 993143214321423154315154322n],
         ])
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: { a: 3, b: 993143214321423154315154321n },
+                persistent: {},
+                temporary: {},
+            },
+        })
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: { a: 1, b: 993143214321423154315154322n },
+                persistent: {},
+                temporary: {},
+            },
+        })
     })
 })
