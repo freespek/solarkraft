@@ -57,3 +57,5 @@ soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET 
       -- set_struct --v '{ "a": 1, "b": "-100" }'
 soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET \
       -- set_enum --v '{ "B": "-200" }'
+soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET \
+      -- remove_bool

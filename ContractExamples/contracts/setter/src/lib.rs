@@ -112,6 +112,14 @@ impl SetterContract {
         env.storage().instance().get(&MY_BOOL).unwrap_or(false)
     }
 
+    pub fn remove_bool(env: Env) -> bool {
+        let old: bool = env.storage().instance().get(&MY_BOOL).unwrap_or(false);
+        env.storage().instance().remove(&MY_BOOL);
+        env.storage().temporary().remove(&MY_BOOL);
+        env.storage().persistent().remove(&MY_BOOL);
+        old
+    }
+
     pub fn set_u32(env: Env, v: u32) -> u32 {
         let old: u32 = env.storage().instance().get(&MY_U32).unwrap_or(0);
         env.storage().instance().set(&MY_U32, &v);
