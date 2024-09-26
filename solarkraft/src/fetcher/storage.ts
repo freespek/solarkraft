@@ -10,7 +10,7 @@
  */
 
 import JSONbigint from 'json-bigint'
-import { OrderedMap } from 'immutable'
+import Immutable, { OrderedMap } from 'immutable'
 import { join } from 'node:path/posix'
 import {
     existsSync,
@@ -27,6 +27,33 @@ const JSONbig = JSONbigint({ useNativeBigInt: true })
  * as produced by Stellar SDK.
  */
 export type FieldsMap = OrderedMap<string, any>
+export function emptyFieldsMap(): FieldsMap {
+    return OrderedMap<string, any>()
+}
+
+/**
+ * Storage of a contract.
+ */
+export type ContractStorage = {
+    instance: FieldsMap
+    persistent: FieldsMap
+    temporary: FieldsMap
+}
+export function emptyContractStorage(): ContractStorage {
+    return {
+        instance: emptyFieldsMap(),
+        persistent: emptyFieldsMap(),
+        temporary: emptyFieldsMap(),
+    }
+}
+
+/**
+ * Storage of multiple contracts, keyed by contract address.
+ */
+export type MultiContractStorage = OrderedMap<string, ContractStorage>
+export function emptyMultiContractStorage(): MultiContractStorage {
+    return OrderedMap<string, ContractStorage>()
+}
 
 /**
  * Result of `solarkraft verify`.
@@ -88,6 +115,32 @@ export interface ContractCallEntry {
     oldFields: FieldsMap
 
     /**
+     * Ordered mapping from contract address to instance/persistent/temporary storage
+     * of the respective contract. The contract storage for a given durability is
+     * an ordered mapping from field names to their native values (JS).
+     *
+     * This mapping contains values only for the fields that have been created
+     * or updated by a transaction in the past. It may happen that
+     * `storage` contains fewer fields than `oldStorage`, when the contract
+     * deletes some fields from the storage. Also, fields may be cleared from `storage`
+     * when the storage goes over TTL.
+     */
+    oldStorage: MultiContractStorage
+
+    /**
+     * Ordered mapping from contract address to instance/persistent/temporary storage
+     * of the respective contract. The contract storage for a given durability is
+     * an ordered mapping from field names to their native values (JS).
+     *
+     * This mapping contains values only for the fields that have been created
+     * or updated by a transaction in the past. It may happen that
+     * `storage` contains fewer fields than `oldStorage`, when the contract
+     * deletes some fields from the storage. Also, fields may be cleared from `storage`
+     * when the storage goes over TTL.
+     */
+    storage: FieldsMap
+
+    /**
      * Flag which tracks whether this particular entry has already been verified, and, if it has been, the verification result.
      */
     verificationStatus?: VerificationStatus
@@ -138,7 +191,7 @@ export function saveContractCallEntry(home: string, entry: ContractCallEntry) {
     const filename = getEntryFilename(storagePath(home), entry)
     const verificationStatus: VerificationStatus =
         entry.verificationStatus ?? VerificationStatus.Unknown
-    // convert OrderedMaps to arrays
+    // convert OrderedMaps to JSON
     const simplified = {
         ...entry,
         fields: entry.fields.toArray(),
@@ -169,6 +222,8 @@ export function loadContractCallEntry(filename: string): ContractCallEntry {
         returnValue: loaded.returnValue,
         fields: OrderedMap<string, any>(loaded.fields),
         oldFields: OrderedMap<string, any>(loaded.oldFields),
+        oldStorage: Immutable.fromJS(loaded.oldStorage),
+        storage: Immutable.fromJS(loaded.storage),
         verificationStatus:
             loaded.verificationStatus ?? VerificationStatus.Unknown,
         typeHints: loaded.typeHints ?? {},

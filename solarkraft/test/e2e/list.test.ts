@@ -6,7 +6,10 @@ import { spawn } from 'nexpect'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { saveContractCallEntry } from '../../src/fetcher/storage.js'
+import {
+    ContractStorage,
+    saveContractCallEntry,
+} from '../../src/fetcher/storage.js'
 import { OrderedMap } from 'immutable'
 
 const TX_HASH =
@@ -28,6 +31,8 @@ describe('list', () => {
             returnValue: 0,
             fields: OrderedMap<string, any>(),
             oldFields: OrderedMap<string, any>(),
+            oldStorage: OrderedMap<string, ContractStorage>(),
+            storage: OrderedMap<string, ContractStorage>(),
         })
 
         this.timeout(50000)

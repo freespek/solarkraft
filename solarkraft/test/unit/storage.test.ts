@@ -10,6 +10,8 @@ import { describe, it } from 'mocha'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
+    ContractStorage,
+    emptyFieldsMap,
     loadContractCallEntry,
     saveContractCallEntry,
     storagePath,
@@ -39,6 +41,32 @@ describe('storage tests', () => {
             oldFields: OrderedMap<string, any>([
                 ['a', 1],
                 ['b', 993143214321423154315154322n],
+            ]),
+            oldStorage: OrderedMap<string, ContractStorage>([
+                [
+                    CONTRACT_ID,
+                    {
+                        instance: OrderedMap<string, any>([
+                            ['a', 1],
+                            ['b', 993143214321423154315154322n],
+                        ]),
+                        persistent: emptyFieldsMap(),
+                        temporary: emptyFieldsMap(),
+                    },
+                ],
+            ]),
+            storage: OrderedMap<string, ContractStorage>([
+                [
+                    CONTRACT_ID,
+                    {
+                        instance: OrderedMap<string, any>([
+                            ['a', 3],
+                            ['b', 993143214321423154315154321n],
+                        ]),
+                        persistent: emptyFieldsMap(),
+                        temporary: emptyFieldsMap(),
+                    },
+                ],
             ]),
         })
 
@@ -77,5 +105,19 @@ describe('storage tests', () => {
             ['a', 1],
             ['b', 993143214321423154315154322n],
         ])
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: { a: 3, b: 993143214321423154315154321n },
+                persistent: {},
+                temporary: {},
+            },
+        })
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: { a: 1, b: 993143214321423154315154322n },
+                persistent: {},
+                temporary: {},
+            },
+        })
     })
 })
