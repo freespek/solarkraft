@@ -1,26 +1,47 @@
 /**
  * Integration tests that ensure that our contract decoder works correctly on the testnet.
- * These tests use hardcoded ledger entries that are created with:
  *
- * `ContractExamples/scripts/setter-populate.sh`
+ * First deploys a fresh copy of the setter contract (`ContractExamples/contracts/setter`)
+ * on the testnet from its on-ledger WASM code hash. Then, each test calls a different
+ * contract function and checks the decoded contract call entry.
  *
- * In case the Stellar testnet is reset, we have to update the hardcoded entries.
- * The easiest way to do this is by exploring the contract transactions on https://stellar.expert/.
+ * @author Igor Konnov, 2024
+ * @author Thomas Pani, 2024
  */
 
-import { Horizon } from '@stellar/stellar-sdk'
+import {
+    Address,
+    BASE_FEE,
+    Contract,
+    Horizon,
+    Keypair,
+    nativeToScVal,
+    Networks,
+    Operation,
+    SorobanRpc,
+    Transaction,
+    TransactionBuilder,
+    xdr,
+} from '@stellar/stellar-sdk'
 import { assert } from 'chai'
-import { describe, it } from 'mocha'
+import { before, describe, it } from 'mocha'
 import { extractContractCall } from '../../src/fetcher/callDecoder.js'
 import { ContractCallEntry } from '../../src/fetcher/storage.js'
 import { Maybe, none } from '@sweet-monads/maybe'
 
-// Horizon instance that we use for testing
+// Horizon and Soroban instances that we use for testing
 const HORIZON_URL = 'https://horizon-testnet.stellar.org'
+const SOROBAN_URL = 'https://soroban-testnet.stellar.org:443'
 
-// hard-coded contract id that has to be changed,
-// when the Setter contract is redeployed via setter-populate.sh
-const CONTRACT_ID = 'CCIVIIO6OFFCPUU22W5HRP3UOWUGLY54TRTQXV5Z3IEOFQDMKIA2JXTZ'
+// hard-coded WASM code hash of the setter contract on the ledger (deployed via setter-populate.sh)
+const WASM_HASH =
+    '52d442625530fd17e86f93318ee1963b53fa99c5a9705deef78ced3cb7e560d9'
+
+// contract ID of the deployed setter contract (will be set up by `before()`)
+let CONTRACT_ID: string
+
+// a random keypair to sign transactions
+const sourceKeypair = Keypair.random()
 
 // 0xbeef
 const beef = Buffer.from([0xbe, 0xef])
@@ -57,11 +78,112 @@ async function extractEntry(txHash: string): Promise<ContractCallEntry> {
     }
 }
 
-describe('call decoder from Horizon', () => {
-    it('call #1: Setter.set_bool(true)', async () => {
-        const entry = await extractEntry(
-            'c7629f7deaeaf7f4450eddfa4756d252af5cab8aef4547ffb621b826eae3a2cf'
+// submit a transaction; if successful, return its transaction hash and the response
+async function submitTx(
+    server: SorobanRpc.Server,
+    tx: Transaction
+): Promise<[string, SorobanRpc.Api.GetSuccessfulTransactionResponse]> {
+    // Use the RPC server to "prepare" the transaction (simulate, update storage footprint)
+    const preparedTransaction = await server.prepareTransaction(tx)
+
+    // Sign the transaction with the source account's keypair
+    preparedTransaction.sign(sourceKeypair)
+
+    // Submit the transaction
+    const sendResponse = await server.sendTransaction(preparedTransaction)
+
+    // Poll for result and check for errors
+    if (sendResponse.status === 'PENDING') {
+        let getResponse = await server.getTransaction(sendResponse.hash)
+        // Poll `getTransaction` until the status is not "NOT_FOUND"
+        while (getResponse.status === 'NOT_FOUND') {
+            getResponse = await server.getTransaction(sendResponse.hash)
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+        }
+        if (getResponse.status === 'SUCCESS') {
+            if (!getResponse.resultMetaXdr) {
+                throw 'Empty resultMetaXDR in getTransaction response'
+            }
+        } else {
+            throw `Transaction failed: ${getResponse.resultXdr}`
+        }
+        return [sendResponse.hash, getResponse]
+    } else {
+        throw sendResponse.errorResult
+    }
+}
+
+// Invoke contract function `functionName` with arguments `args` and return the transaction hash.
+//
+// `args` are converted to Soroban values using `nativeToScVal`.
+async function callContract(
+    functionName: string,
+    ...args: xdr.ScVal[]
+): Promise<string> {
+    // adapted from https://developers.stellar.org/docs/learn/encyclopedia/contract-development/contract-interactions/stellar-transaction#function
+    const server = new SorobanRpc.Server(SOROBAN_URL)
+
+    // the deployed setter contract
+    const contract = new Contract(CONTRACT_ID)
+
+    // build the transaction
+    const sourceAccount = await server.getAccount(sourceKeypair.publicKey())
+    const builtTransaction = new TransactionBuilder(sourceAccount, {
+        fee: BASE_FEE,
+        networkPassphrase: Networks.TESTNET,
+    })
+        .addOperation(contract.call(functionName, ...args))
+        .setTimeout(30) // tx is valid for 30 seconds
+        .build()
+
+    const [txHash] = await submitTx(server, builtTransaction)
+    return txHash
+}
+
+describe('call decoder from Horizon', function () {
+    // increase timeout to allow for populating the contract
+    this.timeout(10_000)
+    before(async function () {
+        // Deploy a fresh setter contract from the WASM code `WASM_HASH`
+
+        // This may take a bit; increase the timeout
+        this.timeout(50_000)
+
+        // Fund the keypair
+        console.log(`Funding the keypair ${sourceKeypair.publicKey()} ...`)
+        const horizon = new Horizon.Server(HORIZON_URL)
+        await horizon.friendbot(sourceKeypair.publicKey()).call()
+
+        // Redeploy a fresh copy of the setter contract WASM from CONTRACT_ID_TEMPLATE
+        console.log(`Creating a contract from WASM code ${WASM_HASH} ...`)
+        const soroban = new SorobanRpc.Server(SOROBAN_URL)
+        const sourceAccount = await soroban.getAccount(
+            sourceKeypair.publicKey()
         )
+        const builtTransaction = new TransactionBuilder(sourceAccount, {
+            fee: BASE_FEE,
+            networkPassphrase: Networks.TESTNET,
+        })
+            .addOperation(
+                Operation.createCustomContract({
+                    address: Address.fromString(sourceKeypair.publicKey()),
+                    wasmHash: Buffer.from(WASM_HASH, 'hex'),
+                })
+            )
+            .setTimeout(30) // tx is valid for 30 seconds
+            .build()
+
+        const [txHash, response] = await submitTx(soroban, builtTransaction)
+        CONTRACT_ID = Address.fromScAddress(
+            response.resultMetaXdr.v3().sorobanMeta().returnValue().address()
+        ).toString()
+        console.log(
+            `Fresh setter contract deployed by tx ${txHash} at ${CONTRACT_ID}`
+        )
+    })
+    it('call #1: Setter.set_bool(true)', async function () {
+        const txHash = await callContract('set_bool', nativeToScVal(true))
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
@@ -83,10 +205,12 @@ describe('call decoder from Horizon', () => {
         })
     })
 
-    it('call #2: Setter.set_u32([42u32])', async () => {
-        const entry = await extractEntry(
-            'f29f0f4f4156acf58862f316472cc8fc153e687b85af915c8a9e11dd1c41bf26'
+    it('call #2: Setter.set_u32([42u32])', async function () {
+        const txHash = await callContract(
+            'set_u32',
+            nativeToScVal(42, { type: 'u32' })
         )
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
@@ -115,10 +239,12 @@ describe('call decoder from Horizon', () => {
         })
     })
 
-    it('call #3: Setter.set_i32([-42u32])', async () => {
-        const entry = await extractEntry(
-            '9f5c0ce5c23f3e9508f14c6800bbdf0f5e598e7a78c38205df5dd9541483d385'
+    it('call #3: Setter.set_i32([-42u32])', async function () {
+        const txHash = await callContract(
+            'set_i32',
+            nativeToScVal(-42, { type: 'i32' })
         )
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
@@ -151,10 +277,12 @@ describe('call decoder from Horizon', () => {
         })
     })
 
-    it('call #4: Setter.set_u64([42u64])', async () => {
-        const entry = await extractEntry(
-            'abc11abf026f3cdfa76e1386f8ba38e84ec73f05dca9102d7aa620ff19f61478'
+    it('call #4: Setter.set_u64([42u64])', async function () {
+        const txHash = await callContract(
+            'set_u64',
+            nativeToScVal(42, { type: 'u64' })
         )
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
@@ -195,9 +323,11 @@ describe('call decoder from Horizon', () => {
     })
 
     it('call #5: Setter.set_i64([-42i64])', async () => {
-        const entry = await extractEntry(
-            '1cf04a4145677376837ff4d38587911bc571b6c98e35ca54b312344f68ae3025'
+        const txHash = await callContract(
+            'set_i64',
+            nativeToScVal(-42, { type: 'i64' })
         )
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
@@ -246,9 +376,11 @@ describe('call decoder from Horizon', () => {
     })
 
     it('call #6: Setter.set_u128([42u128])', async () => {
-        const entry = await extractEntry(
-            '63c135dcae01d93e556caaec4977c0d07d185f80cf4a9eed34d9334dafac623e'
+        const txHash = await callContract(
+            'set_u128',
+            nativeToScVal(42, { type: 'u128' })
         )
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
@@ -301,9 +433,11 @@ describe('call decoder from Horizon', () => {
     })
 
     it('call #7: Setter.set_i128([-42i128])', async () => {
-        const entry = await extractEntry(
-            '10a33ed40724c71f0ae78453fe50f6cbaa2e6a6ccb0b1968cdd99cd1fd186968'
+        const txHash = await callContract(
+            'set_i128',
+            nativeToScVal(-42, { type: 'i128' })
         )
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
@@ -360,9 +494,11 @@ describe('call decoder from Horizon', () => {
     })
 
     it('call #8: Setter.set_sym("hello")', async () => {
-        const entry = await extractEntry(
-            '651c29141ca83c57a4c6ebd3bc757f200a2f299ecab9a2cfc4e68facd28dde2c'
+        const txHash = await callContract(
+            'set_sym',
+            nativeToScVal('hello', { type: 'symbol' })
         )
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
@@ -423,9 +559,8 @@ describe('call decoder from Horizon', () => {
     })
 
     it('call #9: Setter.set_bytes(0xbeef)', async () => {
-        const entry = await extractEntry(
-            '3382c5568cc71f97adeed8511c6b69b39fcae68026e82a8219874d46e0c6c33c'
-        )
+        const txHash = await callContract('set_bytes', nativeToScVal(beef))
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
@@ -490,9 +625,8 @@ describe('call decoder from Horizon', () => {
     })
 
     it('call #10: Setter.set_bytes32(...)', async () => {
-        const entry = await extractEntry(
-            'edb69201f2b3cc15db7bf4cac5a96098bb0cc4448c3ff23965591aa9dce42c30'
-        )
+        const txHash = await callContract('set_bytes32', nativeToScVal(bytes32))
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
@@ -561,9 +695,11 @@ describe('call decoder from Horizon', () => {
     })
 
     it('call #11: Setter.set_vec([[1i32, -2i32, 3i32]])', async () => {
-        const entry = await extractEntry(
-            '0b3d09453c837e0b8957760a0e62a101ebc316423634fd3d5e736f4eb94d3b8e'
+        const txHash = await callContract(
+            'set_vec',
+            nativeToScVal([1, -2, 3], { type: 'i32' })
         )
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
@@ -636,9 +772,14 @@ describe('call decoder from Horizon', () => {
     })
 
     it('call #12: Setter.set_map([{2u32: 3i32, 4u32: 5i32}])', async () => {
-        const entry = await extractEntry(
-            'f46f345896bf7ddc0b60d17b2f79e08d92dc1965befe20dd5b196b0a0daf8658'
+        const txHash = await callContract(
+            'set_map',
+            nativeToScVal(
+                { '2': 3, '4': 5 },
+                { type: { '2': ['u32', 'i32'], '4': ['u32', 'i32'] } }
+            )
         )
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
@@ -715,9 +856,15 @@ describe('call decoder from Horizon', () => {
     })
 
     it('call #13: Setter.set_address([GDIY...R4W4]', async () => {
-        const entry = await extractEntry(
-            '24b513b57777b3533c0dcb15929eb35f22005d850058782325e6cd4db0349dc9'
+        const txHash = await callContract(
+            'set_address',
+            nativeToScVal(
+                Address.fromString(
+                    'GDIY6AQQ75WMD4W46EYB7O6UYMHOCGQHLAQGQTKHDX4J2DYQCHVCR4W4'
+                )
+            )
         )
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
@@ -810,9 +957,14 @@ describe('call decoder from Horizon', () => {
     })
 
     it('call #14: Setter.set_struct([{"a"sym: 1u32, "b"sym: -100i128}])', async () => {
-        const entry = await extractEntry(
-            '1cc5a558453b12096b4cfdd238bd764602457b07fab5085156b0626a56220e99'
+        const txHash = await callContract(
+            'set_struct',
+            nativeToScVal(
+                { a: 1, b: -100n },
+                { type: { a: ['symbol', 'u32'], b: ['symbol', 'i128'] } }
+            )
         )
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
@@ -905,9 +1057,14 @@ describe('call decoder from Horizon', () => {
     })
 
     it('call #15: Setter.set_enum([["B"sym, -200i128]])', async () => {
-        const entry = await extractEntry(
-            'd44814c5d57d547fe80ca6ce476cd39359d7cbf0941d299466be5dc7d9993def'
+        const txHash = await callContract(
+            'set_enum',
+            xdr.ScVal.scvVec([
+                xdr.ScVal.scvSymbol('B'),
+                nativeToScVal(-200, { type: 'i128' }),
+            ])
         )
+        const entry = await extractEntry(txHash)
         assert.isDefined(entry.timestamp)
         assert.isDefined(entry.height)
         assert.equal(entry.contractId, CONTRACT_ID)
