@@ -113,6 +113,7 @@ export async function fetch(args: any) {
     // initiate the streaming loop
     const closeHandler = server
         .operations()
+        .includeFailed(true)
         .cursor(startCursor)
         .stream({
             onmessage: async (op: any) => {
@@ -120,18 +121,16 @@ export async function fetch(args: any) {
                     return
                 }
                 op = op as Horizon.ServerApi.InvokeHostFunctionOperationRecord
-                if (op.transaction_successful) {
-                    const callEntryMaybe = await extractContractCall(
-                        op,
-                        (id) => contractId === id,
-                        typemapJson
-                    )
-                    if (callEntryMaybe.isJust()) {
-                        const entry = callEntryMaybe.value
-                        console.log(`+ save: ${entry.height}`)
-                        saveContractCallEntry(args.home, entry)
-                    }
-                } // TODO(#61): else: shall we also store reverted transactions?
+                const callEntryMaybe = await extractContractCall(
+                    op,
+                    (id) => contractId === id,
+                    typemapJson
+                )
+                if (callEntryMaybe.isJust()) {
+                    const entry = callEntryMaybe.value
+                    console.log(`+ save: ${entry.height}`)
+                    saveContractCallEntry(args.home, entry)
+                }
 
                 nEvents++
                 if (nEvents % HEIGHT_FETCHING_PERIOD === 0) {
