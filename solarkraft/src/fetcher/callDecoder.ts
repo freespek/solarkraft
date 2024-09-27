@@ -10,7 +10,7 @@
  * @license [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
  */
 
-import sdk, { Address } from '@stellar/stellar-sdk'
+import sdk, { Address, Horizon } from '@stellar/stellar-sdk'
 import {
     ContractCallEntry,
     emptyContractStorage,
@@ -26,10 +26,11 @@ import { Maybe, just, none } from '@sweet-monads/maybe'
  * @param matcher a quick matcher over the contractId to avoid expensive deserialization
  */
 export async function extractContractCall(
-    op: any,
+    op: Horizon.ServerApi.InvokeHostFunctionOperationRecord,
     matcher: (contractId: string) => boolean,
     typemapJson: any = {}
 ): Promise<Maybe<ContractCallEntry>> {
+    // `op.function` can be one of HostFunctionTypeHostFunctionTypeInvokeContract, HostFunctionTypeHostFunctionTypeCreateContract, or HostFunctionTypeHostFunctionTypeUploadContractWasm.
     // https://developers.stellar.org/network/horizon/api-reference/resources/operations/object/invoke-host-function
     if (op.function !== 'HostFunctionTypeHostFunctionTypeInvokeContract') {
         return none()

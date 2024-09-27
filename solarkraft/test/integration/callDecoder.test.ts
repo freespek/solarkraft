@@ -59,7 +59,10 @@ async function extractEntry(txHash: string): Promise<ContractCallEntry> {
     const operations = await server.operations().forTransaction(txHash).call()
     let resultingEntry: Maybe<ContractCallEntry> = none<ContractCallEntry>()
     for (const op of operations.records) {
-        const entry = await extractContractCall(op, (id) => id === CONTRACT_ID)
+        const entry = await extractContractCall(
+            op as Horizon.ServerApi.InvokeHostFunctionOperationRecord,
+            (id) => id === CONTRACT_ID
+        )
         if (entry.isJust()) {
             assert(
                 resultingEntry.isNone(),

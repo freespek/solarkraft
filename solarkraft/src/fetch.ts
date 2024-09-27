@@ -115,10 +115,14 @@ export async function fetch(args: any) {
         .operations()
         .cursor(startCursor)
         .stream({
-            onmessage: async (msg: any) => {
-                if (msg.transaction_successful) {
+            onmessage: async (op: any) => {
+                if (op.type !== 'invoke_host_function') {
+                    return
+                }
+                op = op as Horizon.ServerApi.InvokeHostFunctionOperationRecord
+                if (op.transaction_successful) {
                     const callEntryMaybe = await extractContractCall(
-                        msg,
+                        op,
                         (id) => contractId === id,
                         typemapJson
                     )
@@ -133,7 +137,7 @@ export async function fetch(args: any) {
                 if (nEvents % HEIGHT_FETCHING_PERIOD === 0) {
                     // Fetch the height of the current message and persist it for the future runs.
                     // Note that messages may come slightly out of order, so the heights are not precise.
-                    const tx = await msg.transaction()
+                    const tx = await op.transaction()
                     lastHeight = Math.max(lastHeight, tx.ledger_attr)
                     console.log(`= at: ${lastHeight}`)
                     // Load and save the state. Other fetchers may work concurrently,
