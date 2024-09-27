@@ -35,7 +35,7 @@ const SOROBAN_URL = 'https://soroban-testnet.stellar.org:443'
 
 // hard-coded WASM code hash of the setter contract on the ledger (deployed via setter-populate.sh)
 const WASM_HASH =
-    '52d442625530fd17e86f93318ee1963b53fa99c5a9705deef78ced3cb7e560d9'
+    '5218397dd64e5b5c2eead7e03f15a3ddb25c759fdf068d6f7dc8bffc8a033711'
 
 // contract ID of the deployed setter contract (will be set up by `before()`)
 let CONTRACT_ID: string
@@ -1156,6 +1156,104 @@ describe('call decoder from Horizon', function () {
                 },
                 temporary: { MY_ENUM: ['B', -200n] },
                 persistent: { MY_ENUM: ['B', -200n] },
+            },
+        })
+    })
+
+    it('call #16: Setter.remove_bool()', async () => {
+        const txHash = await callContract('remove_bool')
+        const entry = await extractEntry(txHash)
+        assert.isDefined(entry.timestamp)
+        assert.isDefined(entry.height)
+        assert.equal(entry.contractId, CONTRACT_ID)
+        assert.isDefined(entry.txHash)
+        assert.equal(entry.method, 'remove_bool')
+        assert.deepEqual(entry.methodArgs, [])
+        assert.deepEqual(entry.returnValue, true)
+        assert.deepEqual(entry.oldFields.toArray(), [
+            [
+                'MY_ADDR',
+                'GDIY6AQQ75WMD4W46EYB7O6UYMHOCGQHLAQGQTKHDX4J2DYQCHVCR4W4',
+            ],
+            ['MY_BOOL', true],
+            ['MY_BTES32', bytes32],
+            ['MY_BYTES', beef],
+            ['MY_ENUM', ['B', -200n]],
+            ['MY_I128', -42n],
+            ['MY_I32', -42],
+            ['MY_I64', -42n],
+            ['MY_MAP', { '2': 3, '4': 5 }],
+            ['MY_STRUCT', { a: 1, b: -100n }],
+            ['MY_SYM', 'hello'],
+            ['MY_U128', 42n],
+            ['MY_U32', 42],
+            ['MY_U64', 42n],
+            ['MY_VEC', [1, -2, 3]],
+        ])
+        assert.deepEqual(entry.fields.toArray(), [
+            [
+                'MY_ADDR',
+                'GDIY6AQQ75WMD4W46EYB7O6UYMHOCGQHLAQGQTKHDX4J2DYQCHVCR4W4',
+            ],
+            ['MY_BTES32', bytes32],
+            ['MY_BYTES', beef],
+            ['MY_ENUM', ['B', -200n]],
+            ['MY_I128', -42n],
+            ['MY_I32', -42],
+            ['MY_I64', -42n],
+            ['MY_MAP', { '2': 3, '4': 5 }],
+            ['MY_STRUCT', { a: 1, b: -100n }],
+            ['MY_SYM', 'hello'],
+            ['MY_U128', 42n],
+            ['MY_U32', 42],
+            ['MY_U64', 42n],
+            ['MY_VEC', [1, -2, 3]],
+        ])
+        assert.deepEqual(entry.oldStorage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_ADDR:
+                        'GDIY6AQQ75WMD4W46EYB7O6UYMHOCGQHLAQGQTKHDX4J2DYQCHVCR4W4',
+                    MY_BOOL: true,
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_ENUM: ['B', -200n],
+                    MY_STRUCT: { a: 1, b: -100n },
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                    MY_BTES32: bytes32,
+                    MY_VEC: [1, -2, 3],
+                    MY_MAP: { '2': 3, '4': 5 },
+                },
+                temporary: { MY_BOOL: true },
+                persistent: { MY_BOOL: true },
+            },
+        })
+        assert.deepEqual(entry.storage.toJS(), {
+            [CONTRACT_ID]: {
+                instance: {
+                    MY_ADDR:
+                        'GDIY6AQQ75WMD4W46EYB7O6UYMHOCGQHLAQGQTKHDX4J2DYQCHVCR4W4',
+                    MY_U32: 42,
+                    MY_I32: -42,
+                    MY_U64: 42n,
+                    MY_I64: -42n,
+                    MY_U128: 42n,
+                    MY_I128: -42n,
+                    MY_ENUM: ['B', -200n],
+                    MY_STRUCT: { a: 1, b: -100n },
+                    MY_SYM: 'hello',
+                    MY_BYTES: beef,
+                    MY_BTES32: bytes32,
+                    MY_VEC: [1, -2, 3],
+                    MY_MAP: { '2': 3, '4': 5 },
+                },
+                temporary: {},
+                persistent: {},
             },
         })
     })

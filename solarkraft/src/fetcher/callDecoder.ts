@@ -149,10 +149,8 @@ function applyLedgerEntryChange(
             return [contractData(change.state().data(), oldStorage), storage]
 
         case 'ledgerEntryRemoved':
-            // TODO(#122): is it ever triggered by a Soroban contract?
-            console.warn(
-                "Found 'ledgerEntryRemoved' LedgerEntryChange: not implemented"
-            )
+            // this is triggered if a persistent or temporary entry is removed via env.storage()._().remove(key)
+            // it will be present in `oldStorage` via `ledgerEntryState`, and should not be added to `storage`; thus this is just a no-op
             return [oldStorage, storage]
     }
 }
