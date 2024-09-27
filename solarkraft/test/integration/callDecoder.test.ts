@@ -40,8 +40,9 @@ const WASM_HASH =
 // contract ID of the deployed setter contract (will be set up by `before()`)
 let CONTRACT_ID: string
 
-// a random keypair to sign transactions
-const sourceKeypair = Keypair.random()
+// random keypairs to sign transactions
+const alice = Keypair.random()
+const bob = Keypair.random()
 
 // 0xbeef
 const beef = Buffer.from([0xbe, 0xef])
@@ -84,7 +85,8 @@ async function extractEntry(txHash: string): Promise<ContractCallEntry> {
 // submit a transaction, return its transaction hash and the response
 async function submitTx(
     server: SorobanRpc.Server,
-    tx: Transaction
+    tx: Transaction,
+    keypair: Keypair
 ): Promise<
     [
         string,
@@ -98,7 +100,7 @@ async function submitTx(
     const preparedTransaction = await server.prepareTransaction(tx)
 
     // Sign the transaction with the source account's keypair
-    preparedTransaction.sign(sourceKeypair)
+    preparedTransaction.sign(keypair)
 
     // Submit the transaction
     const sendResponse = await server.sendTransaction(preparedTransaction)
@@ -138,7 +140,7 @@ async function callContract(
     const contract = new Contract(CONTRACT_ID)
 
     // build the transaction
-    const sourceAccount = await server.getAccount(sourceKeypair.publicKey())
+    const sourceAccount = await server.getAccount(alice.publicKey())
     const builtTransaction = new TransactionBuilder(sourceAccount, {
         fee: BASE_FEE,
         networkPassphrase: Networks.TESTNET,
@@ -159,31 +161,36 @@ describe('call decoder from Horizon', function () {
         // This may take a bit; increase the timeout
         this.timeout(50_000)
 
-        // Fund the keypair
-        console.log(`Funding the keypair ${sourceKeypair.publicKey()} ...`)
+        // Fund the keypairs
+        console.log(
+            `Funding the keypairs ${alice.publicKey()} and ${bob.publicKey()}...`
+        )
         const horizon = new Horizon.Server(HORIZON_URL)
-        await horizon.friendbot(sourceKeypair.publicKey()).call()
+        await horizon.friendbot(alice.publicKey()).call()
+        await horizon.friendbot(bob.publicKey()).call()
 
         // Redeploy a fresh copy of the setter contract WASM from CONTRACT_ID_TEMPLATE
         console.log(`Creating a contract from WASM code ${WASM_HASH} ...`)
         const soroban = new SorobanRpc.Server(SOROBAN_URL)
-        const sourceAccount = await soroban.getAccount(
-            sourceKeypair.publicKey()
-        )
+        const sourceAccount = await soroban.getAccount(alice.publicKey())
         const builtTransaction = new TransactionBuilder(sourceAccount, {
             fee: BASE_FEE,
             networkPassphrase: Networks.TESTNET,
         })
             .addOperation(
                 Operation.createCustomContract({
-                    address: Address.fromString(sourceKeypair.publicKey()),
+                    address: Address.fromString(alice.publicKey()),
                     wasmHash: Buffer.from(WASM_HASH, 'hex'),
                 })
             )
             .setTimeout(30) // tx is valid for 30 seconds
             .build()
 
-        const [txHash, response] = await submitTx(soroban, builtTransaction)
+        const [txHash, response] = await submitTx(
+            soroban,
+            builtTransaction,
+            alice
+        )
         CONTRACT_ID = Address.fromScAddress(
             response.resultMetaXdr.v3().sorobanMeta().returnValue().address()
         ).toString()
@@ -1308,5 +1315,52 @@ describe('call decoder from Horizon', function () {
                 persistent: {},
             },
         })
+    })
+
+    it('extracts failed transactions', async function () {
+        // submit 2 conflicting tx in parallel by different accounts to provoke a failed transaction
+
+        // Craft a conflicting transaction
+        const server = new SorobanRpc.Server(SOROBAN_URL)
+        const contract = new Contract(CONTRACT_ID)
+        const sourceAccount = await server.getAccount(bob.publicKey())
+        const builtTransaction = new TransactionBuilder(sourceAccount, {
+            fee: BASE_FEE,
+            networkPassphrase: Networks.TESTNET,
+        })
+            .addOperation(contract.call('set_bool_if_notset'))
+            .setTimeout(30) // tx is valid for 30 seconds
+            .build()
+
+        // submit one transaction by `alice` and one by `bob`
+        const txHashesAndResponses = await Promise.all([
+            callContract('set_bool_if_notset'), // call by `alice`
+            submitTx(server, builtTransaction, bob), // call by `bob`
+        ])
+
+        // partition into successful and failed txs
+        const [successfulTxs, failedTxs] = txHashesAndResponses.reduce(
+            ([success, fail], [txHash, response]) => {
+                if (response.status === 'SUCCESS') {
+                    success.push(txHash)
+                } else {
+                    fail.push(txHash)
+                }
+                return [success, fail]
+            },
+            [[], []]
+        )
+
+        // assert that we have one successful and one failed tx
+        assert.equal(successfulTxs.length, 1)
+        assert.equal(failedTxs.length, 1)
+        assert.notEqual(successfulTxs[0], failedTxs[0])
+
+        // extract entries and assert transaction success
+        const successfulEntry = await extractEntry(successfulTxs[0])
+        const failedEntry = await extractEntry(failedTxs[0])
+
+        assert.isTrue(successfulEntry.transaction_successful)
+        assert.isFalse(failedEntry.transaction_successful)
     })
 })
