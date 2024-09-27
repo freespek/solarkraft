@@ -20,6 +20,8 @@ NET=testnet
 ACCOUNT=alice
 soroban keys address $ACCOUNT || (echo "add the account $ACCOUNT via soroban keys generate"; exit 1)
 
+ACCOUNT2=bob
+soroban keys address $ACCOUNT2 || (echo "add the account $ACCOUNT2 via soroban keys generate"; exit 1)
 
 set -x
 
@@ -59,3 +61,7 @@ soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET 
       -- set_enum --v '{ "B": "-200" }'
 soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET \
       -- remove_bool
+
+# we can provoke a failed transaction by submitting 2 transactions in parallel from different accounts
+soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET -- set_bool_if_notset &
+soroban contract invoke --id $(cat .setter.id) --source $ACCOUNT2 --network $NET -- set_bool_if_notset
