@@ -82,6 +82,10 @@ export interface ContractCallEntry {
      */
     txHash: string
     /**
+     * Whether the transaction was successful or failed.
+     */
+    transaction_successful: boolean
+    /**
      * The address of the contract being called.
      */
     contractId: string
@@ -213,13 +217,7 @@ export function loadContractCallEntry(filename: string): ContractCallEntry {
     const contents = readFileSync(filename)
     const loaded = JSONbig.parse(contents)
     return {
-        timestamp: loaded.timestamp as number,
-        height: loaded.height as number,
-        contractId: loaded.contractId as string,
-        txHash: loaded.txHash as string,
-        method: loaded.method as string,
-        methodArgs: loaded.methodArgs as any[],
-        returnValue: loaded.returnValue,
+        ...loaded,
         fields: OrderedMap<string, any>(loaded.fields),
         oldFields: OrderedMap<string, any>(loaded.oldFields),
         oldStorage: Immutable.fromJS(loaded.oldStorage),
