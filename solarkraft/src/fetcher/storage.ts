@@ -84,7 +84,7 @@ export interface ContractCallEntry {
     /**
      * Whether the transaction was successful or failed.
      */
-    transaction_successful: boolean
+    txSuccess: boolean
     /**
      * The address of the contract being called.
      */

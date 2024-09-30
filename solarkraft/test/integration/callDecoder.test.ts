@@ -1360,7 +1360,7 @@ describe('call decoder from Horizon', function () {
         const successfulEntry = await extractEntry(successfulTxs[0])
         const failedEntry = await extractEntry(failedTxs[0])
 
-        assert.isTrue(successfulEntry.transaction_successful)
-        assert.isFalse(failedEntry.transaction_successful)
+        assert.isTrue(successfulEntry.txSuccess)
+        assert.isFalse(failedEntry.txSuccess)
     })
 })

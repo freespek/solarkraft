@@ -51,7 +51,6 @@ export async function extractContractCall(
     // `created_at` and `env.ledger().timestamp()` have seconds-precision. We divide by 1000 here since `Date` internally
     // represents the timestamp as milliseconds.
     const timestamp = new Date(op.created_at).getTime() / 1000
-    const transaction_successful = op.transaction_successful
     const txHash = op.transaction_hash
     // decode the call parameters from XDR to native JS values
     const params = op.parameters.map((p) => {
@@ -122,7 +121,7 @@ export async function extractContractCall(
         height,
         timestamp,
         txHash,
-        transaction_successful,
+        txSuccess: op.transaction_successful,
         contractId,
         method,
         methodArgs,
