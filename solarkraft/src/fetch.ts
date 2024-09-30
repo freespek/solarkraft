@@ -113,27 +113,30 @@ export async function fetch(args: any) {
     // initiate the streaming loop
     const closeHandler = server
         .operations()
+        .includeFailed(true)
         .cursor(startCursor)
         .stream({
-            onmessage: async (msg: any) => {
-                if (msg.transaction_successful) {
-                    const callEntryMaybe = await extractContractCall(
-                        msg,
-                        (id) => contractId === id,
-                        typemapJson
-                    )
-                    if (callEntryMaybe.isJust()) {
-                        const entry = callEntryMaybe.value
-                        console.log(`+ save: ${entry.height}`)
-                        saveContractCallEntry(args.home, entry)
-                    }
-                } // TODO(#61): else: shall we also store reverted transactions?
+            onmessage: async (op: any) => {
+                if (op.type !== 'invoke_host_function') {
+                    return
+                }
+                op = op as Horizon.ServerApi.InvokeHostFunctionOperationRecord
+                const callEntryMaybe = await extractContractCall(
+                    op,
+                    (id) => contractId === id,
+                    typemapJson
+                )
+                if (callEntryMaybe.isJust()) {
+                    const entry = callEntryMaybe.value
+                    console.log(`+ save: ${entry.height}`)
+                    saveContractCallEntry(args.home, entry)
+                }
 
                 nEvents++
                 if (nEvents % HEIGHT_FETCHING_PERIOD === 0) {
                     // Fetch the height of the current message and persist it for the future runs.
                     // Note that messages may come slightly out of order, so the heights are not precise.
-                    const tx = await msg.transaction()
+                    const tx = await op.transaction()
                     lastHeight = Math.max(lastHeight, tx.ledger_attr)
                     console.log(`= at: ${lastHeight}`)
                     // Load and save the state. Other fetchers may work concurrently,

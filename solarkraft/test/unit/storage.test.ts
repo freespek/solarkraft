@@ -30,6 +30,7 @@ describe('storage tests', () => {
             timestamp: 1716393856,
             height: 1000,
             txHash: TX_HASH,
+            txSuccess: true,
             contractId: CONTRACT_ID,
             method: 'set_i32',
             methodArgs: [42],

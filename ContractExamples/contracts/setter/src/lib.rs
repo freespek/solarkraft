@@ -120,6 +120,13 @@ impl SetterContract {
         old
     }
 
+    pub fn set_bool_if_notset(env: Env) {
+        if env.storage().instance().has(&MY_BOOL) {
+            panic!("already set");
+        }
+        env.storage().instance().set(&MY_BOOL, &true);
+    }
+
     pub fn set_u32(env: Env, v: u32) -> u32 {
         let old: u32 = env.storage().instance().get(&MY_U32).unwrap_or(0);
         env.storage().instance().set(&MY_U32, &v);
