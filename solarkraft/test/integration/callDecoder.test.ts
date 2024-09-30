@@ -40,7 +40,7 @@ const WASM_HASH =
 // contract ID of the deployed setter contract (will be set up by `before()`)
 let CONTRACT_ID: string
 
-// random keypairs to sign transactions
+// 2 fresh keypairs to sign transactions (we need two accounts to produce concurrent transactions)
 const alice = Keypair.random()
 const bob = Keypair.random()
 
