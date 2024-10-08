@@ -142,7 +142,7 @@ export interface ContractCallEntry {
      * deletes some fields from the storage. Also, fields may be cleared from `storage`
      * when the storage goes over TTL.
      */
-    storage: FieldsMap
+    storage: MultiContractStorage
 
     /**
      * Flag which tracks whether this particular entry has already been verified, and, if it has been, the verification result.
