@@ -239,7 +239,7 @@ export function loadContractCallEntry(
     )
     if (entryPaths.length === 0) {
         return left(
-            `No entries found for tx hash ${txHash}. Run 'solarkraft fetch' first.`
+            `No entries found for tx hash ${txHash} in ${storagePath(solarkraftHome)}. Run 'solarkraft fetch' first.`
         )
     }
     if (entryPaths.length > 1) {
