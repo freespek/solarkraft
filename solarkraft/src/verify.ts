@@ -25,7 +25,7 @@ import {
 } from './fetcher/storage.js'
 import { instrumentMonitor } from './verifier/instrument.js'
 import { invokeAlert } from './verifier/invokeAlert.js'
-import { Result } from './types.js'
+import { Result } from './globals.js'
 import path from 'node:path'
 
 type ApalacheResult = Result<void>

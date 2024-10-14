@@ -22,7 +22,7 @@ import {
 import { globSync } from 'glob'
 
 import { left, right } from '@sweet-monads/either'
-import { Result } from '../types.js'
+import { Result } from '../globals.js'
 
 const JSONbig = JSONbigint({ useNativeBigInt: true })
 
