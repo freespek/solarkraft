@@ -142,7 +142,7 @@ export interface ContractCallEntry {
      * deletes some fields from the storage. Also, fields may be cleared from `storage`
      * when the storage goes over TTL.
      */
-    storage: FieldsMap
+    storage: MultiContractStorage
 
     /**
      * Flag which tracks whether this particular entry has already been verified, and, if it has been, the verification result.
@@ -207,6 +207,18 @@ export function saveContractCallEntry(home: string, entry: ContractCallEntry) {
     return filename
 }
 
+function contractStorageFromJs(js: any): ContractStorage {
+    return {
+        instance: OrderedMap<string, any>(js.instance),
+        persistent: OrderedMap<string, any>(js.persistent),
+        temporary: OrderedMap<string, any>(js.temporary),
+    }
+}
+
+function storageFromJS(js: any): MultiContractStorage {
+    return Immutable.Seq(js).map(contractStorageFromJs).toOrderedMap()
+}
+
 /**
  * Load a contract call entry in the file storage.
  * @param root the storage root directory
@@ -220,8 +232,8 @@ export function loadContractCallEntry(filename: string): ContractCallEntry {
         ...loaded,
         fields: OrderedMap<string, any>(loaded.fields),
         oldFields: OrderedMap<string, any>(loaded.oldFields),
-        oldStorage: Immutable.fromJS(loaded.oldStorage),
-        storage: Immutable.fromJS(loaded.storage),
+        oldStorage: storageFromJS(loaded.oldStorage),
+        storage: storageFromJS(loaded.storage),
         verificationStatus:
             loaded.verificationStatus ?? VerificationStatus.Unknown,
         typeHints: loaded.typeHints ?? {},
