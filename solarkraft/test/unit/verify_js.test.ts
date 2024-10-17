@@ -12,6 +12,7 @@ import {
     every,
     evaluateCondition,
     Env,
+    tokenReceived,
     tokenTransferred,
 } from '../../src/verify_js.js'
 
@@ -63,21 +64,85 @@ describe('JavaScript/TypeScript monitor', () => {
     })
 
     /* eslint-disable @typescript-eslint/no-unused-vars */
+    describe('tokenReceived', () => {
+        it('returns true if the token amount has been received correctly', () => {
+            const env = {
+                oldStorage: (_tokenAddr: string) => ({
+                    persistent: () =>
+                        Map([[`Balance,toAddress`, { amount: 50 }]]),
+                }),
+                storage: (_tokenAddr: string) => ({
+                    persistent: () =>
+                        Map([[`Balance,toAddress`, { amount: 60 }]]),
+                }),
+            } as unknown as Env
+
+            const condition = tokenReceived(env, 'token', 'toAddress', 10)
+            assert.isTrue(evaluateCondition(condition))
+        })
+
+        it('returns false if the token amount has not been received correctly', () => {
+            const env = {
+                oldStorage: (_token: string) => ({
+                    persistent: () =>
+                        Map([[`Balance,toAddress`, { amount: 50 }]]),
+                }),
+                storage: (_token: string) => ({
+                    persistent: () =>
+                        Map([[`Balance,toAddress`, { amount: 55 }]]),
+                }),
+            } as unknown as Env
+
+            const condition = tokenReceived(env, 'token', 'toAddress', 10)
+            assert.isFalse(evaluateCondition(condition))
+        })
+
+        it('handles cases where the recipient had no prior balance', () => {
+            const env = {
+                oldStorage: (_token: string) => ({
+                    persistent: () => Map([]),
+                }),
+                storage: (_token: string) => ({
+                    persistent: () =>
+                        Map([[`Balance,toAddress`, { amount: 10 }]]),
+                }),
+            } as unknown as Env
+
+            const condition = tokenReceived(env, 'token', 'toAddress', 10)
+            assert.isTrue(evaluateCondition(condition))
+        })
+
+        it('returns false if the recipient had no prior balance and received incorrect amount', () => {
+            const env = {
+                oldStorage: (_token: string) => ({
+                    persistent: () => Map([]),
+                }),
+                storage: (_token: string) => ({
+                    persistent: () => Map([[`Balance,toAddress`, 5]]),
+                }),
+            } as unknown as Env
+
+            const condition = tokenReceived(env, 'token', 'toAddress', 10)
+            assert.isFalse(evaluateCondition(condition))
+        })
+    })
+
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     describe('tokenTransferred', () => {
         it('returns true if the token amount has been transferred correctly', () => {
             const env = {
                 oldStorage: (_tokenAddr: string) => ({
                     persistent: () =>
                         Map([
-                            [`Balance,fromAddress`, 100],
-                            [`Balance,toAddress`, 50],
+                            [`Balance,fromAddress`, { amount: 100 }],
+                            [`Balance,toAddress`, { amount: 50 }],
                         ]),
                 }),
                 storage: (_tokenAddr: string) => ({
                     persistent: () =>
                         Map([
-                            [`Balance,fromAddress`, 90],
-                            [`Balance,toAddress`, 60],
+                            [`Balance,fromAddress`, { amount: 90 }],
+                            [`Balance,toAddress`, { amount: 60 }],
                         ]),
                 }),
             } as unknown as Env
@@ -97,15 +162,15 @@ describe('JavaScript/TypeScript monitor', () => {
                 oldStorage: (_token: string) => ({
                     persistent: () =>
                         Map([
-                            [`Balance,fromAddress`, 100],
-                            [`Balance,toAddress`, 50],
+                            [`Balance,fromAddress`, { amount: 100 }],
+                            [`Balance,toAddress`, { amount: 50 }],
                         ]),
                 }),
                 storage: (_token: string) => ({
                     persistent: () =>
                         Map([
-                            [`Balance,fromAddress`, 95],
-                            [`Balance,toAddress`, 55],
+                            [`Balance,fromAddress`, { amount: 95 }],
+                            [`Balance,toAddress`, { amount: 55 }],
                         ]),
                 }),
             } as unknown as Env
@@ -123,13 +188,14 @@ describe('JavaScript/TypeScript monitor', () => {
         it('handles cases where the recipient had no prior balance', () => {
             const env = {
                 oldStorage: (_token: string) => ({
-                    persistent: () => Map([[`Balance,fromAddress`, 100]]),
+                    persistent: () =>
+                        Map([[`Balance,fromAddress`, { amount: 100 }]]),
                 }),
                 storage: (_token: string) => ({
                     persistent: () =>
                         Map([
-                            [`Balance,fromAddress`, 90],
-                            [`Balance,toAddress`, 10],
+                            [`Balance,fromAddress`, { amount: 90 }],
+                            [`Balance,toAddress`, { amount: 10 }],
                         ]),
                 }),
             } as unknown as Env
@@ -147,13 +213,14 @@ describe('JavaScript/TypeScript monitor', () => {
         it('returns false if the sender had no prior balance', () => {
             const env = {
                 oldStorage: (_token: string) => ({
-                    persistent: () => Map([[`Balance,toAddress`, 50]]),
+                    persistent: () =>
+                        Map([[`Balance,toAddress`, { amount: 50 }]]),
                 }),
                 storage: (_token: string) => ({
                     persistent: () =>
                         Map([
-                            [`Balance,fromAddress`, -10],
-                            [`Balance,toAddress`, 60],
+                            [`Balance,fromAddress`, { amount: -10 }],
+                            [`Balance,toAddress`, { amount: 60 }],
                         ]),
                 }),
             } as unknown as Env
