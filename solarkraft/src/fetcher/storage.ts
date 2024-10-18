@@ -11,7 +11,7 @@
 
 import JSONbigint from 'json-bigint'
 import Immutable, { OrderedMap } from 'immutable'
-import { join } from 'node:path/posix'
+import { join } from 'node:path'
 import {
     existsSync,
     mkdirSync,
@@ -19,6 +19,10 @@ import {
     readdirSync,
     writeFileSync,
 } from 'node:fs'
+import { globSync } from 'glob'
+
+import { left, right } from '@sweet-monads/either'
+import { Result } from '../globals.js'
 
 const JSONbig = JSONbigint({ useNativeBigInt: true })
 
@@ -221,14 +225,34 @@ function storageFromJS(js: any): MultiContractStorage {
 
 /**
  * Load a contract call entry in the file storage.
- * @param root the storage root directory
- * @param entry a call entry
+ * @param solarkraftHome the .solarkraft directory
+ * @param txHash the txHash of the call entry
  * @returns the loaded call entry
  */
-export function loadContractCallEntry(filename: string): ContractCallEntry {
-    const contents = readFileSync(filename)
+export function loadContractCallEntry(
+    solarkraftHome: string,
+    txHash: string
+): Result<ContractCallEntry> {
+    // Resolve fetcher entry in storage from txHash
+    const entryPaths = globSync(
+        join(storagePath(solarkraftHome), '**', `entry-${txHash}.json`)
+    )
+    if (entryPaths.length === 0) {
+        return left(
+            `No entries found for tx hash ${txHash} in ${storagePath(solarkraftHome)}. Run 'solarkraft fetch' first.`
+        )
+    }
+    if (entryPaths.length > 1) {
+        return left(
+            `Too many entries (${entryPaths.length}) found for tx hash ${txHash}.`
+        )
+    }
+    const entryPath = entryPaths[0]
+
+    // Read the state from fetcher output
+    const contents = readFileSync(entryPath)
     const loaded = JSONbig.parse(contents)
-    return {
+    return right({
         ...loaded,
         fields: OrderedMap<string, any>(loaded.fields),
         oldFields: OrderedMap<string, any>(loaded.oldFields),
@@ -237,7 +261,7 @@ export function loadContractCallEntry(filename: string): ContractCallEntry {
         verificationStatus:
             loaded.verificationStatus ?? VerificationStatus.Unknown,
         typeHints: loaded.typeHints ?? {},
-    }
+    })
 }
 
 /**

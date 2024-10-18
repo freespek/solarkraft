@@ -22,10 +22,9 @@ const TX_HASH =
     '9fb12935fbadcd28aa220d076f11be631590d22c60977a53997a746898322ca3'
 const CONTRACT_ID = 'CCQURSVQRCMNZPLNYA4AMP2JUODZ5QOLG5XCLQWEJAEE3NBLR5ZWZ5KX'
 
-describe('storage tests', () => {
-    function storeEntry() {
-        const root = join(tmpdir(), 'solarkraft-storage-')
-        mkdtempSync(root)
+describe('Solarkraft storage', () => {
+    function storeEntry(): [string, string] {
+        const root = mkdtempSync(join(tmpdir(), 'solarkraft-storage-'))
         const filename = saveContractCallEntry(root, {
             timestamp: 1716393856,
             height: 1000,
@@ -74,7 +73,7 @@ describe('storage tests', () => {
         return [root, filename]
     }
 
-    it('store entry', async () => {
+    it('store entry', () => {
         const [root, filename] = storeEntry()
 
         assert.equal(
@@ -88,9 +87,9 @@ describe('storage tests', () => {
         )
     })
 
-    it('load entry', async () => {
-        const filename = storeEntry()[1]
-        const entry = loadContractCallEntry(filename)
+    it('load entry', () => {
+        const [root] = storeEntry()
+        const entry = loadContractCallEntry(root, TX_HASH).unwrap()
         assert.equal(entry.timestamp, 1716393856)
         assert.equal(entry.height, 1000)
         assert.equal(entry.txHash, TX_HASH)

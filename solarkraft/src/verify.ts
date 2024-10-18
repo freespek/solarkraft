@@ -13,23 +13,21 @@
 import { spawnSync } from 'child_process'
 import { rmSync } from 'fs'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import path from 'node:path'
 
-import { globSync } from 'glob'
 import { temporaryFile } from 'tempy'
-import { Either, left, right, mergeInOne } from '@sweet-monads/either'
+import { left, right, mergeInOne } from '@sweet-monads/either'
 import { Keypair, Networks } from '@stellar/stellar-sdk'
 
 import {
     loadContractCallEntry,
     saveContractCallEntry,
-    storagePath,
     VerificationStatus,
 } from './fetcher/storage.js'
 import { instrumentMonitor } from './verifier/instrument.js'
 import { invokeAlert } from './verifier/invokeAlert.js'
+import { Result } from './globals.js'
+import path from 'node:path'
 
-type Result<T> = Either<string, T>
 type ApalacheResult = Result<void>
 
 // Looks for the Apalache path under $APALACHE_HOME. If undefined, uses /opt/apalache
@@ -169,31 +167,24 @@ export function verify(args: any) {
             return
         }
     }
-
-    // Resolve fetcher entry in storage from txHash
-    const entryPaths = globSync(
-        path.join(storagePath(args.home), '**', `entry-${args.txHash}.json`)
-    )
-    if (entryPaths.length === 0) {
-        console.error(
-            `No entries found for tx hash ${args.txHash}. Run 'solarkraft fetch' first.`
+    if (!existsSync(args.home)) {
+        console.log(
+            `The solarkraft home directory ${args.home} does not exist.`
         )
         console.log('[Error]')
         return
     }
-    if (entryPaths.length > 1) {
-        console.error(
-            `Too many entries (${entryPaths.length}) found for tx hash ${args.txHash}.`
-        )
-        console.log('[Error]')
-        return
-    }
-    const entryPath = entryPaths[0]
 
     // Read the state from fetcher output
-    const contractCall = loadContractCallEntry(entryPath)
+    const contractCallResult = loadContractCallEntry(args.home, args.txHash)
+    if (contractCallResult.isLeft()) {
+        console.log(contractCallResult.value)
+        console.log('[Error]')
+        return
+    }
 
     // Check all monitors
+    const contractCall = contractCallResult.value
     const resultsPerMonitor: Result<ApalacheResult>[] = args.monitor.map(
         (monitorPath: string) =>
             getApalacheJsonIr(monitorPath)

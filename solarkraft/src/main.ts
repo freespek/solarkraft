@@ -10,8 +10,7 @@ import { version } from './version.js'
 import { fetch } from './fetch.js'
 import { verify } from './verify.js'
 import { list } from './list.js'
-import { join } from 'node:path'
-import { homedir } from 'node:os'
+import { SOLARKRAFT_DEFAULT_HOME } from './globals.js'
 
 // The default options present in every command
 const defaultOpts = (yargs: any) =>
@@ -24,7 +23,7 @@ const defaultOpts = (yargs: any) =>
         .option('home', {
             desc: 'Solarkraft home directory (or project directory)',
             type: 'string',
-            default: join(homedir(), '.solarkraft'),
+            default: SOLARKRAFT_DEFAULT_HOME,
         })
 
 // fetch: transaction extractor
