@@ -24,7 +24,7 @@ import { globSync } from 'glob'
 import { left, right } from '@sweet-monads/either'
 import { Result } from '../globals.js'
 
-const JSONbig = JSONbigint({ useNativeBigInt: true })
+const JSONbig = JSONbigint({ useNativeBigInt: true, alwaysParseAsBig: true })
 
 /**
  * Ordered mapping from field names to their native values (JS),

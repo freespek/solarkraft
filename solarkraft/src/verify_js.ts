@@ -171,14 +171,14 @@ export function tokenReceived(
     env: Env,
     token: string,
     to: string,
-    amount: number
+    amount: bigint
 ): Condition {
     const oldTokenStorage = env.oldStorage(token).persistent()
     const tokenStorage = env.storage(token).persistent()
 
     return (
         tokenStorage.get(`Balance,${to}`).amount ==
-        (oldTokenStorage.get(`Balance,${to}`)?.amount ?? 0) + amount
+        (oldTokenStorage.get(`Balance,${to}`)?.amount ?? 0n) + amount
     )
 }
 
@@ -197,7 +197,7 @@ export function tokenTransferred(
     token: string,
     from: string,
     to: string,
-    amount: number
+    amount: bigint
 ): Condition {
     const oldTokenStorage = env.oldStorage(token).persistent()
     const tokenStorage = env.storage(token).persistent()
@@ -205,7 +205,7 @@ export function tokenTransferred(
         tokenStorage.get(`Balance,${from}`).amount ==
             oldTokenStorage.get(`Balance,${from}`)?.amount - amount,
         tokenStorage.get(`Balance,${to}`).amount ==
-            (oldTokenStorage.get(`Balance,${to}`)?.amount ?? 0) + amount
+            (oldTokenStorage.get(`Balance,${to}`)?.amount ?? 0n) + amount
     )
 }
 

@@ -69,15 +69,15 @@ describe('JavaScript/TypeScript monitor', () => {
             const env = {
                 oldStorage: (_tokenAddr: string) => ({
                     persistent: () =>
-                        Map([[`Balance,toAddress`, { amount: 50 }]]),
+                        Map([[`Balance,toAddress`, { amount: 50n }]]),
                 }),
                 storage: (_tokenAddr: string) => ({
                     persistent: () =>
-                        Map([[`Balance,toAddress`, { amount: 60 }]]),
+                        Map([[`Balance,toAddress`, { amount: 60n }]]),
                 }),
             } as unknown as Env
 
-            const condition = tokenReceived(env, 'token', 'toAddress', 10)
+            const condition = tokenReceived(env, 'token', 'toAddress', 10n)
             assert.isTrue(evaluateCondition(condition))
         })
 
@@ -85,15 +85,15 @@ describe('JavaScript/TypeScript monitor', () => {
             const env = {
                 oldStorage: (_token: string) => ({
                     persistent: () =>
-                        Map([[`Balance,toAddress`, { amount: 50 }]]),
+                        Map([[`Balance,toAddress`, { amount: 50n }]]),
                 }),
                 storage: (_token: string) => ({
                     persistent: () =>
-                        Map([[`Balance,toAddress`, { amount: 55 }]]),
+                        Map([[`Balance,toAddress`, { amount: 55n }]]),
                 }),
             } as unknown as Env
 
-            const condition = tokenReceived(env, 'token', 'toAddress', 10)
+            const condition = tokenReceived(env, 'token', 'toAddress', 10n)
             assert.isFalse(evaluateCondition(condition))
         })
 
@@ -104,11 +104,11 @@ describe('JavaScript/TypeScript monitor', () => {
                 }),
                 storage: (_token: string) => ({
                     persistent: () =>
-                        Map([[`Balance,toAddress`, { amount: 10 }]]),
+                        Map([[`Balance,toAddress`, { amount: 10n }]]),
                 }),
             } as unknown as Env
 
-            const condition = tokenReceived(env, 'token', 'toAddress', 10)
+            const condition = tokenReceived(env, 'token', 'toAddress', 10n)
             assert.isTrue(evaluateCondition(condition))
         })
 
@@ -118,11 +118,11 @@ describe('JavaScript/TypeScript monitor', () => {
                     persistent: () => Map([]),
                 }),
                 storage: (_token: string) => ({
-                    persistent: () => Map([[`Balance,toAddress`, 5]]),
+                    persistent: () => Map([[`Balance,toAddress`, 5n]]),
                 }),
             } as unknown as Env
 
-            const condition = tokenReceived(env, 'token', 'toAddress', 10)
+            const condition = tokenReceived(env, 'token', 'toAddress', 10n)
             assert.isFalse(evaluateCondition(condition))
         })
     })
@@ -134,15 +134,15 @@ describe('JavaScript/TypeScript monitor', () => {
                 oldStorage: (_tokenAddr: string) => ({
                     persistent: () =>
                         Map([
-                            [`Balance,fromAddress`, { amount: 100 }],
-                            [`Balance,toAddress`, { amount: 50 }],
+                            [`Balance,fromAddress`, { amount: 100n }],
+                            [`Balance,toAddress`, { amount: 50n }],
                         ]),
                 }),
                 storage: (_tokenAddr: string) => ({
                     persistent: () =>
                         Map([
-                            [`Balance,fromAddress`, { amount: 90 }],
-                            [`Balance,toAddress`, { amount: 60 }],
+                            [`Balance,fromAddress`, { amount: 90n }],
+                            [`Balance,toAddress`, { amount: 60n }],
                         ]),
                 }),
             } as unknown as Env
@@ -152,7 +152,7 @@ describe('JavaScript/TypeScript monitor', () => {
                 'token',
                 'fromAddress',
                 'toAddress',
-                10
+                10n
             )
             assert.isTrue(evaluateCondition(condition))
         })
@@ -162,15 +162,15 @@ describe('JavaScript/TypeScript monitor', () => {
                 oldStorage: (_token: string) => ({
                     persistent: () =>
                         Map([
-                            [`Balance,fromAddress`, { amount: 100 }],
-                            [`Balance,toAddress`, { amount: 50 }],
+                            [`Balance,fromAddress`, { amount: 100n }],
+                            [`Balance,toAddress`, { amount: 50n }],
                         ]),
                 }),
                 storage: (_token: string) => ({
                     persistent: () =>
                         Map([
-                            [`Balance,fromAddress`, { amount: 95 }],
-                            [`Balance,toAddress`, { amount: 55 }],
+                            [`Balance,fromAddress`, { amount: 95n }],
+                            [`Balance,toAddress`, { amount: 55n }],
                         ]),
                 }),
             } as unknown as Env
@@ -180,7 +180,7 @@ describe('JavaScript/TypeScript monitor', () => {
                 'token',
                 'fromAddress',
                 'toAddress',
-                10
+                10n
             )
             assert.isFalse(evaluateCondition(condition))
         })
@@ -189,13 +189,13 @@ describe('JavaScript/TypeScript monitor', () => {
             const env = {
                 oldStorage: (_token: string) => ({
                     persistent: () =>
-                        Map([[`Balance,fromAddress`, { amount: 100 }]]),
+                        Map([[`Balance,fromAddress`, { amount: 100n }]]),
                 }),
                 storage: (_token: string) => ({
                     persistent: () =>
                         Map([
-                            [`Balance,fromAddress`, { amount: 90 }],
-                            [`Balance,toAddress`, { amount: 10 }],
+                            [`Balance,fromAddress`, { amount: 90n }],
+                            [`Balance,toAddress`, { amount: 10n }],
                         ]),
                 }),
             } as unknown as Env
@@ -205,7 +205,7 @@ describe('JavaScript/TypeScript monitor', () => {
                 'token',
                 'fromAddress',
                 'toAddress',
-                10
+                10n
             )
             assert.isTrue(evaluateCondition(condition))
         })
@@ -214,13 +214,13 @@ describe('JavaScript/TypeScript monitor', () => {
             const env = {
                 oldStorage: (_token: string) => ({
                     persistent: () =>
-                        Map([[`Balance,toAddress`, { amount: 50 }]]),
+                        Map([[`Balance,toAddress`, { amount: 50n }]]),
                 }),
                 storage: (_token: string) => ({
                     persistent: () =>
                         Map([
-                            [`Balance,fromAddress`, { amount: -10 }],
-                            [`Balance,toAddress`, { amount: 60 }],
+                            [`Balance,fromAddress`, { amount: -10n }],
+                            [`Balance,toAddress`, { amount: 60n }],
                         ]),
                 }),
             } as unknown as Env
@@ -230,7 +230,7 @@ describe('JavaScript/TypeScript monitor', () => {
                 'token',
                 'fromAddress',
                 'toAddress',
-                10
+                10n
             )
             assert.isFalse(evaluateCondition(condition))
         })
