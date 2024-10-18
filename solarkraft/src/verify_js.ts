@@ -202,8 +202,9 @@ export function tokenTransferred(
     const oldTokenStorage = env.oldStorage(token).persistent()
     const tokenStorage = env.storage(token).persistent()
     return every(
+        (oldTokenStorage.get(`Balance,${from}`)?.amount ?? 0n) >= amount,
         tokenStorage.get(`Balance,${from}`).amount ==
-            oldTokenStorage.get(`Balance,${from}`)?.amount - amount,
+            (oldTokenStorage.get(`Balance,${from}`)?.amount ?? 0n) - amount,
         tokenStorage.get(`Balance,${to}`).amount ==
             (oldTokenStorage.get(`Balance,${to}`)?.amount ?? 0n) + amount
     )

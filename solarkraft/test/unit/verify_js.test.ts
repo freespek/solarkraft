@@ -157,6 +157,34 @@ describe('JavaScript/TypeScript monitor', () => {
             assert.isTrue(evaluateCondition(condition))
         })
 
+        it('returns true if fromAddress transfers all of its tokens', () => {
+            const env = {
+                oldStorage: (_tokenAddr: string) => ({
+                    persistent: () =>
+                        Map([
+                            [`Balance,fromAddress`, { amount: 100n }],
+                            [`Balance,toAddress`, { amount: 50n }],
+                        ]),
+                }),
+                storage: (_tokenAddr: string) => ({
+                    persistent: () =>
+                        Map([
+                            [`Balance,fromAddress`, { amount: 0n }],
+                            [`Balance,toAddress`, { amount: 150n }],
+                        ]),
+                }),
+            } as unknown as Env
+
+            const condition = tokenTransferred(
+                env,
+                'token',
+                'fromAddress',
+                'toAddress',
+                100n
+            )
+            assert.isTrue(evaluateCondition(condition))
+        })
+
         it('returns false if the token amount has not been transferred correctly', () => {
             const env = {
                 oldStorage: (_token: string) => ({
