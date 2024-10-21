@@ -13,6 +13,7 @@
 import { spawnSync } from 'child_process'
 import { rmSync } from 'fs'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import path from 'node:path'
 
 import { temporaryFile } from 'tempy'
 import { left, right, mergeInOne } from '@sweet-monads/either'
@@ -25,8 +26,7 @@ import {
 } from './fetcher/storage.js'
 import { instrumentMonitor } from './verifier/instrument.js'
 import { invokeAlert } from './verifier/invokeAlert.js'
-import { Result } from './globals.js'
-import path from 'node:path'
+import { JSONbig, Result } from './globals.js'
 
 type ApalacheResult = Result<void>
 
@@ -61,7 +61,7 @@ function getApalacheJsonIr(monitorTlaPath: string): Result<string> {
 
     // Read the monitor JSON IR
     try {
-        const jsonIr = JSON.parse(readFileSync(tempfile, 'utf8'))
+        const jsonIr = JSONbig.parse(readFileSync(tempfile, 'utf8'))
         rmSync(tempfile)
         return right(jsonIr)
     } catch (err) {
@@ -81,7 +81,7 @@ function apalacheCheck(monitor: string): Result<ApalacheResult> {
 
     // Write the instrumented monitor back to JSON
     try {
-        writeFileSync(tempfile, JSON.stringify(monitor), 'utf8')
+        writeFileSync(tempfile, JSONbig.stringify(monitor), 'utf8')
     } catch (err) {
         return left(`Failed to write instrumented Apalache IR: ${err}`)
     }
