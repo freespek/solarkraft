@@ -19,12 +19,38 @@
 import {
     some,
     every,
+    Condition,
     Env,
     EnvRevert,
     SolarkraftJsMonitor,
-    tokenTransferred,
 } from '../../src/verify_js.js'
 import _ from 'lodash'
+
+// Helper function to check if a token transfer was successful.
+//
+// `timelock` is using the custom token contract from `soroban-examples`,
+// which implements the SEP-41 Token Interface, but not the storage layout
+// of a CAP-46-6 Smart Contract Standardized Asset.
+// Thus, we do not use the `tokenTransferred` function from the `verify_js`
+// module, but instead define a custom function here.
+function tokenTransferred(
+    env: Env,
+    token: string,
+    from: string,
+    to: string,
+    amount: number
+): Condition {
+    const oldTokenStorage = env.oldStorage(token).persistent()
+    const tokenStorage = env.storage(token).persistent()
+    return every(
+        // token balance is stored under a variant data key Balance(Address)
+        // that points to an i128.
+        tokenStorage.get(`Balance,${from}`) ==
+            oldTokenStorage.get(`Balance,${from}`) - amount,
+        tokenStorage.get(`Balance,${to}`) ==
+            oldTokenStorage.get(`Balance,${to}`, 0) + amount
+    )
+}
 
 /* generate from contract spec */
 

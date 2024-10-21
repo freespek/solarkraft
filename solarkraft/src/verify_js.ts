@@ -131,7 +131,7 @@ export class Env extends AbstractEnv {
 
 type ConditionSome = { type: 'some'; conditions: Condition[] }
 type ConditionEvery = { type: 'every'; conditions: Condition[] }
-type Condition = ConditionSome | ConditionEvery | boolean
+export type Condition = ConditionSome | ConditionEvery | boolean
 
 /** Logical OR of the given conditions. */
 export function some(...args: Condition[]): ConditionSome {
@@ -159,7 +159,40 @@ export function evaluateCondition(condition: Condition): boolean {
 /* Macros / monitor helper functions */
 
 /**
- * Return a condition that checks if the given token amount has been transferred from one account to another.
+ * Return a condition that checks if the given token amount has been transferred to the given address
+ * on a Stellar Asset Contract.
+ *
+ * @param env The environment to evaluate the condition in.
+ * @param token The SAC token address. Must implement CAP-46-6 Smart Contract Standardized Asset.
+ * @param to The address of the token receiver.
+ * @param amount The amount of tokens transferred.
+ */
+export function tokenReceived(
+    env: Env,
+    token: string,
+    to: string,
+    amount: number
+): Condition {
+    const oldTokenStorage = env.oldStorage(token).persistent()
+    const tokenStorage = env.storage(token).persistent()
+
+    return (
+        // token balance is stored under a variant data key Balance(Address)
+        // that points to a struct { amount: i128, authorized: bool, clawback: bool }
+        tokenStorage.get(`Balance,${to}`).amount ==
+        (oldTokenStorage.get(`Balance,${to}`)?.amount ?? 0) + amount
+    )
+}
+
+/**
+ * Return a condition that checks if the given token amount has been transferred from one address
+ * to another address on a Stellar Asset Contract.
+ *
+ * @param env The environment to evaluate the condition in.
+ * @param token The SAC token address. Must implement CAP-46-6 Smart Contract Standardized Asset.
+ * @param from The address of the token sender.
+ * @param to The address of the token receiver.
+ * @param amount The amount of tokens transferred.
  */
 export function tokenTransferred(
     env: Env,
@@ -171,10 +204,12 @@ export function tokenTransferred(
     const oldTokenStorage = env.oldStorage(token).persistent()
     const tokenStorage = env.storage(token).persistent()
     return every(
-        tokenStorage.get(`Balance,${from}`) ==
-            oldTokenStorage.get(`Balance,${from}`) - amount,
-        tokenStorage.get(`Balance,${to}`) ==
-            oldTokenStorage.get(`Balance,${to}`, 0) + amount
+        // token balance is stored under a variant data key Balance(Address)
+        // that points to a struct { amount: i128, authorized: bool, clawback: bool }
+        tokenStorage.get(`Balance,${from}`).amount ==
+            oldTokenStorage.get(`Balance,${from}`)?.amount - amount,
+        tokenStorage.get(`Balance,${to}`).amount ==
+            (oldTokenStorage.get(`Balance,${to}`)?.amount ?? 0) + amount
     )
 }
 
