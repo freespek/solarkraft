@@ -19,8 +19,7 @@ const CONTRACT_ID = 'CC22QGTOUMERDNIYN7TPNX3V6EMPHQXVSRR3XY56EADF7YTFISD2ROND'
 describe('list', () => {
     it('lists a single entry', function (done) {
         // create a single entry in a temporary directory
-        const root = join(tmpdir(), 'solarkraft-storage-')
-        mkdtempSync(root)
+        const root = mkdtempSync(join(tmpdir(), 'solarkraft-storage-'))
         saveContractCallEntry(root, {
             timestamp: 1716393856,
             height: 1000,
