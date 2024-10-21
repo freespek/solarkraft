@@ -177,6 +177,8 @@ export function tokenReceived(
     const tokenStorage = env.storage(token).persistent()
 
     return (
+        // token balance is stored under a variant data key Balance(Address)
+        // that points to a struct { amount: i128, authorized: bool, clawback: bool }
         tokenStorage.get(`Balance,${to}`).amount ==
         (oldTokenStorage.get(`Balance,${to}`)?.amount ?? 0n) + amount
     )
@@ -202,6 +204,8 @@ export function tokenTransferred(
     const oldTokenStorage = env.oldStorage(token).persistent()
     const tokenStorage = env.storage(token).persistent()
     return every(
+        // token balance is stored under a variant data key Balance(Address)
+        // that points to a struct { amount: i128, authorized: bool, clawback: bool }
         (oldTokenStorage.get(`Balance,${from}`)?.amount ?? 0n) >= amount,
         tokenStorage.get(`Balance,${from}`).amount ==
             (oldTokenStorage.get(`Balance,${from}`)?.amount ?? 0n) - amount,

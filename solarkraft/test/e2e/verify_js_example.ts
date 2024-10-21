@@ -43,6 +43,8 @@ function tokenTransferred(
     const oldTokenStorage = env.oldStorage(token).persistent()
     const tokenStorage = env.storage(token).persistent()
     return every(
+        // token balance is stored under a variant data key Balance(Address)
+        // that points to an i128.
         tokenStorage.get(`Balance,${from}`) ==
             oldTokenStorage.get(`Balance,${from}`) - amount,
         tokenStorage.get(`Balance,${to}`) ==
