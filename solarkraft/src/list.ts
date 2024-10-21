@@ -21,7 +21,9 @@ import { join } from 'node:path'
 const CONTRACT_ID_LENGTH = 56
 
 function getStringRepresentation(status: VerificationStatus): string {
-    switch (status) {
+    switch (
+        Number(status) // convert to number, in case `status` is a bigint
+    ) {
         case VerificationStatus.NoViolation:
             return 'ok'
         case VerificationStatus.Violation:
