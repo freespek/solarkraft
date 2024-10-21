@@ -9,7 +9,6 @@
  * Igor Konnov, 2024.
  */
 
-import JSONbigint from 'json-bigint'
 import Immutable, { OrderedMap } from 'immutable'
 import { join } from 'node:path'
 import {
@@ -22,9 +21,7 @@ import {
 import { globSync } from 'glob'
 
 import { left, right } from '@sweet-monads/either'
-import { Result } from '../globals.js'
-
-const JSONbig = JSONbigint({ useNativeBigInt: true })
+import { JSONbig, Result } from '../globals.js'
 
 /**
  * Ordered mapping from field names to their native values (JS),

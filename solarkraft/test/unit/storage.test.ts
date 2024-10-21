@@ -95,26 +95,26 @@ describe('Solarkraft storage', () => {
         assert.equal(entry.txHash, TX_HASH)
         assert.equal(entry.contractId, CONTRACT_ID)
         assert.equal(entry.method, 'set_i32')
-        assert.deepEqual(entry.methodArgs, [42])
+        assert.deepEqual(entry.methodArgs, [42n])
         assert.equal(entry.returnValue, 0)
         assert.deepEqual(entry.fields.toArray(), [
-            ['a', 3],
+            ['a', 3n],
             ['b', 993143214321423154315154321n],
         ])
         assert.deepEqual(entry.oldFields.toArray(), [
-            ['a', 1],
+            ['a', 1n],
             ['b', 993143214321423154315154322n],
         ])
         assert.deepEqual(entry.storage.toJS(), {
             [CONTRACT_ID]: {
-                instance: { a: 3, b: 993143214321423154315154321n },
+                instance: { a: 3n, b: 993143214321423154315154321n },
                 persistent: {},
                 temporary: {},
             },
         })
         assert.deepEqual(entry.oldStorage.toJS(), {
             [CONTRACT_ID]: {
-                instance: { a: 1, b: 993143214321423154315154322n },
+                instance: { a: 1n, b: 993143214321423154315154322n },
                 persistent: {},
                 temporary: {},
             },

@@ -38,7 +38,7 @@ function tokenTransferred(
     token: string,
     from: string,
     to: string,
-    amount: number
+    amount: bigint
 ): Condition {
     const oldTokenStorage = env.oldStorage(token).persistent()
     const tokenStorage = env.storage(token).persistent()
@@ -48,7 +48,7 @@ function tokenTransferred(
         tokenStorage.get(`Balance,${from}`) ==
             oldTokenStorage.get(`Balance,${from}`) - amount,
         tokenStorage.get(`Balance,${to}`) ==
-            oldTokenStorage.get(`Balance,${to}`, 0) + amount
+            oldTokenStorage.get(`Balance,${to}`, 0n) + amount
     )
 }
 
@@ -61,12 +61,12 @@ enum TimeBoundKind {
 
 interface TimeBound {
     kind: TimeBoundKind
-    timestamp: number
+    timestamp: bigint
 }
 
 interface ClaimableBalance {
     token: string
-    amount: number
+    amount: bigint
     claimants: string[]
     time_bound: TimeBound
 }
@@ -77,7 +77,7 @@ class TimelockMonitor extends SolarkraftJsMonitor {
     deposit(
         from: string,
         token: string,
-        amount: number,
+        amount: bigint,
         claimants: string[],
         time_bound: TimeBound
     ) {
