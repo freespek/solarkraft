@@ -20,11 +20,11 @@ NET=testnet
 ADMIN=admin
 soroban keys address $ADMIN || (echo "add the account $ADMIN via soroban keys generate"; exit 1)
 
-ACCOUNT=alice
-soroban keys address $ACCOUNT || (echo "add the account $ACCOUNT via soroban keys generate"; exit 1)
+ALICE=alice
+soroban keys address $ALICE || (echo "add the account $ALICE via soroban keys generate"; exit 1)
 
-ACCOUNT2=bob
-soroban keys address $ACCOUNT2 || (echo "add the account $ACCOUNT2 via soroban keys generate"; exit 1)
+BOB=bob
+soroban keys address $BOB || (echo "add the account $BOB via soroban keys generate"; exit 1)
 
 XLM_ADDRESS=CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
 BORROW_AMOUNT=1000
@@ -53,19 +53,19 @@ soroban contract invoke --id $XLM_ADDRESS --source $ADMIN --network $NET \
       -- transfer --from $ADMIN --to $(cat .xycloans_simple.id) --amount 10000
 
 # deposit some tokens into the pool
-soroban contract invoke --id $(cat .xycloans_pool.id) --source $ACCOUNT --network $NET \
-      -- deposit --from $ACCOUNT --amount 1000
-soroban contract invoke --id $(cat .xycloans_pool.id) --source $ACCOUNT2 --network $NET \
-      -- deposit --from $ACCOUNT2 --amount 1
+soroban contract invoke --id $(cat .xycloans_pool.id) --source $ALICE --network $NET \
+      -- deposit --from $ALICE --amount 1000
+soroban contract invoke --id $(cat .xycloans_pool.id) --source $BOB --network $NET \
+      -- deposit --from $BOB --amount 1
 
 # borrow some tokens from the pool
 soroban contract invoke --id $(cat .xycloans_pool.id) --source $ADMIN --network $NET \
       -- borrow --receiver_id $(cat .xycloans_simple.id) --amount $BORROW_AMOUNT
 
 # update the fee rewards and withdraw the matured rewards
-soroban contract invoke --id $(cat .xycloans_pool.id) --source $ACCOUNT2 --network $NET \
-      -- update_fee_rewards --addr $ACCOUNT2
-soroban contract invoke --id $(cat .xycloans_pool.id) --source $ACCOUNT2 --network $NET \
-      -- withdraw_matured --addr $ACCOUNT2
+soroban contract invoke --id $(cat .xycloans_pool.id) --source $BOB --network $NET \
+      -- update_fee_rewards --addr $BOB
+soroban contract invoke --id $(cat .xycloans_pool.id) --source $BOB --network $NET \
+      -- withdraw_matured --addr $BOB
 
 cd ${dir}
