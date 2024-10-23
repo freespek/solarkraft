@@ -30,12 +30,10 @@ import { JSONbig, Result } from './globals.js'
 
 type ApalacheResult = Result<void>
 
-// Looks for the Apalache path under $APALACHE_HOME. If undefined, uses /opt/apalache
-const APALACHE_DIST =
-    typeof process.env.APALACHE_HOME === 'undefined'
-        ? '/opt/apalache'
-        : process.env.APALACHE_HOME
-const APALACHE_BIN = path.join(APALACHE_DIST, 'bin', 'apalache-mc')
+// Look for Apalache under $APALACHE_HOME/bin/. If undefined, assumes that `apalache-mc` is in $PATH.
+const APALACHE_BIN = process.env.APALACHE_HOME
+    ? path.join(process.env.APALACHE_HOME, 'bin', 'apalache-mc')
+    : 'apalache-mc'
 
 /**
  * Parse the TLA+ file at `monitorTlaPath` and return its JSON IR.
