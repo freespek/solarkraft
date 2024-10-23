@@ -1,6 +1,6 @@
 /**
- * E2E tests for the JavaScript / TypeScript monitor in
- * `test/e2e/verify_js_example.ts`.
+ * E2E tests for the example TypeScript monitors in
+ * `test/e2e/verify_js_example_*.ts`.
  *
  * @author Thomas Pani, 2024
  */
@@ -10,9 +10,9 @@ import { describe, it } from 'mocha'
 import { spawn } from 'nexpect'
 
 describe('verify JavaScript monitor', () => {
-    it('reports success on `verify_js_example.ts`', function (done) {
+    it('reports success on `verify_js_example_timelock.ts`', function (done) {
         this.timeout(50_000)
-        spawn('node dist/test/e2e/verify_js_example.js')
+        spawn('node dist/test/e2e/verify_js_example_timelock.js')
             .wait(
                 'Verifying deposit (successful tx e10a55db588f097f8ce9e214ae717c5ecbd6d13d5a2fb3142c71c1866c9ca537)...'
             )
