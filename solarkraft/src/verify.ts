@@ -53,7 +53,7 @@ function getApalacheJsonIr(monitorTlaPath: string): Result<string> {
     // Check for `typecheck` errors
     if (apalacheParse.status != 0) {
         return left(
-            `Parsing monitor file ${monitorTlaPath} failed:\n${apalacheParse.stderr}`
+            `Parsing monitor file ${monitorTlaPath} failed:\n${apalacheParse.error ?? apalacheParse.stderr}`
         )
     }
 
