@@ -1,1 +1,2 @@
-test/e2e/verify_js_example.ts
+test/e2e/verify_js_example_timelock.ts
+test/e2e/verify_js_example_xycloans.ts
