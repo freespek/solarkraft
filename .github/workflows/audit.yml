@@ -24,3 +24,4 @@ jobs:
           issue_assignees: thpani
           issue_labels: vulnerability,test
           dedupe_issues: true
+          working_directory: solarkraft
