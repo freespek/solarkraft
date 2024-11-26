@@ -1,5 +1,5 @@
 --------------------------------- MODULE xycloans_types -----------------------
-EXTENDS Variant
+EXTENDS Variants
 
 (*
     The relevant parts of the storage that is accessed by the contract.

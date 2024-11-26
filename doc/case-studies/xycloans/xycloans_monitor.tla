@@ -130,43 +130,6 @@ update_fee_rewards(tx) ==
     /\ expected_reward = actual_reward
     \* update the monitor state
     /\ last_tx' = tx
-    /\ UNCHANGED <<shares, shares, fee_per_share_universal>>
-
-(* Actions that we use for model checking, not to monitoring *)
-Init ==
-    /\ last_tx = [
-            call |-> Create("any"),
-            status |-> TRUE,
-            env |-> [
-                current_contract_address |-> "any",
-                storage |-> [
-                    self_instance |-> [
-                        FeePerShareUniversal |-> 0,
-                        TokenId |-> ""
-                    ],
-                    self_persistent |-> [
-                        Balance |-> [ addr \in {} |-> 0 ],
-                        MaturedFeesParticular |-> [ addr \in {} |-> 0 ],
-                        FeePerShareParticular |-> [ addr \in {} |-> 0 ]
-                    ],
-                    token_persistent |-> [ Balance |-> [ addr \in {} |-> 0 ] ]
-                ],
-                old_storage |-> [
-                    self_instance |-> [
-                        FeePerShareUniversal |-> 0,
-                        TokenId |-> ""
-                    ],
-                    self_persistent |-> [
-                        Balance |-> [ addr \in {} |-> 0 ],
-                        MaturedFeesParticular |-> [ addr \in {} |-> 0 ],
-                        FeePerShareParticular |-> [ addr \in {} |-> 0 ]
-                    ],
-                    token_persistent |-> [ Balance |-> [ addr \in {} |-> 0 ] ]
-                ]
-            ]
-        ]
-    /\ shares = [ addr \in {} |-> 0 ]
-    /\ total_shares = 0
-    /\ fee_per_share_universal = 0
+    /\ UNCHANGED <<shares, total_shares, fee_per_share_universal>>
 
 =============================================================================
