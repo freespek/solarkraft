@@ -39,9 +39,9 @@ VARIABLES
 (* The core logic of the monitor for the contract data *)
 
 \* @type: ($tx, Bool) => Bool;
-reverts_if(tx, cond) == cond => ~tx.status
+reverts_with(tx, cond) == ~tx.status => cond
 \* @type: ($tx, Bool) => Bool;
-succeeds_if(tx, cond) == cond => tx.status
+succeeds_with(tx, cond) == tx.status => cond
 \* @type: (Str -> a, Str, a) => a;
 get_or_else(map, key, default) ==
     IF key \in DOMAIN map THEN map[key] ELSE default
@@ -50,17 +50,20 @@ div_ceil(a, b) == a + (b - 1) \div b
 \* integer division with rounding down
 div_floor(a, b) == a \div b
 \* @type: ($env, Str) => Int;
-token_balance(env, a) == get_or_else(env.storage.self_persistent.Balance, a, 0)
+token_balance(env, a) == get_or_else(env.storage.token_persistent.Balance, a, 0)
 \* @type: ($env, Str) => Int;
-old_token_balance(env, a) == get_or_else(env.old_storage.self_persistent.Balance, a, 0)
+old_token_balance(env, a) == get_or_else(env.old_storage.token_persistent.Balance, a, 0)
 
 \* @type: $tx => Bool;
 initialize(tx) ==
     LET call == AsInitialize(tx.call) IN
     /\ IsInitialize(tx.call)
-    /\ reverts_if(tx, tx.env.old_storage.self_instance.TokenId /= "")
-    /\ succeeds_if(tx, call.token = XLM_TOKEN_SAC_TESTNET)
-    /\ succeeds_if(tx, tx.env.storage.self_instance.TokenId = call.token)
+    /\ reverts_with(tx, tx.env.old_storage.self_instance.TokenId /= "")
+    /\ succeeds_with(tx, call.token = XLM_TOKEN_SAC_TESTNET)
+    /\ succeeds_with(tx, tx.env.storage.self_instance.TokenId = call.token)
+    \* these conditions are not required by a monitor, but needed to avoid spurious generated values
+    /\ succeeds_with(tx,
+        tx.env.storage.self_instance.FeePerShareUniversal = tx.env.old_storage.self_instance.FeePerShareUniversal)
     /\ last_tx' = tx
     /\ shares' = [ addr \in {} |-> 0 ]
     /\ total_shares' = 0
@@ -75,13 +78,13 @@ deposit(tx) ==
     /\ IsDeposit(tx.call)
     \* the pool has received `amount` tokens
     /\  LET a == tx.env.current_contract_address IN
-        succeeds_if(tx, token_balance(tx.env, a) = old_token_balance(tx.env, a) + call.amount)
+        succeeds_with(tx, token_balance(tx.env, a) = old_token_balance(tx.env, a) + call.amount)
     \* `from` received `amount` shares
     /\  LET b == get_or_else(tx.env.storage.self_persistent.Balance, call.from, 0)
             old_b == get_or_else(tx.env.old_storage.self_persistent.Balance, call.from, 0)
         IN
-        /\ succeeds_if(tx, new_shares[call.from] = b)
-        /\ succeeds_if(tx, b = old_b + call.amount)
+        /\ succeeds_with(tx, new_shares[call.from] = b)
+        /\ succeeds_with(tx, b = old_b + call.amount)
     \* update the monitor state
     /\ last_tx' = tx
     /\ shares' = new_shares
@@ -98,14 +101,14 @@ borrow(tx) ==
     IN
     /\ IsBorrow(tx.call)
     \* `FeePerShareUniversal` has been updated correctly
-    /\ succeeds_if(tx,
+    /\ succeeds_with(tx,
            expected_fee_per_share_universal = tx.env.storage.self_instance.FeePerShareUniversal)
     \* the receiver paid the expected fee to the pool
-    /\ succeeds_if(tx, old_token_balance(tx.env, call.receiver_id) >= call.amount)
+    /\ succeeds_with(tx, old_token_balance(tx.env, call.receiver_id) >= call.amount)
     /\ LET a == call.receiver_id IN
-       succeeds_if(tx, token_balance(tx.env, a) = old_token_balance(tx.env, a) - call.amount)
+       succeeds_with(tx, token_balance(tx.env, a) = old_token_balance(tx.env, a) - call.amount)
     /\ LET a == tx.env.current_contract_address IN
-       succeeds_if(tx, token_balance(tx.env, a) = old_token_balance(tx.env, a) + call.amount)
+       succeeds_with(tx, token_balance(tx.env, a) = old_token_balance(tx.env, a) + call.amount)
     \* update the monitor state
     /\ last_tx' = tx
     \* we update the fee per share to compute rewards later
@@ -125,7 +128,7 @@ update_fee_rewards(tx) ==
     /\ IsUpdateFeeRewards(tx.call)
     \* fee per share for `addr` is bumped to the universal fee per share
     /\  LET fee == get_or_else(tx.env.storage.self_persistent.FeePerShareParticular, call.addr, 0) IN
-        succeeds_if(tx, fee = fee_per_share_universal)
+        succeeds_with(tx, fee = fee_per_share_universal)
     \* delta of matured rewards for `addr` have been added
     /\ expected_reward = actual_reward
     \* update the monitor state

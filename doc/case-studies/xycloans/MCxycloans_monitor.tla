@@ -24,73 +24,74 @@ VARIABLES
     \* @type: Int;
     total_shares,
     \* @type: Int;
-    fee_per_share_universal
+    fee_per_share_universal,
+    \* Keep track of the current storage,
+    \* which can be only changed by a successful transaction.
+    \* @type: $storage;
+    storage
 
 INSTANCE xycloans_monitor
 
 Init ==
+    LET init_stor == [
+        self_instance |-> [
+            FeePerShareUniversal |-> 0,
+            TokenId |-> ""
+        ],
+        self_persistent |-> [
+            Balance |-> [ addr \in {} |-> 0 ],
+            MaturedFeesParticular |-> [ addr \in {} |-> 0 ],
+            FeePerShareParticular |-> [ addr \in {} |-> 0 ]
+        ],
+        token_persistent |-> [ Balance |-> [ addr \in {} |-> 0 ] ]
+    ]
+    IN
     /\ last_tx = [
             call |-> Create("any"),
             status |-> TRUE,
             env |-> [
                 current_contract_address |-> "any",
-                storage |-> [
-                    self_instance |-> [
-                        FeePerShareUniversal |-> 0,
-                        TokenId |-> ""
-                    ],
-                    self_persistent |-> [
-                        Balance |-> [ addr \in {} |-> 0 ],
-                        MaturedFeesParticular |-> [ addr \in {} |-> 0 ],
-                        FeePerShareParticular |-> [ addr \in {} |-> 0 ]
-                    ],
-                    token_persistent |-> [ Balance |-> [ addr \in {} |-> 0 ] ]
-                ],
-                old_storage |-> [
-                    self_instance |-> [
-                        FeePerShareUniversal |-> 0,
-                        TokenId |-> ""
-                    ],
-                    self_persistent |-> [
-                        Balance |-> [ addr \in {} |-> 0 ],
-                        MaturedFeesParticular |-> [ addr \in {} |-> 0 ],
-                        FeePerShareParticular |-> [ addr \in {} |-> 0 ]
-                    ],
-                    token_persistent |-> [ Balance |-> [ addr \in {} |-> 0 ] ]
-                ]
+                storage |-> init_stor,
+                old_storage |-> init_stor
             ]
         ]
     /\ shares = [ addr \in {} |-> 0 ]
     /\ total_shares = 0
     /\ fee_per_share_universal = 0
+    /\ storage = init_stor
 
 Next ==
     \* generate some values for the storage
     \E fpsu \in AMOUNTS, tid \in { "", XLM_TOKEN_SAC_TESTNET }:
       \E b, mfp, fpsp, tb \in [ ADDR -> AMOUNTS ]:
-        LET storage == [
+        LET new_stor == [
                 self_instance |-> [ FeePerShareUniversal |-> fpsu, TokenId |-> tid ],
-                self_persistent |-> [ Balance |-> b, MaturedFeesParticular |-> mfp, FeePerShareParticular |-> fpsp ],
+                self_persistent |->
+                    [ Balance |-> b, MaturedFeesParticular |-> mfp, FeePerShareParticular |-> fpsp ],
                 token_persistent |-> [ Balance |-> tb ]
             ]
             env == [
                 current_contract_address |-> XYCLOANS,
-                storage |-> storage,
-                old_storage |-> last_tx.env.storage
+                storage |-> new_stor,
+                old_storage |-> storage
             ]
         IN
-        \E method \in { "initialize", "deposit", "borrow", "update_fee_rewards" }:
+        \E method \in { "Initialize", "Deposit", "Borrow", "UpdateFeeRewards" }:
             \E addr \in ADDR, amount \in AMOUNTS, success \in BOOLEAN:
                 LET call ==
-                    CASE method = "initialize" -> Initialize(XLM_TOKEN_SAC_TESTNET)
-                      [] method = "deposit" -> Deposit(addr, amount)
-                      [] method = "borrow" -> Borrow(addr, amount)
-                      [] method = "update_fee_rewards" -> UpdateFeeRewards(addr)
+                    CASE method = "Initialize" -> Initialize(XLM_TOKEN_SAC_TESTNET)
+                      [] method = "Deposit" -> Deposit(addr, amount)
+                      [] method = "Borrow" -> Borrow(addr, amount)
+                      [] method = "UpdateFeeRewards" -> UpdateFeeRewards(addr)
                 IN
                 LET tx == [ env |-> env, call |-> call, status |-> success ] IN
-                \/ initialize(tx)
-                \/ deposit(tx)
-                \/ borrow(tx)
-                \/ update_fee_rewards(tx)
+                /\  \/ initialize(tx)
+                    \/ deposit(tx)
+                    \/ borrow(tx)
+                    \/ update_fee_rewards(tx)
+                \* propagate the new storage
+                \* TODO: new_stor may contain updates to a subset of addresses
+                /\ storage' = IF success THEN new_stor ELSE storage
+                /\ success => tx.env.old_storage = storage
 
 =========================================================================================
