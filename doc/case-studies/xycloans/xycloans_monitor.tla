@@ -58,7 +58,7 @@ old_token_balance(env, a) == get_or_else(env.old_storage.self_persistent.Balance
 initialize(tx) ==
     LET call == AsInitialize(tx.call) IN
     /\ IsInitialize(tx.call)
-    /\ reverts_if(tx, tx.env.storage.self_instance.TokenId /= "")
+    /\ reverts_if(tx, tx.env.old_storage.self_instance.TokenId /= "")
     /\ succeeds_if(tx, call.token = XLM_TOKEN_SAC_TESTNET)
     /\ succeeds_if(tx, tx.env.storage.self_instance.TokenId = call.token)
     /\ last_tx' = tx
