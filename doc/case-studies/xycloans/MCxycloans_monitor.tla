@@ -81,8 +81,7 @@ Next ==
                 \/ deposit([ env |-> env, call |-> Deposit(addr, amount), status |-> success ])
                 \/ borrow([ env |-> env, call |-> Borrow(addr, amount), status |-> success ])
                 \/ update_fee_rewards([ env |-> env, call |-> UpdateFeeRewards(addr), status |-> success ])
-            \* propagate the new storage
-            \* TODO: new_stor may contain updates to a subset of addresses
+            \* Propagate the new storage. For value generation, we go over all addresses, not subsets.
             /\ storage' = IF success THEN new_stor ELSE storage
                 /\ success => tx.env.old_storage = storage
 
