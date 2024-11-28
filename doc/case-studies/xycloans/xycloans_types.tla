@@ -3,7 +3,7 @@ EXTENDS Variants
 
 (*
     The relevant parts of the storage that is accessed by the contract.
-    Note that the storage is partial. At any point in time, we only have
+    Note that our view of the storage is partial: at any point in time, we only have
     access to the parts of the storage that are touched by the contract.
 
     @typeAlias: storage = {
@@ -21,7 +21,7 @@ EXTENDS Variants
         }
     };
 
-    The environment of the XY Loans contract that should be
+    The environment of the xycLoans contract that should be
     produced by Solarkraft from the transaction metadata:
 
     @typeAlias: env = {
