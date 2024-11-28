@@ -39,18 +39,18 @@ Init ==
             TokenId |-> ""
         ],
         self_persistent |-> [
-            Balance |-> [ addr \in {} |-> 0 ],
-            MaturedFeesParticular |-> [ addr \in {} |-> 0 ],
-            FeePerShareParticular |-> [ addr \in {} |-> 0 ]
+            Balance |-> [ addr \in ADDR |-> 0 ],
+            MaturedFeesParticular |-> [ addr \in ADDR |-> 0 ],
+            FeePerShareParticular |-> [ addr \in ADDR |-> 0 ]
         ],
         token_persistent |-> [ Balance |-> [ addr \in {} |-> 0 ] ]
     ]
     IN
     /\ last_tx = [
-            call |-> Create("any"),
+            call |-> Create(XYCLOANS),
             status |-> TRUE,
             env |-> [
-                current_contract_address |-> "any",
+                current_contract_address |-> XYCLOANS,
                 storage |-> init_stor,
                 old_storage |-> init_stor
             ]
