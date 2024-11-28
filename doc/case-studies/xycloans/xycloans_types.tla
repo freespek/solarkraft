@@ -54,6 +54,8 @@ xycloans_typedefs == TRUE
 
 \* @type: Str => $call;
 Create(addr) == Variant("Create", [ addr |-> addr ])
+\* @type: $call => Bool;
+IsCreate(call) == VariantTag(call) = "Create"
 \* @type: Str => $call;
 Initialize(token) == Variant("Initialize", [ token |-> token ])
 \* @type: $call => Bool;

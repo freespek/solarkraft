@@ -83,8 +83,12 @@ Next ==
                 \/ update_fee_rewards([ env |-> env, call |-> UpdateFeeRewards(addr), status |-> success ])
             \* Propagate the new storage. For value generation, we go over all addresses, not subsets.
             /\ storage' = IF success THEN new_stor ELSE storage
-                /\ success => tx.env.old_storage = storage
+
+\* use this falsy invariant to generate examples of successful transactions
+NoSuccessInv ==
+    ~IsCreate(last_tx.call) => ~last_tx.status
 
 \* use this view to generate better test coverage
+\* apalache-mc check --max-error=10 --length=10 --inv=NoSuccessInv --view=View MCxycloans_monitor.tla
 View == <<last_tx.status, last_tx.call>>
 =========================================================================================
