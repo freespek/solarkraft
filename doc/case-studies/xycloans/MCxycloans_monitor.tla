@@ -8,7 +8,7 @@ EXTENDS Integers, xycloans_types
 
 \* the set of all possible token amounts
 AMOUNTS == Nat
-\* the contract address for the XY Loans contract
+\* the contract address for the xycLoans contract
 XYCLOANS == "xycloans"
 \* the token address
 XLM_TOKEN_SAC_TESTNET == "xlm-sac"
@@ -76,22 +76,16 @@ Next ==
                 old_storage |-> storage
             ]
         IN
-        \E method \in { "Initialize", "Deposit", "Borrow", "UpdateFeeRewards" }:
-            \E addr \in ADDR, amount \in AMOUNTS, success \in BOOLEAN:
-                LET call ==
-                    CASE method = "Initialize" -> Initialize(XLM_TOKEN_SAC_TESTNET)
-                      [] method = "Deposit" -> Deposit(addr, amount)
-                      [] method = "Borrow" -> Borrow(addr, amount)
-                      [] method = "UpdateFeeRewards" -> UpdateFeeRewards(addr)
-                IN
-                LET tx == [ env |-> env, call |-> call, status |-> success ] IN
-                /\  \/ initialize(tx)
-                    \/ deposit(tx)
-                    \/ borrow(tx)
-                    \/ update_fee_rewards(tx)
-                \* propagate the new storage
-                \* TODO: new_stor may contain updates to a subset of addresses
-                /\ storage' = IF success THEN new_stor ELSE storage
+        \E addr \in ADDR, amount \in AMOUNTS, success \in BOOLEAN:
+            /\  \/ initialize([ env |-> env, call |-> Initialize(XLM_TOKEN_SAC_TESTNET), status |-> success ])
+                \/ deposit([ env |-> env, call |-> Deposit(addr, amount), status |-> success ])
+                \/ borrow([ env |-> env, call |-> Borrow(addr, amount), status |-> success ])
+                \/ update_fee_rewards([ env |-> env, call |-> UpdateFeeRewards(addr), status |-> success ])
+            \* propagate the new storage
+            \* TODO: new_stor may contain updates to a subset of addresses
+            /\ storage' = IF success THEN new_stor ELSE storage
                 /\ success => tx.env.old_storage = storage
 
+\* use this view to generate better test coverage
+View == <<last_tx.status, last_tx.call>>
 =========================================================================================

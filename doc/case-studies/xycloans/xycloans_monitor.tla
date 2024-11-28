@@ -1,6 +1,6 @@
 -------------------------- MODULE xycloans_monitor --------------------------
 (*
- * A monitor for the XY Loans contract to detect the known issue.
+ * A monitor for the xycLoans contract to detect the known issue.
  *
  * This is a manual translation of the Typescript monitor from
  * verify_js_examples_xycloans.ts. Our goal is to produce a simple and readable
@@ -17,7 +17,7 @@ EXTENDS Integers, xycloans_types
 STROOP == 10000000
 
 CONSTANT
-    \* The token address for the XY Loans contract.
+    \* The token address for the xycLoans contract.
     \* @type: Str;
     XLM_TOKEN_SAC_TESTNET
 
@@ -39,14 +39,14 @@ VARIABLES
 (* The core logic of the monitor for the contract data *)
 
 \* @type: ($tx, Bool) => Bool;
-reverts_with(tx, cond) == ~tx.status => cond
+reverts_if(tx, cond) == ~tx.status => cond
 \* @type: ($tx, Bool) => Bool;
 succeeds_with(tx, cond) == tx.status => cond
 \* @type: (Str -> a, Str, a) => a;
 get_or_else(map, key, default) ==
     IF key \in DOMAIN map THEN map[key] ELSE default
 \* integer division with rounding up
-div_ceil(a, b) == a + (b - 1) \div b
+div_ceil(a, b) == (a + (b - 1)) \div b
 \* integer division with rounding down
 div_floor(a, b) == a \div b
 \* @type: ($env, Str) => Int;
@@ -58,12 +58,14 @@ old_token_balance(env, a) == get_or_else(env.old_storage.token_persistent.Balanc
 initialize(tx) ==
     LET call == AsInitialize(tx.call) IN
     /\ IsInitialize(tx.call)
-    /\ reverts_with(tx, tx.env.old_storage.self_instance.TokenId /= "")
-    /\ succeeds_with(tx, call.token = XLM_TOKEN_SAC_TESTNET)
-    /\ succeeds_with(tx, tx.env.storage.self_instance.TokenId = call.token)
+    /\ reverts_if(tx, tx.env.old_storage.self_instance.TokenId /= "")
+    /\ succeeds_with(tx, tx.env.storage.self_instance.TokenId = XLM_TOKEN_SAC_TESTNET)
     \* these conditions are not required by a monitor, but needed to avoid spurious generated values
     /\ succeeds_with(tx,
         tx.env.storage.self_instance.FeePerShareUniversal = tx.env.old_storage.self_instance.FeePerShareUniversal)
+    \* these conditions are not required by a monitor, but needed to avoid spurious generated values
+    /\ succeeds_with(tx,
+        tx.env.storage.self_persistent = tx.env.old_storage.self_persistent)
     /\ last_tx' = tx
     /\ shares' = [ addr \in {} |-> 0 ]
     /\ total_shares' = 0
@@ -77,14 +79,19 @@ deposit(tx) ==
     IN
     /\ IsDeposit(tx.call)
     \* the pool has received `amount` tokens
-    /\  LET a == tx.env.current_contract_address IN
-        succeeds_with(tx, token_balance(tx.env, a) = old_token_balance(tx.env, a) + call.amount)
+    /\  LET self == tx.env.current_contract_address IN
+        succeeds_with(tx, token_balance(tx.env, self) = old_token_balance(tx.env, self) + call.amount)
     \* `from` received `amount` shares
-    /\  LET b == get_or_else(tx.env.storage.self_persistent.Balance, call.from, 0)
-            old_b == get_or_else(tx.env.old_storage.self_persistent.Balance, call.from, 0)
+    /\  LET from == get_or_else(tx.env.storage.self_persistent.Balance, call.from, 0)
+            old_from == get_or_else(tx.env.old_storage.self_persistent.Balance, call.from, 0)
         IN
-        /\ succeeds_with(tx, new_shares[call.from] = b)
-        /\ succeeds_with(tx, b = old_b + call.amount)
+        /\ succeeds_with(tx, new_shares[call.from] = from)
+        /\ succeeds_with(tx, from = old_from + call.amount)
+    \* these conditions are not required by a monitor, but needed to avoid spurious generated values
+    /\ succeeds_with(tx,
+        \A other \in DOMAIN tx.env.storage.self_persistent.Balance \ {call.from}:
+            /\ other \in DOMAIN tx.env.old_storage.self_persistent.Balance
+            /\ tx.env.storage.self_persistent.Balance[other] = tx.env.old_storage.self_persistent.Balance[other])
     \* update the monitor state
     /\ last_tx' = tx
     /\ shares' = new_shares
@@ -104,11 +111,13 @@ borrow(tx) ==
     /\ succeeds_with(tx,
            expected_fee_per_share_universal = tx.env.storage.self_instance.FeePerShareUniversal)
     \* the receiver paid the expected fee to the pool
-    /\ succeeds_with(tx, old_token_balance(tx.env, call.receiver_id) >= call.amount)
-    /\ LET a == call.receiver_id IN
-       succeeds_with(tx, token_balance(tx.env, a) = old_token_balance(tx.env, a) - call.amount)
-    /\ LET a == tx.env.current_contract_address IN
-       succeeds_with(tx, token_balance(tx.env, a) = old_token_balance(tx.env, a) + call.amount)
+    /\ LET rcvr == call.receiver_id
+           self == tx.env.current_contract_address IN
+       /\ succeeds_with(tx, old_token_balance(tx.env, call.receiver_id) >= call.amount)
+       /\ succeeds_with(tx, token_balance(tx.env, rcvr) = old_token_balance(tx.env, rcvr) - call.amount)
+       /\ succeeds_with(tx, token_balance(tx.env, self) = old_token_balance(tx.env, self) + call.amount)
+    \* these conditions are not required by a monitor, but needed to avoid spurious generated values
+    /\ succeeds_with(tx, tx.env.storage.self_persistent = tx.env.old_storage.self_persistent)
     \* update the monitor state
     /\ last_tx' = tx
     \* we update the fee per share to compute rewards later
@@ -131,6 +140,9 @@ update_fee_rewards(tx) ==
         succeeds_with(tx, fee = fee_per_share_universal)
     \* delta of matured rewards for `addr` have been added
     /\ expected_reward = actual_reward
+    \* these conditions are not required by a monitor, but needed to avoid spurious generated values
+    /\ succeeds_with(tx,
+        tx.env.storage.self_persistent.Balance = tx.env.old_storage.self_persistent.Balance)
     \* update the monitor state
     /\ last_tx' = tx
     /\ UNCHANGED <<shares, total_shares, fee_per_share_universal>>
