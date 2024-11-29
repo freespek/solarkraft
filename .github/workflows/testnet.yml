@@ -1,0 +1,25 @@
+name: Deployment to testnet
+
+on:
+  workflow_dispatch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      
+      - name: Install Soroban
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo install --locked stellar-cli --version v22.0.0 --features opt
+
+      - name: Generate Soroban keys
+        run: |
+          stellar keys generate --global alice --network testnet --fund
+          stellar keys generate --global bob --network testnet --fund
+          stellar keys generate --global admin --network testnet --fund
