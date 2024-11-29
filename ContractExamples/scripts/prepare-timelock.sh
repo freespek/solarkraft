@@ -12,22 +12,22 @@ set -e
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 ALICE=alice
-soroban keys address $ALICE || (echo "add the account $ALICE via soroban keys generate"; exit 1)
+stellar keys address $ALICE || (echo "add the account $ALICE via stellar keys generate"; exit 1)
 BOB=bob
-soroban keys address $BOB || (echo "add the account $BOB via soroban keys generate"; exit 1)
+stellar keys address $BOB || (echo "add the account $BOB via stellar keys generate"; exit 1)
 
 set -x
 
 TOKEN=$(
-    soroban contract deploy \
+    stellar contract deploy \
     --source-account alice \
     --network testnet \
-    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/soroban_token_contract.wasm
+    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/stellar_token_contract.wasm
 )
 
 echo "Token contract ID: $TOKEN"
 
-soroban contract invoke \
+stellar contract invoke \
     --id $TOKEN \
     --source alice \
     --network testnet \
@@ -38,7 +38,7 @@ soroban contract invoke \
     --name '"TOK"' \
     --symbol '"TOK"'
 
-soroban contract invoke \
+stellar contract invoke \
     --id $TOKEN \
     --source alice \
     --network testnet \
@@ -47,14 +47,14 @@ soroban contract invoke \
     --to alice \
     --amount 100
 
-TIMELOCK=$(soroban contract deploy \
-    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/soroban_timelock_contract.wasm \
+TIMELOCK=$(stellar contract deploy \
+    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/stellar_timelock_contract.wasm \
     --source alice \
     --network testnet)
 
 echo "Timelock contract ID: $TIMELOCK"
 
-soroban contract invoke \
+stellar contract invoke \
     --id $TIMELOCK \
     --source alice \
     --network testnet \
@@ -63,10 +63,10 @@ soroban contract invoke \
     --from alice \
     --token $TOKEN \
     --amount 1 \
-    --claimants "[\"$(soroban keys address bob)\"]"\
+    --claimants "[\"$(stellar keys address bob)\"]"\
     --time_bound '{"kind": "After", "timestamp": 0}'
 
-soroban contract invoke \
+stellar contract invoke \
     --id $TIMELOCK \
     --source bob \
     --network testnet \
