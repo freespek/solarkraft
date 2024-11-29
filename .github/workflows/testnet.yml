@@ -18,7 +18,7 @@ jobs:
       - name: Install Soroban
         run: |
           rustup target add wasm32-unknown-unknown
-          cargo install --locked stellar-cli --version v22.0.0 --features opt
+          cargo install --locked stellar-cli --version 22.0.0 --features opt
 
       - name: Generate Soroban keys
         run: |
