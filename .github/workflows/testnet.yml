@@ -39,15 +39,15 @@ jobs:
           cd ContractExamples
           ./scripts/alert-deploy.sh
 
-      - name: Deploy timelock
-        run: |
-          cd ContractExamples
-          ./scripts/prepare-timelock.sh
-
       - name: Deploy setter
         run: |
           cd ContractExamples
           ./scripts/setter-populate.sh
+
+      - name: Deploy timelock
+        run: |
+          cd ContractExamples
+          ./scripts/prepare-timelock.sh
 
       #- uses: actions/setup-node@v3
       #  with:
