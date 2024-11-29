@@ -1,8 +1,10 @@
 name: Deployment to testnet
 
 on:
-  workflow_dispatch
-
+  workflow_dispatch:
+  # TODO: comment out after debugging in the draft PR
+  pull_request:
+ 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
