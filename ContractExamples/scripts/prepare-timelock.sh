@@ -22,7 +22,7 @@ TOKEN=$(
     stellar contract deploy \
     --source-account alice \
     --network testnet \
-    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/stellar_token_contract.wasm
+    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/soroban_token_contract.wasm
 )
 
 echo "Token contract ID: $TOKEN"
@@ -48,7 +48,7 @@ stellar contract invoke \
     --amount 100
 
 TIMELOCK=$(stellar contract deploy \
-    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/stellar_timelock_contract.wasm \
+    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/soroban_timelock_contract.wasm \
     --source alice \
     --network testnet)
 
