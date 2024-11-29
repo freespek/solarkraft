@@ -43,7 +43,7 @@ Init ==
             MaturedFeesParticular |-> [ addr \in ADDR |-> 0 ],
             FeePerShareParticular |-> [ addr \in ADDR |-> 0 ]
         ],
-        token_persistent |-> [ Balance |-> [ addr \in {} |-> 0 ] ]
+        token_persistent |-> [ Balance |-> [ addr \in ADDR |-> 0 ] ]
     ]
     IN
     /\ last_tx = [
@@ -84,11 +84,15 @@ Next ==
             \* Propagate the new storage. For value generation, we go over all addresses, not subsets.
             /\ storage' = IF success THEN new_stor ELSE storage
 
+\* restrict the executions to the successful transactions
+NextOk ==
+    Next /\ last_tx'.status
+
 \* use this falsy invariant to generate examples of successful transactions
 NoSuccessInv ==
     ~IsCreate(last_tx.call) => ~last_tx.status
 
 \* use this view to generate better test coverage
 \* apalache-mc check --max-error=10 --length=10 --inv=NoSuccessInv --view=View MCxycloans_monitor.tla
-View == <<last_tx.status, last_tx.call>>
+View == <<last_tx.status, VariantTag(last_tx.call)>>
 =========================================================================================

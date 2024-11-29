@@ -39,7 +39,7 @@ VARIABLES
 (* The core logic of the monitor for the contract data *)
 
 \* @type: ($tx, Bool) => Bool;
-reverts_if(tx, cond) == ~tx.status => cond
+reverts_if(tx, cond) == cond => ~tx.status
 \* @type: ($tx, Bool) => Bool;
 succeeds_with(tx, cond) == tx.status => cond
 \* @type: (Str -> a, Str, a) => a;
@@ -82,16 +82,17 @@ deposit(tx) ==
     /\  LET self == tx.env.current_contract_address IN
         succeeds_with(tx, token_balance(tx.env, self) = old_token_balance(tx.env, self) + call.amount)
     \* `from` received `amount` shares
-    /\  LET from == get_or_else(tx.env.storage.self_persistent.Balance, call.from, 0)
-            old_from == get_or_else(tx.env.old_storage.self_persistent.Balance, call.from, 0)
+    /\  LET from_amt == get_or_else(tx.env.storage.self_persistent.Balance, call.from, 0)
+            old_from_amt == get_or_else(tx.env.old_storage.self_persistent.Balance, call.from, 0)
         IN
-        /\ succeeds_with(tx, new_shares[call.from] = from)
-        /\ succeeds_with(tx, from = old_from + call.amount)
+        /\ succeeds_with(tx, new_shares[call.from] = from_amt)
+        /\ succeeds_with(tx, from_amt = old_from_amt + call.amount)
     \* these conditions are not required by a monitor, but needed to avoid spurious generated values
     /\ succeeds_with(tx,
         \A other \in DOMAIN tx.env.storage.self_persistent.Balance \ {call.from}:
             /\ other \in DOMAIN tx.env.old_storage.self_persistent.Balance
             /\ tx.env.storage.self_persistent.Balance[other] = tx.env.old_storage.self_persistent.Balance[other])
+    /\ succeeds_with(tx, call.amount > 0)
     \* update the monitor state
     /\ last_tx' = tx
     /\ shares' = new_shares
@@ -118,6 +119,7 @@ borrow(tx) ==
        /\ succeeds_with(tx, token_balance(tx.env, self) = old_token_balance(tx.env, self) + call.amount)
     \* these conditions are not required by a monitor, but needed to avoid spurious generated values
     /\ succeeds_with(tx, tx.env.storage.self_persistent = tx.env.old_storage.self_persistent)
+    /\ succeeds_with(tx, call.amount > 0)
     \* update the monitor state
     /\ last_tx' = tx
     \* we update the fee per share to compute rewards later
