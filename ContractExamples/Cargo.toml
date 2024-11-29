@@ -10,7 +10,7 @@ members = [
 version = "22.0.0-rc.3"
 edition = "2021"
 
-[dependencies]
+[workspace.dependencies]
 soroban-sdk = { version = "22.0.0-rc.3.1" }
 soroban-token-sdk = { version = "22.0.0-rc.3.1" }
 
