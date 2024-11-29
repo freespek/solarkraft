@@ -17,10 +17,11 @@ jobs:
       - uses: stellar/actions/rust-cache@main
       - run: rustup update
       - run: cargo version
-      - run: rustup target add wasm32-unknown-unknown
       - uses: stellar/stellar-cli@main
         with:
           version: 22.0.0
+
+      - run: stellar --version
 
       - name: Generate Soroban keys
         run: |
@@ -30,6 +31,7 @@ jobs:
       - name: Build contract examples
         run: |
           cd ContractExamples
+          rustup target add wasm32-unknown-unknown
           cargo build --release --all
 
       - name: Deploy alert
