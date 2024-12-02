@@ -32,7 +32,8 @@ jobs:
         run: |
           cd ContractExamples
           rustup target add wasm32-unknown-unknown
-          cargo build --release --all
+          # it's important to disable reference types, otherwise we get deployment errors
+          RUSTFLAGS="-C target-feature=-reference-types" cargo build --target wasm32-unknown-unknown --release
 
       - name: Deploy alert
         run: |
