@@ -18,12 +18,17 @@ stellar keys address $BOB || (echo "add the account $BOB via stellar keys genera
 
 set -x
 
-TOKEN=$(
-    stellar contract deploy \
+stellar contract deploy \
     --source-account alice \
     --network testnet \
-    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/soroban_token_contract.wasm
-)
+    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/soroban_token_contract.wasm \
+    | tee >.token.id
+
+TOKEN=$(cat .token.id)
+if [ -z "$TOKEN" ]; then
+    echo "Failed to deploy the token contract"
+    exit 1
+fi
 
 echo "Token contract ID: $TOKEN"
 
@@ -47,10 +52,18 @@ stellar contract invoke \
     --to alice \
     --amount 100
 
-TIMELOCK=$(stellar contract deploy \
+stellar contract deploy \
     --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/soroban_timelock_contract.wasm \
     --source alice \
-    --network testnet)
+    --network testnet \
+    | tee >.timelock.id
+
+TIMELOCK=$(cat .timelock.id)
+
+if [ -z "$TIMELOCK" ]; then
+    echo "Failed to deploy the timelock contract"
+    exit 1
+fi
 
 echo "Timelock contract ID: $TIMELOCK"
 
