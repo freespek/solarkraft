@@ -62,6 +62,7 @@ stellar contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET 
 stellar contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET \
       -- remove_bool
 
+# NOTE: we do not do that in the CI script
 # we can provoke a failed transaction by submitting 2 transactions in parallel from different accounts
-stellar contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET -- set_bool_if_notset &
-stellar contract invoke --id $(cat .setter.id) --source $ACCOUNT2 --network $NET -- set_bool_if_notset
+#stellar contract invoke --id $(cat .setter.id) --source $ACCOUNT --network $NET -- set_bool_if_notset &
+#stellar contract invoke --id $(cat .setter.id) --source $ACCOUNT2 --network $NET -- set_bool_if_notset
