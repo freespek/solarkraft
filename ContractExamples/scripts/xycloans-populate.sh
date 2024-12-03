@@ -31,7 +31,7 @@ BORROW_AMOUNT=1000
 
 set -x
 
-stellar contract build
+../scripts/build.sh
 
 stellar contract deploy --wasm target/wasm32-unknown-unknown/release/xycloans_factory.wasm \
       --source $ADMIN --network $NET | tee >.xycloans_factory.id

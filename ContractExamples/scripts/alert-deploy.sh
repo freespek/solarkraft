@@ -23,6 +23,6 @@ stellar keys address $ACCOUNT || (echo "add the account $ACCOUNT via stellar key
 
 set -x
 
-stellar contract build
+./scripts/build.sh
 stellar contract deploy --wasm target/wasm32-unknown-unknown/release/alert.wasm \
       --source $ACCOUNT --network $NET
