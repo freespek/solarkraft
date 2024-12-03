@@ -26,6 +26,7 @@ stellar keys address $ALICE || (echo "add the account $ALICE via stellar keys ge
 BOB=bob
 stellar keys address $BOB || (echo "add the account $BOB via stellar keys generate"; exit 1)
 
+# XLM SAC token address: https://developers.stellar.org/docs/tokens/stellar-asset-contract
 XLM_ADDRESS=CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
 BORROW_AMOUNT=1000
 

@@ -53,6 +53,11 @@ jobs:
           cd ContractExamples
           ./scripts/prepare-timelock.sh
 
+      - name: Deploy xycloans
+        run: |
+          cd ContractExamples
+          ./scripts/xycloans-populate.sh
+
       #- uses: actions/setup-node@v3
       #  with:
       #    node-version: '16'
