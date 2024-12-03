@@ -17,7 +17,7 @@ jobs:
       - uses: stellar/actions/rust-cache@main
       # pin the rust version: https://github.com/stellar/rs-soroban-sdk/pull/1353
       - run: |
-          rustup default 1.82.0
+          rustup default 1.81.0
           rustup update
       - run: cargo version
       - uses: stellar/stellar-cli@main
