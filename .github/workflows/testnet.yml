@@ -30,6 +30,7 @@ jobs:
         run: |
           stellar keys generate --global alice --network testnet --fund
           stellar keys generate --global bob --network testnet --fund
+          stellar keys generate --global admin --network testnet --fund
 
       - name: Build contract examples
         run: |
