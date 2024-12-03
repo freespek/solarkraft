@@ -11,7 +11,7 @@ stellar contract build
 
 # build xycloans
 cd xycloans
-stellar contract build
+./build.sh
 
 # When using rust over 1.82.0:
 #RUSTFLAGS="-C target-feature=-reference-types" cargo build --target wasm32-unknown-unknown --release
