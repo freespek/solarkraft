@@ -23,6 +23,7 @@ stellar contract deploy \
     --source-account alice \
     --network testnet \
     --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/soroban_token_contract.wasm \
+    -- --admin alice --decimal 18 --name TOK --symbol TOK \
     | tee >.token.id
 
 TOKEN=$(cat .token.id)
@@ -32,18 +33,6 @@ if [ -z "$TOKEN" ]; then
 fi
 
 echo "Token contract ID: $TOKEN"
-
-stellar contract invoke \
-    --salt date +%s \
-    --id $TOKEN \
-    --source alice \
-    --network testnet \
-    -- \
-    initialize \
-    --admin alice \
-    --decimal 18 \
-    --name '"TOK"' \
-    --symbol '"TOK"'
 
 stellar contract invoke \
     --id $TOKEN \
