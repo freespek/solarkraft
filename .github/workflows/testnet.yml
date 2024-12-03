@@ -22,7 +22,7 @@ jobs:
       - run: cargo version
       - uses: stellar/stellar-cli@main
         with:
-          version: 22.0.1
+          version: 22.0.0
 
       - run: stellar --version
 
