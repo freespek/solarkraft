@@ -9,7 +9,8 @@
 
 set -e
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+dir=$(cd `dirname $0`; pwd -P)
+cd ${dir}/..
 
 ALICE=alice
 stellar keys address $ALICE || (echo "add the account $ALICE via stellar keys generate"; exit 1)
@@ -18,11 +19,13 @@ stellar keys address $BOB || (echo "add the account $BOB via stellar keys genera
 
 #set -x
 
+./scripts/build.sh
+
 stellar contract deploy \
     --salt `date +%s` \
     --source-account alice \
     --network testnet \
-    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/soroban_token_contract.wasm \
+    --wasm ./target/wasm32-unknown-unknown/release/soroban_token_contract.wasm \
     -- --admin alice --decimal 18 --name TOK --symbol TOK \
     | tee >.token.id
 
@@ -44,7 +47,7 @@ stellar contract invoke \
     --amount 100
 
 stellar contract deploy \
-    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/soroban_timelock_contract.wasm \
+    --wasm ./target/wasm32-unknown-unknown/release/soroban_timelock_contract.wasm \
     --source alice \
     --network testnet \
     | tee >.timelock.id

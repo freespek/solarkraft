@@ -25,7 +25,8 @@ stellar keys address $ACCOUNT2 || (echo "add the account $ACCOUNT2 via stellar k
 
 set -x
 
-stellar contract build
+./scripts/build.sh
+
 stellar contract deploy --wasm target/wasm32-unknown-unknown/release/setter.wasm \
       --source $ACCOUNT --network $NET | tee >.setter.id
 
