@@ -1,7 +1,6 @@
 [submodule "ContractExamples/soroban-examples"]
 	path = ContractExamples/soroban-examples
 	url = https://github.com/stellar/soroban-examples
-    branch = v21.6.0
 [submodule "ContractExamples/xycloans"]
 	path = ContractExamples/xycloans
 	url = https://github.com/xycloo/xycloans.git
