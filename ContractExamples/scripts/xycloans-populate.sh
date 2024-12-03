@@ -12,7 +12,15 @@ set -e
 
 dir=$(cd `dirname $0`; pwd -P)
 
+# see: https://github.com/stellar/rs-soroban-sdk/pull/1353
+rustc --version | grep 1.82.0 || (echo "Run: rustup default 1.82.0"; exit 1)
+
 cd ${dir}/../xycloans
+patch --forward -p1 <../patches/xycloans.diff || (echo "patch already applied?")
+
+stellar contract build --package xycloans-pool
+stellar contract build --package xycloans-factory
+stellar contract build --package simple
 
 NET=testnet
 (stellar network ls | grep -q $NET) || (echo "add testnet via stellar network"; exit 1)
@@ -31,8 +39,6 @@ XLM_ADDRESS=CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
 BORROW_AMOUNT=1000
 
 set -x
-
-../scripts/build.sh
 
 stellar contract deploy --wasm target/wasm32-unknown-unknown/release/xycloans_factory.wasm \
       --source $ADMIN --network $NET | tee >.xycloans_factory.id
