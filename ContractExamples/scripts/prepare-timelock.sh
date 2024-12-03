@@ -16,7 +16,7 @@ stellar keys address $ALICE || (echo "add the account $ALICE via stellar keys ge
 BOB=bob
 stellar keys address $BOB || (echo "add the account $BOB via stellar keys generate"; exit 1)
 
-set -x
+#set -x
 
 stellar contract deploy \
     --salt `date +%s` \
