@@ -18,9 +18,7 @@ rustc --version | grep 1.82.0 || (echo "Run: rustup default 1.82.0"; exit 1)
 cd ${dir}/../xycloans
 patch --forward -p1 <../patches/xycloans.diff || (echo "patch already applied?")
 
-stellar contract build --package xycloans-pool
-stellar contract build --package xycloans-factory
-stellar contract build --package simple
+stellar contract build
 
 NET=testnet
 (stellar network ls | grep -q $NET) || (echo "add testnet via stellar network"; exit 1)
