@@ -17,6 +17,7 @@ rustc --version | grep 1.81.0 || (echo "Run: rustup default 1.81.0"; exit 1)
 
 cd ${dir}/../xycloans
 patch --forward -p1 <../patches/xycloans.diff || (echo "patch already applied?")
+patch --forward -p1 <../patches/xycloans2.diff || (echo "patch already applied?")
 
 stellar contract build
 
