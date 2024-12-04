@@ -1,0 +1,13 @@
+diff --git a/examples/simple/src/lib.rs b/examples/simple/src/lib.rs
+index 021a924..c75abb1 100644
+--- a/examples/simple/src/lib.rs
++++ b/examples/simple/src/lib.rs
+@@ -48,7 +48,7 @@ impl FlashLoanReceiver for FlashLoanReceiverContract {
+             .get::<DataKey, i128>(&DataKey::Amount)
+             .unwrap();
+ 
+-        let total_amount = borrowed + compute_fee(&borrowed);
++        let total_amount = borrowed + compute_fee(&borrowed) + 1;
+ 
+         let flash_loan = e
+             .storage()
