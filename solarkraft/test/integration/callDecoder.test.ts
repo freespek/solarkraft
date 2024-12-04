@@ -35,7 +35,7 @@ const SOROBAN_URL = 'https://soroban-testnet.stellar.org:443'
 
 // hard-coded WASM code hash of the setter contract on the ledger (deployed via setter-populate.sh)
 const WASM_HASH =
-    '61da69e298a4c923eb699c22f4846cfb5f4926ab2b6a572bb85729e108a968d4'
+    'c531f315ccc0f4d3f3d393e8b0e54a4911f3a434c3d06cd2cd895d6e3fa291c3'
 
 // contract ID of the deployed setter contract (will be set up by `before()`)
 let CONTRACT_ID: string
