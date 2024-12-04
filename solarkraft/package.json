@@ -41,8 +41,8 @@
     "test": "mocha --loader=ts-node/esm --exclude test/e2e/**/*.test.ts --exclude test/integration/**/*.test.ts test/**/*.test.ts"
   },
   "dependencies": {
-    "@stellar/stellar-base": "^11.0.1",
-    "@stellar/stellar-sdk": "^12.2.0",
+    "@stellar/stellar-base": "^12.1.1",
+    "@stellar/stellar-sdk": "^13.0",
     "@sweet-monads/either": "^3.3.1",
     "@sweet-monads/maybe": "^3.3.1",
     "@types/urijs": "^1.19.25",
@@ -58,7 +58,7 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.0.0",
+    "@eslint/js": "^9.16.0",
     "@types/eventsource": "^1.1.15",
     "@types/lodash": "^4.17.9",
     "@types/node": "^20.11.26",
@@ -73,7 +73,7 @@
     "prettier": "^3.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
-    "typescript-eslint": "^7.6.0"
+    "typescript-eslint": "^8.17.0"
   },
   "engines": {
     "node": ">=18"
