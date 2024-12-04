@@ -60,8 +60,3 @@ jobs:
         run: |
           cd ContractExamples
           ./scripts/xycloans-populate.sh
-
-      #- uses: actions/setup-node@v3
-      #  with:
-      #    node-version: '16'
-      #   stellar keys generate --global admin --network testnet --fund
