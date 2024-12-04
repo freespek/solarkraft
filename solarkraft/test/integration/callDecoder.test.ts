@@ -57,10 +57,12 @@ const bytes32 = Buffer.from([
 // extract the only contract entry from a given ledger
 async function extractEntry(txHash: string): Promise<ContractCallEntry> {
     const server = new Horizon.Server(HORIZON_URL)
+    const rpcServer = new rpc.Server(SOROBAN_URL)
     const operations = await server.operations().forTransaction(txHash).call()
     let resultingEntry: Maybe<ContractCallEntry> = none<ContractCallEntry>()
     for (const op of operations.records) {
         const entry = await extractContractCall(
+            rpcServer,
             op as Horizon.ServerApi.InvokeHostFunctionOperationRecord,
             (id) => id === CONTRACT_ID
         )

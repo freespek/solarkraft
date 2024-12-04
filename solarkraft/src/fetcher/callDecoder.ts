@@ -10,7 +10,7 @@
  * @license [Apache-2.0](https://github.com/freespek/solarkraft/blob/main/LICENSE)
  */
 
-import sdk, { Address, Horizon } from '@stellar/stellar-sdk'
+import sdk, { Address, Horizon, rpc } from '@stellar/stellar-sdk'
 import {
     ContractCallEntry,
     emptyContractStorage,
@@ -26,6 +26,7 @@ import { Maybe, just, none } from '@sweet-monads/maybe'
  * @param matcher a quick matcher over the contractId to avoid expensive deserialization
  */
 export async function extractContractCall(
+    rpcServer: rpc.Server,
     op: Horizon.ServerApi.InvokeHostFunctionOperationRecord,
     matcher: (contractId: string) => boolean,
     typemapJson: any = {}
@@ -80,9 +81,16 @@ export async function extractContractCall(
     // https://developers.stellar.org/network/horizon/api-reference/resources/transactions/object
     const height = tx.ledger_attr
 
+    // Since Horizon does not return tx.result_meta_xdr anymore, make another query with getTransaction
+    const txDetails = await rpcServer.getTransaction(txHash)
+    if (txDetails.status == rpc.Api.GetTransactionStatus.NOT_FOUND) {
+        // this transaction is missing
+        return none()
+    }
+
     // The operation itself does not give us the ledger updates.
     // Deserialize tx.result_meta_xdr.
-    const meta = sdk.xdr.TransactionMeta.fromXDR(tx.result_meta_xdr, 'base64')
+    const meta = txDetails.resultMetaXdr
     // extract transaction metadata for version 3
     if (meta.switch() !== 3) {
         // Is it possible to have older transaction metadata with Soroban?
