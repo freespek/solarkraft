@@ -42,7 +42,7 @@
  * those values are indistinguishable from vectors at the transaction data layer.
  */
 
-import { Horizon } from '@stellar/stellar-sdk'
+import { Horizon, rpc } from '@stellar/stellar-sdk'
 import { extractContractCall } from './fetcher/callDecoder.js'
 import {
     loadFetcherState,
@@ -67,7 +67,10 @@ export async function fetch(args: any) {
         return
     }
 
-    const server = new Horizon.Server(args.rpc)
+    // previously, we used the Horizon API
+    const server = new Horizon.Server(args.horizon)
+    // but now we also need the Soroban RPC to extract detailed transactions
+    const rpcServer = new rpc.Server(args.rpc)
 
     const contractId = args.id
     console.log(`Target contract: ${contractId}...`)
@@ -122,6 +125,7 @@ export async function fetch(args: any) {
                 }
                 op = op as Horizon.ServerApi.InvokeHostFunctionOperationRecord
                 const callEntryMaybe = await extractContractCall(
+                    rpcServer,
                     op,
                     (id) => contractId === id,
                     typemapJson
