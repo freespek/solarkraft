@@ -18,7 +18,7 @@ import {
     nativeToScVal,
     Networks,
     Operation,
-    SorobanRpc,
+    rpc,
     Transaction,
     TransactionBuilder,
     xdr,
@@ -84,15 +84,15 @@ async function extractEntry(txHash: string): Promise<ContractCallEntry> {
 
 // submit a transaction, return its transaction hash and the response
 async function submitTx(
-    server: SorobanRpc.Server,
+    server: rpc.Server,
     tx: Transaction,
     keypair: Keypair
 ): Promise<
     [
         string,
         (
-            | SorobanRpc.Api.GetSuccessfulTransactionResponse
-            | SorobanRpc.Api.GetFailedTransactionResponse
+            | rpc.Api.GetSuccessfulTransactionResponse
+            | rpc.Api.GetFailedTransactionResponse
         ),
     ]
 > {
@@ -128,13 +128,13 @@ async function callContract(
     [
         string,
         (
-            | SorobanRpc.Api.GetSuccessfulTransactionResponse
-            | SorobanRpc.Api.GetFailedTransactionResponse
+            | rpc.Api.GetSuccessfulTransactionResponse
+            | rpc.Api.GetFailedTransactionResponse
         ),
     ]
 > {
     // adapted from https://developers.stellar.org/docs/learn/encyclopedia/contract-development/contract-interactions/stellar-transaction#function
-    const server = new SorobanRpc.Server(SOROBAN_URL)
+    const server = new rpc.Server(SOROBAN_URL)
 
     // the deployed setter contract
     const contract = new Contract(CONTRACT_ID)
@@ -171,7 +171,7 @@ describe('call decoder from Horizon', function () {
 
         // Redeploy a fresh copy of the setter contract WASM from CONTRACT_ID_TEMPLATE
         console.log(`Creating a contract from WASM code ${WASM_HASH} ...`)
-        const soroban = new SorobanRpc.Server(SOROBAN_URL)
+        const soroban = new rpc.Server(SOROBAN_URL)
         const sourceAccount = await soroban.getAccount(alice.publicKey())
         const builtTransaction = new TransactionBuilder(sourceAccount, {
             fee: BASE_FEE,
@@ -1321,7 +1321,7 @@ describe('call decoder from Horizon', function () {
         // submit 2 conflicting tx in parallel by different accounts to provoke a failed transaction
 
         // Craft a conflicting transaction
-        const server = new SorobanRpc.Server(SOROBAN_URL)
+        const server = new rpc.Server(SOROBAN_URL)
         const contract = new Contract(CONTRACT_ID)
         const sourceAccount = await server.getAccount(bob.publicKey())
         const builtTransaction = new TransactionBuilder(sourceAccount, {
