@@ -10,9 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Update submodules
-        run: |
-          git submodule update --init --recursive
+        with:
+          submodules: true
       # see: https://github.com/stellar/soroban-examples/blob/main/.github/workflows/rust.yml
       - uses: stellar/actions/rust-cache@main
       # pin the rust version: https://github.com/stellar/rs-soroban-sdk/pull/1353
