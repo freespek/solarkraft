@@ -46,8 +46,13 @@ Init ==
         token_persistent |-> [ Balance |-> [ addr \in ADDR |-> 0 ] ]
     ]
     IN
+    \* initialize the monitor
+    /\ shares = [ addr \in {} |-> 0 ]
+    /\ total_shares = 0
+    /\ fee_per_share_universal = 0
+    \* initialize the contract state that we model
     /\ last_tx = [
-            call |-> Create(XYCLOANS),
+            call |-> Constructor(XYCLOANS),
             status |-> TRUE,
             env |-> [
                 current_contract_address |-> XYCLOANS,
@@ -55,9 +60,6 @@ Init ==
                 old_storage |-> init_stor
             ]
         ]
-    /\ shares = [ addr \in {} |-> 0 ]
-    /\ total_shares = 0
-    /\ fee_per_share_universal = 0
     /\ storage = init_stor
 
 Next ==
@@ -94,7 +96,7 @@ NextOk ==
 
 \* use this falsy invariant to generate examples of successful transactions
 NoSuccessInv ==
-    ~IsCreate(last_tx.call) => ~last_tx.status
+    ~IsConstructor(last_tx.call) => ~last_tx.status
 
 \* use this view to generate better test coverage
 \* apalache-mc check --max-error=10 --length=10 --inv=NoSuccessInv --view=View MCxycloans_monitor.tla

@@ -33,7 +33,7 @@ EXTENDS Variants
     An external contract call:
 
     @typeAlias: call =
-          Create({ addr: Str })
+          Constructor({ addr: Str })
         | Initialize({ token: Str })
         | Deposit({ from: Str, amount: Int })
         | Borrow({ receiver_id: Str, amount: Int })
@@ -53,9 +53,9 @@ xycloans_typedefs == TRUE
 (* Boilerplate definitions for the method types (mostly generated with copilot) *)
 
 \* @type: Str => $call;
-Create(addr) == Variant("Create", [ addr |-> addr ])
+Constructor(addr) == Variant("Constructor", [ addr |-> addr ])
 \* @type: $call => Bool;
-IsCreate(call) == VariantTag(call) = "Create"
+IsConstructor(call) == VariantTag(call) = "Constructor"
 \* @type: Str => $call;
 Initialize(token) == Variant("Initialize", [ token |-> token ])
 \* @type: $call => Bool;
