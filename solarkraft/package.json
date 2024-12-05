@@ -41,7 +41,6 @@
     "test": "mocha --loader=ts-node/esm --exclude test/e2e/**/*.test.ts --exclude test/integration/**/*.test.ts test/**/*.test.ts"
   },
   "dependencies": {
-    "@stellar/stellar-base": "^12.1.1",
     "@stellar/stellar-sdk": "^13.0",
     "@sweet-monads/either": "^3.3.1",
     "@sweet-monads/maybe": "^3.3.1",
