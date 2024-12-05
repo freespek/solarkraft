@@ -13,6 +13,8 @@ set -e
 dir=$(cd `dirname $0`; pwd -P)
 
 ${dir}/build.sh
+cd ${dir}/..
+
 NET=testnet
 (stellar network ls | grep -q $NET) || (echo "add testnet via stellar network"; exit 1)
 
