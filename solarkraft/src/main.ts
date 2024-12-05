@@ -42,10 +42,15 @@ const fetchCmd = {
                 type: 'string',
                 require: false,
             })
-            .option('rpc', {
+            .option('horizon', {
                 desc: 'URL of a Horizon endpoint',
                 type: 'string',
                 default: 'https://horizon-testnet.stellar.org',
+            })
+            .option('rpc', {
+                desc: 'URL of a Soroban RPC endpoint',
+                type: 'string',
+                default: 'https://soroban-testnet.stellar.org',
             })
             .option('height', {
                 desc: 'The height to start with (a negative value -n goes from the latest block - n)',

@@ -9,36 +9,34 @@
 
 set -e
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+dir=$(cd `dirname $0`; pwd -P)
+cd ${dir}/..
 
 ALICE=alice
-soroban keys address $ALICE || (echo "add the account $ALICE via soroban keys generate"; exit 1)
+stellar keys address $ALICE || (echo "add the account $ALICE via stellar keys generate"; exit 1)
 BOB=bob
-soroban keys address $BOB || (echo "add the account $BOB via soroban keys generate"; exit 1)
+stellar keys address $BOB || (echo "add the account $BOB via stellar keys generate"; exit 1)
 
-set -x
+#set -x
 
-TOKEN=$(
-    soroban contract deploy \
+./scripts/build.sh
+
+stellar contract deploy \
     --source-account alice \
     --network testnet \
-    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/soroban_token_contract.wasm
-)
+    --wasm ./target/wasm32-unknown-unknown/release/soroban_token_contract.wasm \
+    -- --admin alice --decimal 18 --name TOK --symbol TOK \
+    | tee >.token.id
+
+TOKEN=$(cat .token.id)
+if [ -z "$TOKEN" ]; then
+    echo "Failed to deploy the token contract"
+    exit 1
+fi
 
 echo "Token contract ID: $TOKEN"
 
-soroban contract invoke \
-    --id $TOKEN \
-    --source alice \
-    --network testnet \
-    -- \
-    initialize \
-    --admin alice \
-    --decimal 18 \
-    --name '"TOK"' \
-    --symbol '"TOK"'
-
-soroban contract invoke \
+stellar contract invoke \
     --id $TOKEN \
     --source alice \
     --network testnet \
@@ -47,14 +45,22 @@ soroban contract invoke \
     --to alice \
     --amount 100
 
-TIMELOCK=$(soroban contract deploy \
-    --wasm $SCRIPT_DIR/../target/wasm32-unknown-unknown/release/soroban_timelock_contract.wasm \
+stellar contract deploy \
+    --wasm ./target/wasm32-unknown-unknown/release/soroban_timelock_contract.wasm \
     --source alice \
-    --network testnet)
+    --network testnet \
+    | tee >.timelock.id
+
+TIMELOCK=$(cat .timelock.id)
+
+if [ -z "$TIMELOCK" ]; then
+    echo "Failed to deploy the timelock contract"
+    exit 1
+fi
 
 echo "Timelock contract ID: $TIMELOCK"
 
-soroban contract invoke \
+stellar contract invoke \
     --id $TIMELOCK \
     --source alice \
     --network testnet \
@@ -63,10 +69,10 @@ soroban contract invoke \
     --from alice \
     --token $TOKEN \
     --amount 1 \
-    --claimants "[\"$(soroban keys address bob)\"]"\
+    --claimants "[\"$(stellar keys address bob)\"]"\
     --time_bound '{"kind": "After", "timestamp": 0}'
 
-soroban contract invoke \
+stellar contract invoke \
     --id $TIMELOCK \
     --source bob \
     --network testnet \

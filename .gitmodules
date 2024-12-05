@@ -4,3 +4,4 @@
 [submodule "ContractExamples/xycloans"]
 	path = ContractExamples/xycloans
 	url = https://github.com/xycloo/xycloans.git
+	branch = b26e0124ab0b84c1be25c636492671f106653f09
