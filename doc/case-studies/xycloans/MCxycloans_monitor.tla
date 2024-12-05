@@ -61,7 +61,8 @@ Init ==
     /\ storage = init_stor
 
 Next ==
-    \* generate some values for the storage
+    \* Generate some values for the storage.
+    \* For value generation, we go over all addresses, not subsets of addresses.
     \E fpsu \in AMOUNTS, tid \in { "", XLM_TOKEN_SAC_TESTNET }:
       \E b, mfp, fpsp, tb \in [ ADDR -> AMOUNTS ]:
         LET new_stor == [
@@ -77,11 +78,14 @@ Next ==
             ]
         IN
         \E addr \in ADDR, amount \in AMOUNTS, success \in BOOLEAN:
-            /\  \/ initialize([ env |-> env, call |-> Initialize(XLM_TOKEN_SAC_TESTNET), status |-> success ])
-                \/ deposit([ env |-> env, call |-> Deposit(addr, amount), status |-> success ])
-                \/ borrow([ env |-> env, call |-> Borrow(addr, amount), status |-> success ])
-                \/ update_fee_rewards([ env |-> env, call |-> UpdateFeeRewards(addr), status |-> success ])
-            \* Propagate the new storage. For value generation, we go over all addresses, not subsets.
+            /\  \/ LET tx == [ env |-> env, call |-> Initialize(XLM_TOKEN_SAC_TESTNET), status |-> success ] IN
+                   initialize(tx) /\ last_tx' = tx
+                \/ LET tx == [ env |-> env, call |-> Deposit(addr, amount), status |-> success ] IN
+                   deposit(tx) /\ last_tx' = tx
+                \/ LET tx == [ env |-> env, call |-> Borrow(addr, amount), status |-> success ] IN
+                   borrow(tx) /\ last_tx' = tx
+                \/ LET tx == [ env |-> env, call |-> UpdateFeeRewards(addr), status |-> success ] IN
+                   update_fee_rewards(tx) /\ last_tx' = tx
             /\ storage' = IF success THEN new_stor ELSE storage
 
 \* restrict the executions to the successful transactions

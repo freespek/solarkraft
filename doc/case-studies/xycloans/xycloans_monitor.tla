@@ -23,9 +23,6 @@ CONSTANT
 
 (* The internal state of our monitor (not of the contract) *)
 VARIABLES
-    \* The last monitored transaction.
-    \* @type: $tx;
-    last_tx,
     \* Shares per address.
     \* @type: Str -> Int;
     shares,
@@ -66,7 +63,6 @@ initialize(tx) ==
     \* these conditions are not required by a monitor, but needed to avoid spurious generated values
     /\ succeeds_with(tx,
         tx.env.storage.self_persistent = tx.env.old_storage.self_persistent)
-    /\ last_tx' = tx
     /\ shares' = [ addr \in {} |-> 0 ]
     /\ total_shares' = 0
     /\ fee_per_share_universal' = 0    
@@ -94,7 +90,6 @@ deposit(tx) ==
             /\ tx.env.storage.self_persistent.Balance[other] = tx.env.old_storage.self_persistent.Balance[other])
     /\ succeeds_with(tx, call.amount > 0)
     \* update the monitor state
-    /\ last_tx' = tx
     /\ shares' = new_shares
     /\ total_shares' = total_shares + call.amount
     /\ UNCHANGED fee_per_share_universal
@@ -121,7 +116,6 @@ borrow(tx) ==
     /\ succeeds_with(tx, tx.env.storage.self_persistent = tx.env.old_storage.self_persistent)
     /\ succeeds_with(tx, call.amount > 0)
     \* update the monitor state
-    /\ last_tx' = tx
     \* we update the fee per share to compute rewards later
     /\ fee_per_share_universal' = expected_fee_per_share_universal
     /\ UNCHANGED <<shares, total_shares>>
@@ -146,7 +140,6 @@ update_fee_rewards(tx) ==
     /\ succeeds_with(tx,
         tx.env.storage.self_persistent.Balance = tx.env.old_storage.self_persistent.Balance)
     \* update the monitor state
-    /\ last_tx' = tx
     /\ UNCHANGED <<shares, total_shares, fee_per_share_universal>>
 
 =============================================================================
