@@ -359,7 +359,7 @@ function logEvaluationError(e: Error) {
                     console.error(' '.repeat(parseInt(pos) - 1) + '^')
                 }
             })
-    } catch (e) {
+    } catch {
         // fail silently
     }
 }

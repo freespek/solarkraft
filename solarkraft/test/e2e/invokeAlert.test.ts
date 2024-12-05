@@ -24,7 +24,7 @@ describe('alert contract invocation', () => {
                     sourceKeypair.publicKey()
                 )}`
             )
-        } catch (e) {
+        } catch {
             assert(false)
         }
 

@@ -1,0 +1,62 @@
+name: Deployment to testnet
+
+on:
+  workflow_dispatch:
+  schedule:
+    # This cron expression triggers the workflow at 8:00 UTC every day
+    - cron: "8 0 * * *"
+  # uncomment to debug in a PR
+  #pull_request:
+ 
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      # see: https://github.com/stellar/soroban-examples/blob/main/.github/workflows/rust.yml
+      - uses: stellar/actions/rust-cache@main
+      # pin the rust version: https://github.com/stellar/rs-soroban-sdk/pull/1353
+      - run: |
+          rustup default 1.81.0
+          rustup update
+      - run: cargo version
+      - uses: stellar/stellar-cli@main
+        with:
+          version: 22.0.0
+
+      - run: stellar --version
+
+      - name: Generate Soroban keys
+        run: |
+          stellar keys generate --global alice --network testnet --fund
+          stellar keys generate --global bob --network testnet --fund
+          stellar keys generate --global admin --network testnet --fund
+
+      - name: Build contract examples
+        run: |
+          cd ContractExamples
+          rustup target add wasm32-unknown-unknown
+          # it's important to disable reference types, otherwise we get deployment errors
+          RUSTFLAGS="-C target-feature=-reference-types" cargo build --target wasm32-unknown-unknown --release
+
+      - name: Deploy alert
+        run: |
+          cd ContractExamples
+          ./scripts/alert-deploy.sh
+
+      - name: Deploy setter
+        run: |
+          cd ContractExamples
+          ./scripts/setter-populate.sh
+
+      - name: Deploy timelock
+        run: |
+          cd ContractExamples
+          ./scripts/prepare-timelock.sh
+
+      - name: Deploy xycloans
+        run: |
+          cd ContractExamples
+          ./scripts/xycloans-populate.sh

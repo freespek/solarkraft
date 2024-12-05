@@ -18,7 +18,7 @@ import {
     nativeToScVal,
     Networks,
     Operation,
-    SorobanRpc,
+    rpc,
     Transaction,
     TransactionBuilder,
     xdr,
@@ -35,7 +35,7 @@ const SOROBAN_URL = 'https://soroban-testnet.stellar.org:443'
 
 // hard-coded WASM code hash of the setter contract on the ledger (deployed via setter-populate.sh)
 const WASM_HASH =
-    '61da69e298a4c923eb699c22f4846cfb5f4926ab2b6a572bb85729e108a968d4'
+    'c531f315ccc0f4d3f3d393e8b0e54a4911f3a434c3d06cd2cd895d6e3fa291c3'
 
 // contract ID of the deployed setter contract (will be set up by `before()`)
 let CONTRACT_ID: string
@@ -57,10 +57,12 @@ const bytes32 = Buffer.from([
 // extract the only contract entry from a given ledger
 async function extractEntry(txHash: string): Promise<ContractCallEntry> {
     const server = new Horizon.Server(HORIZON_URL)
+    const rpcServer = new rpc.Server(SOROBAN_URL)
     const operations = await server.operations().forTransaction(txHash).call()
     let resultingEntry: Maybe<ContractCallEntry> = none<ContractCallEntry>()
     for (const op of operations.records) {
         const entry = await extractContractCall(
+            rpcServer,
             op as Horizon.ServerApi.InvokeHostFunctionOperationRecord,
             (id) => id === CONTRACT_ID
         )
@@ -84,15 +86,15 @@ async function extractEntry(txHash: string): Promise<ContractCallEntry> {
 
 // submit a transaction, return its transaction hash and the response
 async function submitTx(
-    server: SorobanRpc.Server,
+    server: rpc.Server,
     tx: Transaction,
     keypair: Keypair
 ): Promise<
     [
         string,
         (
-            | SorobanRpc.Api.GetSuccessfulTransactionResponse
-            | SorobanRpc.Api.GetFailedTransactionResponse
+            | rpc.Api.GetSuccessfulTransactionResponse
+            | rpc.Api.GetFailedTransactionResponse
         ),
     ]
 > {
@@ -128,13 +130,13 @@ async function callContract(
     [
         string,
         (
-            | SorobanRpc.Api.GetSuccessfulTransactionResponse
-            | SorobanRpc.Api.GetFailedTransactionResponse
+            | rpc.Api.GetSuccessfulTransactionResponse
+            | rpc.Api.GetFailedTransactionResponse
         ),
     ]
 > {
     // adapted from https://developers.stellar.org/docs/learn/encyclopedia/contract-development/contract-interactions/stellar-transaction#function
-    const server = new SorobanRpc.Server(SOROBAN_URL)
+    const server = new rpc.Server(SOROBAN_URL)
 
     // the deployed setter contract
     const contract = new Contract(CONTRACT_ID)
@@ -171,7 +173,7 @@ describe('call decoder from Horizon', function () {
 
         // Redeploy a fresh copy of the setter contract WASM from CONTRACT_ID_TEMPLATE
         console.log(`Creating a contract from WASM code ${WASM_HASH} ...`)
-        const soroban = new SorobanRpc.Server(SOROBAN_URL)
+        const soroban = new rpc.Server(SOROBAN_URL)
         const sourceAccount = await soroban.getAccount(alice.publicKey())
         const builtTransaction = new TransactionBuilder(sourceAccount, {
             fee: BASE_FEE,
@@ -1321,7 +1323,7 @@ describe('call decoder from Horizon', function () {
         // submit 2 conflicting tx in parallel by different accounts to provoke a failed transaction
 
         // Craft a conflicting transaction
-        const server = new SorobanRpc.Server(SOROBAN_URL)
+        const server = new rpc.Server(SOROBAN_URL)
         const contract = new Contract(CONTRACT_ID)
         const sourceAccount = await server.getAccount(bob.publicKey())
         const builtTransaction = new TransactionBuilder(sourceAccount, {
