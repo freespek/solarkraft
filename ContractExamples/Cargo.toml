@@ -12,7 +12,6 @@ edition = "2021"
 
 [workspace.dependencies]
 soroban-sdk = { version = "22.0.0-rc.3.1" }
-soroban-token-sdk = { version = "22.0.0-rc.3.1" }
 
 [profile.release]
 opt-level = "z"
