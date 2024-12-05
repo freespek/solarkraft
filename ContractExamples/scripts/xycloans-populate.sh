@@ -33,11 +33,11 @@ BORROW_AMOUNT=1000
 
 set -x
 
-stellar contract deploy --wasm target/wasm32-unknown-unknown/release/xycloans_factory.wasm \
+stellar contract deploy --wasm ./xycloans/target/wasm32-unknown-unknown/release/xycloans_factory.wasm \
       --source $ADMIN --network $NET | tee >.xycloans_factory.id
-stellar contract deploy --wasm target/wasm32-unknown-unknown/release/simple.wasm \
+stellar contract deploy --wasm ./xycloans/target/wasm32-unknown-unknown/release/simple.wasm \
       --source $ADMIN --network $NET | tee >.xycloans_simple.id
-stellar contract install --wasm target/wasm32-unknown-unknown/release/xycloans_pool.wasm \
+stellar contract install --wasm ./xycloans/target/wasm32-unknown-unknown/release/xycloans_pool.wasm \
       --source $ADMIN --network $NET | tee >.xycloans_pool.wasmhash
 
 # initialize the factory contract and deploy a pool
