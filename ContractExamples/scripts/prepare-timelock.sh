@@ -22,7 +22,6 @@ stellar keys address $BOB || (echo "add the account $BOB via stellar keys genera
 ./scripts/build.sh
 
 stellar contract deploy \
-    --salt `date +%s` \
     --source-account alice \
     --network testnet \
     --wasm ./target/wasm32-unknown-unknown/release/soroban_token_contract.wasm \

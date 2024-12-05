@@ -85,6 +85,9 @@ export async function extractContractCall(
     const txDetails = await rpcServer.getTransaction(txHash)
     if (txDetails.status == rpc.Api.GetTransactionStatus.NOT_FOUND) {
         // this transaction is missing
+        console.log(
+            `Transaction ${txHash} reported by Horizon but not found by Soroban RPC`
+        )
         return none()
     }
 
