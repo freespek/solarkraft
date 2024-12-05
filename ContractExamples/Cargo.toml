@@ -27,9 +27,3 @@ lto = true
 [profile.release-with-logs]
 inherits = "release"
 debug-assertions = true
-
-[profile.release.package.soroban-env-host]
-debug = false
-
-[profile.release.package.stellar-xdr]
-debug = false
