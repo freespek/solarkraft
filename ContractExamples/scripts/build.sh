@@ -16,5 +16,7 @@ patch --forward -p1 <../patches/xycloans2.diff || (echo "patch already applied?"
 
 stellar contract build
 
+cd ${dir}
+
 # When using rust over 1.81.0:
 #RUSTFLAGS="-C target-feature=-reference-types" cargo build --target wasm32-unknown-unknown --release
