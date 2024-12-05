@@ -12,15 +12,7 @@ set -e
 
 dir=$(cd `dirname $0`; pwd -P)
 
-# see: https://github.com/stellar/rs-soroban-sdk/pull/1353
-rustc --version | grep 1.81.0 || (echo "Run: rustup default 1.81.0"; exit 1)
-
-cd ${dir}/../xycloans
-patch --forward -p1 <../patches/xycloans.diff || (echo "patch already applied?")
-patch --forward -p1 <../patches/xycloans2.diff || (echo "patch already applied?")
-
-stellar contract build
-
+${dir}/build.sh
 NET=testnet
 (stellar network ls | grep -q $NET) || (echo "add testnet via stellar network"; exit 1)
 
