@@ -12,4 +12,4 @@ doctest = false
 soroban-sdk = { workspace = true }
 
 [dev-dependencies]
-soroban-sdk = { version = "21.6.0", features = ["testutils"] }
+soroban-sdk = { version = "22.0.0-rc.3.1", features = ["testutils"] }

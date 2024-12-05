@@ -1,6 +1,6 @@
 import {
     Contract,
-    SorobanRpc,
+    rpc,
     TransactionBuilder,
     Networks,
     BASE_FEE,
@@ -33,7 +33,7 @@ export async function invokeAlert(
     verificationStatus: VerificationStatus
 ): Promise<VerificationStatus> {
     const alertContract = new Contract(alertContractId)
-    const server = new SorobanRpc.Server(sorobanRpcServer)
+    const server = new rpc.Server(sorobanRpcServer)
 
     // We have to build the method params from the JS ones
     const txHashAsScVal = xdr.ScVal.scvString(txHash)

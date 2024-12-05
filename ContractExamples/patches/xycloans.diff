@@ -1,0 +1,30 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index e3a7104..b18672f 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -3,11 +3,11 @@ resolver = "2"
+ members = [
+     #"flash-loan",
+     #"receiver-standard",
++    "pool",
++    "factory",
+     "examples/simple",
+     #"vault",
+     #"vault-interface",
+-    "factory",
+-    "pool"
+ ]
+ 
+ [profile.release-with-logs]
+@@ -26,8 +26,8 @@ lto = true
+ 
+ 
+ [workspace.dependencies.soroban-sdk]
+-version = "20.0.0"
++version = "22.0.0-rc.3"
+ 
+ 
+ [workspace.dependencies.fixed-point-math]
+-version = "0.0.2"
+\ No newline at end of file
++version = "0.0.2"
