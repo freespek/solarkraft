@@ -115,6 +115,7 @@ borrow(tx) ==
     \* these conditions are not required by a monitor, but needed to avoid spurious generated values
     /\ succeeds_with(tx, tx.env.storage.self_persistent = tx.env.old_storage.self_persistent)
     /\ succeeds_with(tx, call.amount > 0)
+    /\ succeeds_with(tx, total_shares > 0)
     \* update the monitor state
     \* we update the fee per share to compute rewards later
     /\ fee_per_share_universal' = expected_fee_per_share_universal
@@ -126,9 +127,9 @@ update_fee_rewards(tx) ==
         fees_not_yet_considered ==
             fee_per_share_universal - get_or_else(tx.env.old_storage.self_persistent.FeePerShareParticular, call.addr, 0)
         expected_reward == div_floor(get_or_else(shares, call.addr, 0) * fees_not_yet_considered, STROOP)
-        mf == get_or_else(tx.env.storage.self_persistent.MaturedFeesParticular, call.addr, 0)
-        old_mf == get_or_else(tx.env.old_storage.self_persistent.MaturedFeesParticular, call.addr, 0)
-        actual_reward == mf - old_mf
+        mf_addr == get_or_else(tx.env.storage.self_persistent.MaturedFeesParticular, call.addr, 0)
+        old_mf_addr == get_or_else(tx.env.old_storage.self_persistent.MaturedFeesParticular, call.addr, 0)
+        actual_reward == mf_addr - old_mf_addr
     IN
     /\ IsUpdateFeeRewards(tx.call)
     \* fee per share for `addr` is bumped to the universal fee per share
@@ -139,6 +140,21 @@ update_fee_rewards(tx) ==
     \* these conditions are not required by a monitor, but needed to avoid spurious generated values
     /\ succeeds_with(tx,
         tx.env.storage.self_persistent.Balance = tx.env.old_storage.self_persistent.Balance)
+    /\ succeeds_with(tx,
+        tx.env.storage.self_instance.FeePerShareUniversal =
+            tx.env.old_storage.self_instance.FeePerShareUniversal)
+    /\ succeeds_with(tx,
+        LET mf == tx.env.storage.self_persistent.MaturedFeesParticular
+            old_mf == tx.env.old_storage.self_persistent.MaturedFeesParticular
+        IN
+        \A addr \in DOMAIN mf \ { call.addr }:
+            addr \in DOMAIN old_mf => mf[addr] = old_mf[addr])
+    /\ succeeds_with(tx,
+        LET fpsp == tx.env.storage.self_persistent.FeePerShareParticular
+            old_fpsp == tx.env.old_storage.self_persistent.FeePerShareParticular
+        IN
+        \A addr \in DOMAIN fpsp \ { call.addr }:
+            addr \in DOMAIN old_fpsp => fpsp[addr] = old_fpsp[addr])
     \* update the monitor state
     /\ UNCHANGED <<shares, total_shares, fee_per_share_universal>>
 
