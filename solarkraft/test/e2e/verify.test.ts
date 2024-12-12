@@ -97,7 +97,7 @@ describe('verify', () => {
         // fetch the transactions like in fetch.test.ts
         const solarkraftHome = './test/e2e/tla'
         this.timeout(50000)
-        
+
         // this callback is called after the fetch command has finished
         const fetchCallback = (err) => {
             assert(!err, `fetch failed: ${err}`)
@@ -108,14 +108,17 @@ describe('verify', () => {
                 SETTER_CONTRACT_HASH,
                 join(solarkraftHome, '.stor', SETTER_CONTRACT_HASH)
             )) {
-                spawn('solarkraft', [
-                    'verify',
-                    `--home=${solarkraftHome}`,
-                    `--txHash=${e.txHash}`,
-                    '--monitor=./test/e2e/tla/setter_mon.tla',
+                spawn(
+                    'solarkraft',
+                    [
+                        'verify',
+                        `--home=${solarkraftHome}`,
+                        `--txHash=${e.txHash}`,
+                        '--monitor=./test/e2e/tla/setter_mon.tla',
                     ],
                     { verbose: true }
-                ).wait('[OK]')
+                )
+                    .wait('[OK]')
                     .run((err) => {
                         assert(!err, `verify failed: ${err}`)
                         nchecked++
@@ -123,7 +126,7 @@ describe('verify', () => {
                         if (nchecked === ncalls) {
                             // technically, we may have a race condition
                             // between spawning and finishing verification
-                            assert(ncalls > 0, "no transactions checked")
+                            assert(ncalls > 0, 'no transactions checked')
                             // we have to tell mocha that we are done
                             done()
                         }
