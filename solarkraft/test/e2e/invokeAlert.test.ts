@@ -45,10 +45,12 @@ describe('alert contract invocation', () => {
         this.timeout(50000)
         spawn(
             'solarkraft',
-            [ 'verify', '--home=./test/e2e/tla/',
-               '--txHash=406d278860b5531dd1443532f3457c5daa288e8eb0007d2a8e2aa0127e87949e',
-               '--monitor=./test/e2e/tla/setter_mon.tla',
-               '--alert=bogus'
+            [
+                'verify',
+                '--home=./test/e2e/tla/',
+                '--txHash=406d278860b5531dd1443532f3457c5daa288e8eb0007d2a8e2aa0127e87949e',
+                '--monitor=./test/e2e/tla/setter_mon.tla',
+                '--alert=bogus',
             ],
             { verbose: true }
         )
@@ -59,15 +61,13 @@ describe('alert contract invocation', () => {
 
     it('alerts the contract when specified', function (done) {
         this.timeout(50000)
-        spawn(
-            'solarkraft',
-            [ 'verify',
-              '--home=test/e2e/tla/',
-              '--txHash=406d278860b5531dd1443532f3457c5daa288e8eb0007d2a8e2aa0127e87949e',
-              '--monitor=test/e2e/tla/setter_mon.tla',
-              `--alert=${ALERT_CONTRACT_HASH}`
-            ]
-        )
+        spawn('solarkraft', [
+            'verify',
+            '--home=test/e2e/tla/',
+            '--txHash=406d278860b5531dd1443532f3457c5daa288e8eb0007d2a8e2aa0127e87949e',
+            '--monitor=test/e2e/tla/setter_mon.tla',
+            `--alert=${ALERT_CONTRACT_HASH}`,
+        ])
             .wait('Preparing to submit alert.')
             .wait('Transaction successful')
             .run(done)
