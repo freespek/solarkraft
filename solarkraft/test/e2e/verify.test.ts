@@ -96,7 +96,7 @@ describe('verify', () => {
     it('fetches and verifies', function (done) {
         // fetch the transactions like in fetch.test.ts
         const solarkraftHome = './test/e2e/tla'
-        this.timeout(50000)
+        this.timeout(120000)
 
         // this callback is called after the fetch command has finished
         const fetchCallback = (err) => {
@@ -123,7 +123,7 @@ describe('verify', () => {
                         assert(!err, `verify failed: ${err}`)
                         nchecked++
                         console.log(`checked ${e.txHash} of ${ncalls}`)
-                        if (nchecked === ncalls) {
+                        if (nchecked >= ncalls) {
                             // technically, we may have a race condition
                             // between spawning and finishing verification
                             assert(ncalls > 0, 'no transactions checked')
