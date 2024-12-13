@@ -35,9 +35,13 @@ HEIGHT=`curl -s https://horizon-testnet.stellar.org/ | jq .history_latest_ledger
 echo "export const SETTER_HEIGHT = $HEIGHT" >> $HARDCODED
 
 stellar contract deploy --wasm target/wasm32-unknown-unknown/release/setter.wasm \
-      --source $ACCOUNT --network $NET | tee >.setter.id
+      --source $ACCOUNT --network $NET 2>.setter.err | tee >.setter.id
+grep "wasm hash" err | sed 's/.*hash \([0-9a-f]*\)/\1/' > .setter.hash
+
 CONTRACT_HASH=`head -n 1 .setter.id`
+WASM_HASH=`head -n 1 .setter.hash`
 echo "export const SETTER_CONTRACT_HASH = \"$CONTRACT_HASH\"" >> $HARDCODED
+echo "export const SETTER_WASM_HASH = \"$WASM_HASH\"" >> $HARDCODED
 
 stellar contract invoke --id ${CONTRACT_HASH} --source $ACCOUNT --network $NET \
       -- set_bool --v true

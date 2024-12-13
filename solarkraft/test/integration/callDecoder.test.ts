@@ -27,15 +27,12 @@ import { assert } from 'chai'
 import { before, describe, it } from 'mocha'
 import { extractContractCall } from '../../src/fetcher/callDecoder.js'
 import { ContractCallEntry } from '../../src/fetcher/storage.js'
+import { SETTER_WASM_HASH } from '../e2e/generated/setterHardcoded.js'
 import { Maybe, none } from '@sweet-monads/maybe'
 
 // Horizon and Soroban instances that we use for testing
 const HORIZON_URL = 'https://horizon-testnet.stellar.org'
 const SOROBAN_URL = 'https://soroban-testnet.stellar.org:443'
-
-// hard-coded WASM code hash of the setter contract on the ledger (deployed via setter-populate.sh)
-const WASM_HASH =
-    'c531f315ccc0f4d3f3d393e8b0e54a4911f3a434c3d06cd2cd895d6e3fa291c3'
 
 // contract ID of the deployed setter contract (will be set up by `before()`)
 let CONTRACT_ID: string
@@ -172,7 +169,7 @@ describe('call decoder from Horizon', function () {
         await horizon.friendbot(bob.publicKey()).call()
 
         // Redeploy a fresh copy of the setter contract WASM from CONTRACT_ID_TEMPLATE
-        console.log(`Creating a contract from WASM code ${WASM_HASH} ...`)
+        console.log(`Creating a contract from WASM code ${SETTER_WASM_HASH} ...`)
         const soroban = new rpc.Server(SOROBAN_URL)
         const sourceAccount = await soroban.getAccount(alice.publicKey())
         const builtTransaction = new TransactionBuilder(sourceAccount, {
@@ -182,7 +179,7 @@ describe('call decoder from Horizon', function () {
             .addOperation(
                 Operation.createCustomContract({
                     address: Address.fromString(alice.publicKey()),
-                    wasmHash: Buffer.from(WASM_HASH, 'hex'),
+                    wasmHash: Buffer.from(SETTER_WASM_HASH, 'hex'),
                 })
             )
             .setTimeout(30) // tx is valid for 30 seconds
