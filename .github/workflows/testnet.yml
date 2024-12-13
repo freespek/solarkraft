@@ -61,10 +61,25 @@ jobs:
           cd ContractExamples
           ./scripts/xycloans-populate.sh
 
-      - name: End-to-end tests
+      # e2e tests require apalache
+      - uses: actions/setup-java@v3
+        with:
+          distribution: "temurin" # See 'Supported distributions' for available options
+          java-version: "19"
+
+      - name: Install apalache
+        run: |
+          gh release download --repo apalache-mc/apalache --pattern apalache.tgz
+          tar -xvzf apalache.tgz --directory . > /dev/null
+          echo "`pwd`/apalache/bin" >> $GITHUB_PATH
+
+      - name: Install solarkraft
         run: |
           cd solarkraft
           npm install --dev
           npm run compile
           npm link
+
+      - name: End-to-end tests
+        run: |
           npm run e2e
