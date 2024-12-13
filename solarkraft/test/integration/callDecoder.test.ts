@@ -169,7 +169,9 @@ describe('call decoder from Horizon', function () {
         await horizon.friendbot(bob.publicKey()).call()
 
         // Redeploy a fresh copy of the setter contract WASM from CONTRACT_ID_TEMPLATE
-        console.log(`Creating a contract from WASM code ${SETTER_WASM_HASH} ...`)
+        console.log(
+            `Creating a contract from WASM code ${SETTER_WASM_HASH} ...`
+        )
         const soroban = new rpc.Server(SOROBAN_URL)
         const sourceAccount = await soroban.getAccount(alice.publicKey())
         const builtTransaction = new TransactionBuilder(sourceAccount, {
