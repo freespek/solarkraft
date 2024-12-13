@@ -85,4 +85,5 @@ jobs:
 
       - name: End-to-end tests
         run: |
+          cd solarkraft
           npm run e2e
