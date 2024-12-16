@@ -93,7 +93,7 @@ describe('verify', () => {
             .run(done)
     })
 
-    it('fetches and verifies', function (done) {
+    it('fetches and verifies the setter contract', function (done) {
         // fetch the transactions like in fetch.test.ts
         const solarkraftHome = './test/e2e/tla'
         this.timeout(120000)
