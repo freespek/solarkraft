@@ -143,13 +143,13 @@ describe('fetches the setter contract', () => {
         // Wait until the directory is created.
         // In the worst case, the test suite times out.
         let remainingSec = waitTimeout
-        while (remainingSec > 0) { 
+        while (remainingSec > 0) {
             try {
                 const stats = await stat(contractDir)
                 if (stats.isDirectory()) {
-                    const fileCount = 
-                        (await readdir(contractDir, { withFileTypes: true }))
-                            .filter(item => item.isDirectory()).length
+                    const fileCount = (
+                        await readdir(contractDir, { withFileTypes: true })
+                    ).filter((item) => item.isDirectory()).length
                     if (fileCount >= expectedTransactions) {
                         // the directory exists and it contains the required number of files
                         return
@@ -163,23 +163,31 @@ describe('fetches the setter contract', () => {
                 // ENOENT means the directory does not exist yet, so we continue waiting
             }
             // sleep for 1 sec
-            await new Promise(resolve => setTimeout(resolve, 1000))
+            await new Promise((resolve) => setTimeout(resolve, 1000))
             remainingSec -= 1000
         }
     }
 
     // we need this to run the loop below
-    it(`fetched ${expectedTransactions} transactions`, async function done () {
+    it(`fetched ${expectedTransactions} transactions`, async function done() {
         this.timeout(timeout)
         await waitForEntries(timeout)
         // count the entries via yieldListEntriesForContract
         let txCount = 0
-        for (const e of yieldListEntriesForContract(SETTER_CONTRACT_ADDR, contractDir)) {
-            assert(e.contractId === SETTER_CONTRACT_ADDR,
-                `transaction ${e.txHash} has wrong contractId = ${e.contractId}`)
+        for (const e of yieldListEntriesForContract(
+            SETTER_CONTRACT_ADDR,
+            contractDir
+        )) {
+            assert(
+                e.contractId === SETTER_CONTRACT_ADDR,
+                `transaction ${e.txHash} has wrong contractId = ${e.contractId}`
+            )
             txCount++
         }
-        assert(txCount === expectedTransactions, `expected ${expectedTransactions} transactions`)
+        assert(
+            txCount === expectedTransactions,
+            `expected ${expectedTransactions} transactions`
+        )
         done()
     })
 
@@ -189,7 +197,10 @@ describe('fetches the setter contract', () => {
         })
 
         // dynamically add a test for each transaction, so they can be run asynchronously
-        for (const e of yieldListEntriesForContract(SETTER_CONTRACT_ADDR, contractDir)) {
+        for (const e of yieldListEntriesForContract(
+            SETTER_CONTRACT_ADDR,
+            contractDir
+        )) {
             it(`verify fetched transaction ${e.txHash}`, function (done) {
                 this.timeout(timeout)
                 spawn(
