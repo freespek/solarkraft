@@ -6,7 +6,7 @@ on:
     # This cron expression triggers the workflow at 8:00 UTC every day
     - cron: "8 0 * * *"
   # uncomment to debug in a PR
-  pull_request:
+  # pull_request:
  
 jobs:
   build-and-deploy:
