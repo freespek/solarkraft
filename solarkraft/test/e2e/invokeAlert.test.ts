@@ -6,9 +6,8 @@ import { invokeAlert } from '../../src/verifier/invokeAlert.js'
 import { Keypair, Networks } from '@stellar/stellar-sdk'
 import { VerificationStatus } from '../../src/fetcher/storage.js'
 
-// hard-coded contract id that has to be changed,
-// when the Setter contract is redeployed via alert-deploy.sh
-const CONTRACT_ID = 'CDRCCMLPCAKOZSEECX7EEXIPNPU32JGEKG3QMHKM7ZNO5IRBUE66DQ6O'
+import { ALERT_CONTRACT_ADDR } from './generated/alertHardcoded.js'
+
 // const LocalRPC = 'https://localhost:8000/'
 const TestnetRPC = 'https://soroban-testnet.stellar.org:443'
 
@@ -34,7 +33,7 @@ describe('alert contract invocation', () => {
             TestnetRPC,
             sourceKeypair,
             Networks.TESTNET,
-            CONTRACT_ID,
+            ALERT_CONTRACT_ADDR,
             txHash,
             VerificationStatus.NoViolation
         )
@@ -45,18 +44,30 @@ describe('alert contract invocation', () => {
     it('errors on bogus alert id', function (done) {
         this.timeout(50000)
         spawn(
-            'solarkraft verify --home test/e2e/tla/ --txHash 406d278860b5531dd1443532f3457c5daa288e8eb0007d2a8e2aa0127e87949e --monitor test/e2e/tla/setter_mon.tla --alert bogus'
+            'solarkraft',
+            [
+                'verify',
+                '--home=./test/e2e/tla/',
+                '--txHash=406d278860b5531dd1443532f3457c5daa288e8eb0007d2a8e2aa0127e87949e',
+                '--monitor=./test/e2e/tla/setter_mon.tla',
+                '--alert=bogus',
+            ],
+            { verbose: true }
         )
             .wait('Invalid contract ID: bogus')
             .expect('No alert submitted.')
             .run(done)
     })
 
-    it('alerts the contrat when specified', function (done) {
+    it('alerts the contract when specified', function (done) {
         this.timeout(50000)
-        spawn(
-            `solarkraft verify --home test/e2e/tla/ --txHash 406d278860b5531dd1443532f3457c5daa288e8eb0007d2a8e2aa0127e87949e --monitor test/e2e/tla/setter_mon.tla --alert ${CONTRACT_ID}`
-        )
+        spawn('solarkraft', [
+            'verify',
+            '--home=test/e2e/tla/',
+            '--txHash=406d278860b5531dd1443532f3457c5daa288e8eb0007d2a8e2aa0127e87949e',
+            '--monitor=test/e2e/tla/setter_mon.tla',
+            `--alert=${ALERT_CONTRACT_ADDR}`,
+        ])
             .wait('Preparing to submit alert.')
             .wait('Transaction successful')
             .run(done)

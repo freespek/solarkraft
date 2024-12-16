@@ -6,11 +6,13 @@ on:
     # This cron expression triggers the workflow at 8:00 UTC every day
     - cron: "8 0 * * *"
   # uncomment to debug in a PR
-  #pull_request:
+  # pull_request:
  
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,6 +24,27 @@ jobs:
           rustup default 1.81.0
           rustup update
       - run: cargo version
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: "temurin" # See 'Supported distributions' for available options
+          java-version: "19"
+
+      - name: Install apalache for e2e
+        run: |
+          gh release download --repo apalache-mc/apalache --pattern apalache.tgz
+          tar -xvzf apalache.tgz --directory . > /dev/null
+          # add apalache-mc to the path, this is a GitHub idiom
+          echo "`pwd`/apalache/bin" >> $GITHUB_PATH
+
+      - name: Install solarkraft for e2e
+        run: |
+          cd solarkraft
+          npm install --dev
+          npm run compile
+          npm link
+
+      # install stellar
       - uses: stellar/stellar-cli@main
         with:
           version: 22.0.0
@@ -60,3 +83,8 @@ jobs:
         run: |
           cd ContractExamples
           ./scripts/xycloans-populate.sh
+
+      - name: End-to-end tests
+        run: |
+          cd solarkraft
+          npm run e2e

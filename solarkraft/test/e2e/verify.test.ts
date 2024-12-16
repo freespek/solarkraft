@@ -1,10 +1,21 @@
 // Integration tests for the `verify` command
 
-import { describe, it } from 'mocha'
+import { before, describe, it } from 'mocha'
 
+import { join } from 'node:path'
+import { readdir, stat } from 'node:fs/promises'
 import { spawn } from 'nexpect'
+import { assert } from 'chai'
+import { yieldListEntriesForContract } from '../../src/fetcher/storage.js'
 
-describe('verify', () => {
+import {
+    SETTER_CONTRACT_ADDR,
+    SETTER_HEIGHT,
+} from './generated/setterHardcoded.js'
+
+const solarkraftHome = './test/e2e/tla'
+
+describe('verify on pre-saved storage', () => {
     it('errors on missing monitor', function (done) {
         spawn(
             'solarkraft verify --home test/e2e/tla/ --txHash timelock --monitor doesnotexist'
@@ -84,32 +95,130 @@ describe('verify', () => {
             .wait('[Fail]')
             .run(done)
     })
+})
 
-    const txs = [
-        'df32f09514abedbf9d4b843fb8ad53de81d74b62914c4c9faf290760324abd0f',
-        '8f97b05ce36b9f2b2988150131cd8990bd018dfcace5250ad5df5e872af436bf',
-        '03a01ff64502f5d992bb28e784212235a5da55ebb68c75345f58364559cb5921',
-        '337365516cbe5f9287bc6b81428fb94be08d8e5d1ba580454d0907378c06c0da',
-        'ad3c4d82300b50972fdbc887c20bb7771c722a1c63bd44c8e8d4ddf4597f4143',
-        'e3dba60ada9fd7cb1d3490cf72b5e53e17b154e237aed2d2dcacfec6b0b1d883',
-        '762575ca214bd9cb85824356b799689bf4920aafcac24f790defac54b1a0cc9d',
-        '98c2468aad6626b59230b4fcc83d921897cbf76dc49f7bea13e46e443035a682',
-        'df673ab5399dcbd5ac434c0ac51c53e9b9367b1d2507ab7e4b8cebfe3e796499',
-        '101111c4a7087070366d035f59cc20b80215231955f9253c4ad85ff94f1dc61b',
-        '9c46c29a985ceeaffe567dc405a757805ff0496fe5740228abcb22b7aefa3e64',
-        '4da2e37effde690b6cf2c11ade5fc2f4e72971b37866f6d75fa2ea5728b6be6e',
-        'b39cf7d57120fa72bde0aec90f709551ff777132e1b5db89e2575ee942d8bb70',
-        '1bd53234a4eb4f9316f63bd77f4a2c191bded377ad3c53caeb7ed285f9d77d64',
-        '406d278860b5531dd1443532f3457c5daa288e8eb0007d2a8e2aa0127e87949e',
-    ]
-    txs.forEach((tx) => {
-        it(`verifies the setter contract (tx ${tx})`, function (done) {
-            this.timeout(150_000)
-            spawn(
-                `solarkraft verify --home test/e2e/tla/ --txHash ${tx} --monitor test/e2e/tla/setter_mon.tla`
+// we need this test to populate the storage
+describe('fetches the setter contract', () => {
+    const expectedTransactions = 16
+    const contractDir = join(solarkraftHome, '.stor', SETTER_CONTRACT_ADDR)
+    const timeout = 120000
+
+    before('fetches and verifies', function (done) {
+        // fetch the transactions like in fetch.test.ts
+        this.timeout(timeout)
+        spawn(
+            'solarkraft',
+            [
+                'fetch',
+                `--home=${solarkraftHome}`,
+                `--id=${SETTER_CONTRACT_ADDR}`,
+                `--height=${SETTER_HEIGHT}`,
+                '--timeout=10',
+            ],
+            { verbose: true }
+        )
+            .wait(`Target contract: ${SETTER_CONTRACT_ADDR}...`)
+            .wait(`Fetching the ledger for ${SETTER_HEIGHT}`)
+            // 16 transactions are expected, it's important to wait for all of them!
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .run(done)
+    })
+
+    async function waitForEntries(waitTimeout) {
+        // Wait until the directory is created.
+        // In the worst case, the test suite times out.
+        let remainingSec = waitTimeout
+        while (remainingSec > 0) {
+            try {
+                const stats = await stat(contractDir)
+                if (stats.isDirectory()) {
+                    const fileCount = (
+                        await readdir(contractDir, { withFileTypes: true })
+                    ).filter((item) => item.isDirectory()).length
+                    if (fileCount >= expectedTransactions) {
+                        // the directory exists and it contains the required number of files
+                        return
+                    }
+                }
+            } catch (error) {
+                if (error.code !== 'ENOENT') {
+                    // Unexpected error, rethrow
+                    throw error
+                }
+                // ENOENT means the directory does not exist yet, so we continue waiting
+            }
+            // sleep for 1 sec
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+            remainingSec -= 1000
+        }
+    }
+
+    // we need this to run the loop below
+    it(`fetched ${expectedTransactions} transactions`, async function done() {
+        this.timeout(timeout)
+        await waitForEntries(timeout)
+        // count the entries via yieldListEntriesForContract
+        let txCount = 0
+        for (const e of yieldListEntriesForContract(
+            SETTER_CONTRACT_ADDR,
+            contractDir
+        )) {
+            assert(
+                e.contractId === SETTER_CONTRACT_ADDR,
+                `transaction ${e.txHash} has wrong contractId = ${e.contractId}`
             )
-                .wait('[OK]')
-                .run(done)
+            txCount++
+        }
+        assert(
+            txCount === expectedTransactions,
+            `expected ${expectedTransactions} transactions`
+        )
+        done()
+    })
+
+    describe('verifies the setter contract', async () => {
+        before('wait for entries', async function () {
+            await waitForEntries(timeout)
         })
+
+        // dynamically add a test for each transaction, so they can be run asynchronously
+        for (const e of yieldListEntriesForContract(
+            SETTER_CONTRACT_ADDR,
+            contractDir
+        )) {
+            it(`verify fetched transaction ${e.txHash}`, function (done) {
+                this.timeout(timeout)
+                spawn(
+                    'solarkraft',
+                    [
+                        'verify',
+                        `--home=${solarkraftHome}`,
+                        `--txHash=${e.txHash}`,
+                        '--monitor=./test/e2e/tla/setter_mon.tla',
+                    ],
+                    { verbose: true }
+                )
+                    .wait('[OK]')
+                    .run((err) => {
+                        assert(!err, `verification error: ${err}`)
+                        done()
+                    })
+            })
+        }
     })
 })
