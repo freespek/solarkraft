@@ -5,7 +5,7 @@ import { describe, it } from 'mocha'
 import { spawn } from 'nexpect'
 
 import {
-    SETTER_CONTRACT_HASH,
+    SETTER_CONTRACT_ADDR,
     SETTER_HEIGHT,
 } from './generated/setterHardcoded.js'
 
@@ -19,7 +19,7 @@ describe('fetch', () => {
             [
                 'fetch',
                 '--typemap=bogusFile',
-                `--id=${SETTER_CONTRACT_HASH}`,
+                `--id=${SETTER_CONTRACT_ADDR}`,
                 `--height=${SETTER_HEIGHT}`,
                 '--timeout=10',
             ],
@@ -36,13 +36,13 @@ describe('fetch', () => {
             'solarkraft',
             [
                 'fetch',
-                `--id=${SETTER_CONTRACT_HASH}`,
+                `--id=${SETTER_CONTRACT_ADDR}`,
                 `--height=${SETTER_HEIGHT}`,
                 '--timeout=10',
             ],
             { verbose: false }
         )
-            .wait(`Target contract: ${SETTER_CONTRACT_HASH}...`)
+            .wait(`Target contract: ${SETTER_CONTRACT_ADDR}...`)
             .wait(`Fetching the ledger for ${SETTER_HEIGHT}`)
             .wait(/\+ save: \d+/)
             .run(done)

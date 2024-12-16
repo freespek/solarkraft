@@ -6,7 +6,7 @@ import { invokeAlert } from '../../src/verifier/invokeAlert.js'
 import { Keypair, Networks } from '@stellar/stellar-sdk'
 import { VerificationStatus } from '../../src/fetcher/storage.js'
 
-import { ALERT_CONTRACT_HASH } from './generated/alertHardcoded.js'
+import { ALERT_CONTRACT_ADDR } from './generated/alertHardcoded.js'
 
 // const LocalRPC = 'https://localhost:8000/'
 const TestnetRPC = 'https://soroban-testnet.stellar.org:443'
@@ -33,7 +33,7 @@ describe('alert contract invocation', () => {
             TestnetRPC,
             sourceKeypair,
             Networks.TESTNET,
-            ALERT_CONTRACT_HASH,
+            ALERT_CONTRACT_ADDR,
             txHash,
             VerificationStatus.NoViolation
         )
@@ -66,7 +66,7 @@ describe('alert contract invocation', () => {
             '--home=test/e2e/tla/',
             '--txHash=406d278860b5531dd1443532f3457c5daa288e8eb0007d2a8e2aa0127e87949e',
             '--monitor=test/e2e/tla/setter_mon.tla',
-            `--alert=${ALERT_CONTRACT_HASH}`,
+            `--alert=${ALERT_CONTRACT_ADDR}`,
         ])
             .wait('Preparing to submit alert.')
             .wait('Transaction successful')

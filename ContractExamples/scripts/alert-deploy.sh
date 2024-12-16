@@ -31,5 +31,5 @@ set -x
 stellar contract deploy --wasm target/wasm32-unknown-unknown/release/alert.wasm \
       --source $ACCOUNT --network $NET | tee >.alert.id
 
-CONTRACT_HASH=`head -n 1 .alert.id`
-echo "export const ALERT_CONTRACT_HASH = \"$CONTRACT_HASH\"" >> $HARDCODED
+CONTRACT_ADDR=`head -n 1 .alert.id`
+echo "export const ALERT_CONTRACT_ADDR = \"$CONTRACT_ADDR\"" >> $HARDCODED

@@ -8,7 +8,7 @@ import { assert } from 'chai'
 import { yieldListEntriesForContract } from '../../src/fetcher/storage.js'
 
 import {
-    SETTER_CONTRACT_HASH,
+    SETTER_CONTRACT_ADDR,
     SETTER_HEIGHT,
 } from './generated/setterHardcoded.js'
 
@@ -105,8 +105,8 @@ describe('verify', () => {
             let ncalls = 0
             let nchecked = 0
             for (const e of yieldListEntriesForContract(
-                SETTER_CONTRACT_HASH,
-                join(solarkraftHome, '.stor', SETTER_CONTRACT_HASH)
+                SETTER_CONTRACT_ADDR,
+                join(solarkraftHome, '.stor', SETTER_CONTRACT_ADDR)
             )) {
                 spawn(
                     'solarkraft',
@@ -140,13 +140,13 @@ describe('verify', () => {
             [
                 'fetch',
                 `--home=${solarkraftHome}`,
-                `--id=${SETTER_CONTRACT_HASH}`,
+                `--id=${SETTER_CONTRACT_ADDR}`,
                 `--height=${SETTER_HEIGHT}`,
                 '--timeout=10',
             ],
             { verbose: false }
         )
-            .wait(`Target contract: ${SETTER_CONTRACT_HASH}...`)
+            .wait(`Target contract: ${SETTER_CONTRACT_ADDR}...`)
             .wait(`Fetching the ledger for ${SETTER_HEIGHT}`)
             .wait(/\+ save: \d+/)
             .run(fetchCallback)
