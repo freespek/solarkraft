@@ -1,6 +1,6 @@
 // Integration tests for the `verify` command
 
-import { describe, it } from 'mocha'
+import { before, describe, it } from 'mocha'
 
 import { join } from 'node:path'
 import { spawn } from 'nexpect'
@@ -12,7 +12,9 @@ import {
     SETTER_HEIGHT,
 } from './generated/setterHardcoded.js'
 
-describe('verify', () => {
+const solarkraftHome = './test/e2e/tla'
+
+describe('verify on pre-saved storage', () => {
     it('errors on missing monitor', function (done) {
         spawn(
             'solarkraft verify --home test/e2e/tla/ --txHash timelock --monitor doesnotexist'
@@ -92,49 +94,12 @@ describe('verify', () => {
             .wait('[Fail]')
             .run(done)
     })
+})
 
-    it('fetches and verifies the setter contract', function (done) {
+describe('fetches and verifies the setter contract', () => {
+    before('fetches and verifies', function (done) {
         // fetch the transactions like in fetch.test.ts
-        const solarkraftHome = './test/e2e/tla'
         this.timeout(120000)
-
-        // this callback is called after the fetch command has finished
-        const fetchCallback = (err) => {
-            assert(!err, `fetch failed: ${err}`)
-            // verify all of the transactions
-            let ncalls = 0
-            let nchecked = 0
-            for (const e of yieldListEntriesForContract(
-                SETTER_CONTRACT_ADDR,
-                join(solarkraftHome, '.stor', SETTER_CONTRACT_ADDR)
-            )) {
-                spawn(
-                    'solarkraft',
-                    [
-                        'verify',
-                        `--home=${solarkraftHome}`,
-                        `--txHash=${e.txHash}`,
-                        '--monitor=./test/e2e/tla/setter_mon.tla',
-                    ],
-                    { verbose: true }
-                )
-                    .wait('[OK]')
-                    .run((err) => {
-                        assert(!err, `verify failed: ${err}`)
-                        nchecked++
-                        console.log(`checked ${e.txHash} of ${ncalls}`)
-                        if (nchecked >= ncalls) {
-                            // technically, we may have a race condition
-                            // between spawning and finishing verification
-                            assert(ncalls > 0, 'no transactions checked')
-                            // we have to tell mocha that we are done
-                            done()
-                        }
-                    })
-                ncalls++
-            }
-        }
-
         spawn(
             'solarkraft',
             [
@@ -149,6 +114,37 @@ describe('verify', () => {
             .wait(`Target contract: ${SETTER_CONTRACT_ADDR}...`)
             .wait(`Fetching the ledger for ${SETTER_HEIGHT}`)
             .wait(/\+ save: \d+/)
-            .run(fetchCallback)
+            .run(done)
+    })
+
+    // dynamically add a test for each transaction, so they can be run asynchronously
+    let txCount = 0
+    for (const e of yieldListEntriesForContract(
+        SETTER_CONTRACT_ADDR,
+        join(solarkraftHome, '.stor', SETTER_CONTRACT_ADDR)
+    )) {
+        txCount++
+        it(`verify fetched transaction ${e.txHash}`, function (done) {
+            this.timeout(120000)
+            spawn(
+                'solarkraft',
+                [
+                    'verify',
+                    `--home=${solarkraftHome}`,
+                    `--txHash=${e.txHash}`,
+                    '--monitor=./test/e2e/tla/setter_mon.tla',
+                ],
+                { verbose: true }
+            )
+                .wait('[OK]')
+                .run((err) => {
+                    assert(!err, `verification error: ${err}`)
+                    done()
+                })
+        })
+    }
+
+    it(`fetched some transactions`, function () {
+        assert(txCount > 0, 'no transactions fetched')
     })
 })
