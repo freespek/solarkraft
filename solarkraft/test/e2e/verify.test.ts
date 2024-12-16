@@ -113,6 +113,22 @@ describe('fetches and verifies the setter contract', () => {
         )
             .wait(`Target contract: ${SETTER_CONTRACT_ADDR}...`)
             .wait(`Fetching the ledger for ${SETTER_HEIGHT}`)
+            // 16 transactions are expected, it's important to wait for all of them!
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
+            .wait(/\+ save: \d+/)
             .wait(/\+ save: \d+/)
             .run(done)
     })
@@ -145,6 +161,6 @@ describe('fetches and verifies the setter contract', () => {
     }
 
     it(`fetched some transactions`, function () {
-        assert(txCount > 0, 'no transactions fetched')
+        assert(txCount === 16, 'expected 16 transactions')
     })
 })
