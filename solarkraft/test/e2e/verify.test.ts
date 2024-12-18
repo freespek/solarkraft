@@ -169,8 +169,7 @@ describe('fetches the setter contract', () => {
     }
 
     // we need this to run the loop below
-    it(`fetched ${expectedTransactions} transactions`, async function done() {
-        this.timeout(timeout)
+    it(`fetched ${expectedTransactions} transactions`, async () => {
         await waitForEntries(timeout)
         // count the entries via yieldListEntriesForContract
         let txCount = 0
@@ -188,7 +187,27 @@ describe('fetches the setter contract', () => {
             txCount === expectedTransactions,
             `expected ${expectedTransactions} transactions`
         )
-        done()
+    })
+
+    // this test is co-located with the verification test, as it also needs the fetcher storage
+    it(`aggregates ${expectedTransactions} transactions`, async () => {
+        await waitForEntries(timeout)
+        spawn(
+            'solarkraft',
+            [
+                'aggregate',
+                `--home=${solarkraftHome}`,
+                `--id=${SETTER_CONTRACT_ADDR}`,
+                `--verbose=true`,
+            ],
+            { verbose: true }
+        )
+            .wait(
+                `Aggregated ${expectedTransactions} transactions into state.json`
+            )
+            .run((err) => {
+                assert(!err, `verification error: ${err}`)
+            })
     })
 
     describe('verifies the setter contract', async () => {

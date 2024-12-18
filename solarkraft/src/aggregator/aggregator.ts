@@ -15,7 +15,7 @@ import {
     FieldsMap,
     FullState,
     MultiContractStorage,
-} from './storage.js'
+} from '../fetcher/storage.js'
 
 /**
  * Apply the updates from a contract call to the state.
@@ -23,11 +23,14 @@ import {
  * @param callEntry the call entry to apply
  * @returns the updated state
  */
-export function aggregate(
+export function applyCallToState(
     state: FullState,
     callEntry: ContractCallEntry
 ): FullState {
-    if (!callEntry.txSuccess) {
+    if (callEntry.txSuccess !== true) {
+        console.warn(
+            `Transaction ${callEntry.txHash} failed (${callEntry.txSuccess})`
+        )
         return state
     }
 
