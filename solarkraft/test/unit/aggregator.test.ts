@@ -15,7 +15,7 @@ import {
     emptyMultiContractStorage,
     FullState,
 } from '../../src/fetcher/storage.js'
-import { aggregate } from '../../src/fetcher/aggregator.js'
+import { applyCallToState } from '../../src/aggregator/aggregator.js'
 
 // these are unit tests, as we are trying to minimize the number of e2e tests
 describe('State aggregation', () => {
@@ -51,7 +51,7 @@ describe('State aggregation', () => {
             ]),
         }
 
-        const nextState = aggregate(empty, callEntry)
+        const nextState = applyCallToState(empty, callEntry)
         expect(nextState.contractId).to.equal(contractId)
         expect(nextState.timestamp).to.equal(callEntry.timestamp)
         expect(nextState.height).to.equal(callEntry.height)
@@ -145,7 +145,7 @@ describe('State aggregation', () => {
             ]),
         }
 
-        const nextState = aggregate(prevState, callEntry)
+        const nextState = applyCallToState(prevState, callEntry)
         expect(nextState.contractId).to.equal(contractId)
         expect(nextState.timestamp).to.equal(callEntry.timestamp)
         expect(nextState.height).to.equal(callEntry.height)

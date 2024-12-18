@@ -326,6 +326,9 @@ export function loadContractFullState(
         storagePath(solarkraftHome),
         contractId
     )
+    if (!existsSync(filename)) {
+        return left(`No state found for contract ${contractId}`)
+    }
     const contents = readFileSync(filename)
     const loaded = JSONbig.parse(contents)
     return right({
@@ -361,7 +364,8 @@ export function* yieldListEntriesForContract(
         if (dirent.isDirectory() && /^[0-9]+$/.exec(dirent.name)) {
             // This directory may contain several transactions for the same height.
             const height = Number.parseInt(dirent.name)
-            for (const ledgerDirent of readdirSync(join(path, dirent.name), {
+            const dirPath = join(path, dirent.name)
+            for (const ledgerDirent of readdirSync(dirPath, {
                 withFileTypes: true,
             })) {
                 // match all storage entries, which may be reported in different cases
@@ -370,10 +374,7 @@ export function* yieldListEntriesForContract(
                 )
                 if (ledgerDirent.isFile() && matcher) {
                     const txHash = matcher[1]
-                    const filename = join(
-                        ledgerDirent.path,
-                        `entry-${txHash}.json`
-                    )
+                    const filename = join(dirPath, `entry-${txHash}.json`)
                     const contents = JSONbig.parse(
                         readFileSync(filename, 'utf-8')
                     )
