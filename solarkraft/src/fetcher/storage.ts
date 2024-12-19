@@ -243,7 +243,7 @@ export function storagePath(solarkraftHome: string): string {
  * @param entry a call entry
  * @returns the filename, where the entry was stored
  */
-export function saveContractCallEntry(home: string, entry: ContractCallEntry) {
+export function saveContractCallEntry(home: string, entry: ContractCallEntry): string {
     const filename = getEntryFilename(storagePath(home), entry)
     const verificationStatus: VerificationStatus =
         entry.verificationStatus ?? VerificationStatus.Unknown
