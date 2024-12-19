@@ -28,9 +28,7 @@ export function applyCallToState(
     callEntry: ContractCallEntry
 ): FullState {
     if (callEntry.txSuccess !== true) {
-        console.warn(
-            `Skipping failed transaction ${callEntry.txHash}`
-        )
+        console.warn(`Skipping failed transaction ${callEntry.txHash}`)
         return state
     }
 
