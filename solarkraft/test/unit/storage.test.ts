@@ -4,7 +4,7 @@
  * Igor Konnov, 2024
  */
 
-import { assert } from 'chai'
+import { assert, expect } from 'chai'
 import { mkdtempSync } from 'fs'
 import { describe, it } from 'mocha'
 import { tmpdir } from 'node:os'
@@ -15,6 +15,9 @@ import {
     loadContractCallEntry,
     saveContractCallEntry,
     storagePath,
+    FullState,
+    saveContractFullState,
+    loadContractFullState,
 } from '../../src/fetcher/storage.js'
 import { OrderedMap } from 'immutable'
 
@@ -117,6 +120,78 @@ describe('Solarkraft storage', () => {
                 instance: { a: 1n, b: 993143214321423154315154322n },
                 persistent: {},
                 temporary: {},
+            },
+        })
+    })
+
+    function storeFullStateFixture() {
+        const root = mkdtempSync(join(tmpdir(), 'solarkraft-storage-'))
+        const contractId =
+            'CCQURSVQRCMNZPLNYA4AMP2JUODZ5QOLG5XCLQWEJAEE3NBLR5ZWZ5KX'
+        const fullStorage = OrderedMap<string, ContractStorage>([
+            [
+                contractId,
+                {
+                    instance: OrderedMap<string, any>([
+                        ['i32', 42],
+                        ['i64', 123],
+                        ['i128', 1001],
+                    ]),
+                    persistent: OrderedMap<string, any>([
+                        ['i32', 142],
+                        ['i64', 124],
+                        ['i128', 1002],
+                    ]),
+                    temporary: OrderedMap<string, any>([
+                        ['i32', 242],
+                        ['i64', 125],
+                        ['i128', 1003],
+                    ]),
+                },
+            ],
+        ])
+        const state: FullState = {
+            timestamp: 1,
+            height: 2,
+            latestTxHash: '9fb0',
+            contractId: contractId,
+            storage: fullStorage,
+        }
+        const filename = saveContractFullState(root, state)
+        return [root, filename]
+    }
+
+    it('store full state', () => {
+        const [root, filename] = storeFullStateFixture()
+        assert(root !== undefined, 'expected root')
+        assert(filename !== undefined, 'expected filename')
+    })
+
+    it('load full state', () => {
+        const [root, filename] = storeFullStateFixture()
+        assert(filename !== undefined, 'expected filename')
+        const state = loadContractFullState(root, CONTRACT_ID).unwrap()
+        expect(state.contractId).to.equal(CONTRACT_ID)
+        expect(state.timestamp).to.equal(1n)
+        expect(state.height).to.equal(2n)
+        expect(state.latestTxHash).to.equal('9fb0')
+        expect(state.storage.toJS()).to.deep.equal({
+            [CONTRACT_ID]: {
+                instance: {
+                    i32: 42n,
+                    i64: 123n,
+                    i128: 1001n,
+                },
+                persistent: {
+                    i32: 142n,
+                    i64: 124n,
+                    i128: 1002n,
+                },
+                temporary: {
+                    i32: 242n,
+                    i64: 125n,
+                    i128: 1003n,
+                },
             },
         })
     })

@@ -11,6 +11,7 @@ import { fetch } from './fetch.js'
 import { verify } from './verify.js'
 import { list } from './list.js'
 import { SOLARKRAFT_DEFAULT_HOME } from './globals.js'
+import { aggregate } from './aggregate.js'
 
 // The default options present in every command
 const defaultOpts = (yargs: any) =>
@@ -65,6 +66,38 @@ const fetchCmd = {
     handler: fetch,
 }
 
+// aggregate: state aggregator
+const aggregateCmd = {
+    command: ['aggregate'],
+    desc: 'aggregate the fetched Soroban transactions to compute the full contract state',
+    builder: (yargs: any) =>
+        defaultOpts(yargs)
+            .option('id', {
+                desc: 'Contract id',
+                type: 'string',
+                require: true,
+            })
+            .option('out', {
+                desc: 'The name of the file to output the state',
+                type: 'string',
+                require: false,
+                default: 'state.json',
+            })
+            .option('heightTo', {
+                desc: 'The maximum height (ledger) to aggregate up to',
+                type: 'number',
+                require: false,
+                default: Infinity,
+            })
+            .option('verbose', {
+                desc: 'Print verbose output',
+                type: 'string',
+                require: false,
+                default: false,
+            }),
+    handler: aggregate,
+}
+
 // verify: transaction verifier
 const verifyCmd = {
     command: ['verify'],
@@ -106,6 +139,7 @@ const listCmd = {
 function main() {
     return yargs(process.argv.slice(2))
         .command(fetchCmd)
+        .command(aggregateCmd)
         .command(verifyCmd)
         .command(listCmd)
         .demandCommand(1)

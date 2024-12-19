@@ -179,6 +179,56 @@ export interface FetcherState {
 }
 
 /**
+ * This entry collects the full contract state.
+ * This is obviously expensive to store, so it should be improved,
+ * if the MVP proves successful.
+ */
+export interface FullState {
+    /**
+     * The number of seconds elapsed since unix epoch of when the latest contract ledger was closed.
+     */
+    timestamp: number
+    /**
+     * The ledger number that this state corresponds to.
+     */
+    height: number
+    /**
+     * The hash of the latest transaction that led to this state.
+     */
+    latestTxHash: string
+    /**
+     * The address of the contract being called.
+     */
+    contractId: string
+    /**
+     * Ordered mapping from contract address to instance/persistent/temporary storage
+     * of the respective contract. The contract storage for a given durability is
+     * an ordered mapping from field names to their native values (JS).
+     *
+     * This mapping contains values only for the fields that have been created
+     * or updated by a transaction in the past. It may happen that
+     * `storage` contains fewer fields than `oldStorage`, when the contract
+     * deletes some fields from the storage. Also, fields may be cleared from `storage`
+     * when the storage goes over TTL.
+     */
+    storage: MultiContractStorage
+}
+
+/**
+ * The empty full state that is to be initialized.
+ * @returns an empty full state
+ */
+export function emptyFullState(): FullState {
+    return {
+        timestamp: 0,
+        height: 0,
+        latestTxHash: '',
+        contractId: '',
+        storage: emptyMultiContractStorage(),
+    }
+}
+
+/**
  * Given the solarkraft home, construct the path to store the transactions.
  * @param solarkraftHome path to solarkraft home (or project directory)
  * @returns path to the transactions storage
@@ -191,8 +241,9 @@ export function storagePath(solarkraftHome: string): string {
  * Store a contract call entry in the file storage.
  * @param home the storage root directory
  * @param entry a call entry
+ * @returns the filename, where the entry was stored
  */
-export function saveContractCallEntry(home: string, entry: ContractCallEntry) {
+export function saveContractCallEntry(home: string, entry: ContractCallEntry): string {
     const filename = getEntryFilename(storagePath(home), entry)
     const verificationStatus: VerificationStatus =
         entry.verificationStatus ?? VerificationStatus.Unknown
@@ -262,6 +313,44 @@ export function loadContractCallEntry(
 }
 
 /**
+ * Load full state of a contract from the storage.
+ * @param solarkraftHome the .solarkraft directory
+ * @param contractId the contract address
+ * @returns the loaded full state
+ */
+export function loadContractFullState(
+    solarkraftHome: string,
+    contractId: string
+): Result<FullState> {
+    const filename = getFullStateFilename(
+        storagePath(solarkraftHome),
+        contractId
+    )
+    if (!existsSync(filename)) {
+        return left(`No state found for contract ${contractId}`)
+    }
+    const contents = readFileSync(filename)
+    const loaded = JSONbig.parse(contents)
+    return right({
+        ...loaded,
+        storage: storageFromJS(loaded.storage),
+    })
+}
+
+/**
+ * Store contract full state in the file storage.
+ * @param home the storage root directory
+ * @param state a state of the contract
+ * @returns the filename, where the state was stored
+ */
+export function saveContractFullState(home: string, state: FullState): string {
+    const filename = getFullStateFilename(storagePath(home), state.contractId)
+    const contents = JSONbig.stringify(state)
+    writeFileSync(filename, contents)
+    return filename
+}
+
+/**
  * Generate storage entries for a given contract id in a path.
  * @param contractId contract identifier (address)
  * @param path the path to the contract storage
@@ -275,7 +364,8 @@ export function* yieldListEntriesForContract(
         if (dirent.isDirectory() && /^[0-9]+$/.exec(dirent.name)) {
             // This directory may contain several transactions for the same height.
             const height = Number.parseInt(dirent.name)
-            for (const ledgerDirent of readdirSync(join(path, dirent.name), {
+            const dirPath = join(path, dirent.name)
+            for (const ledgerDirent of readdirSync(dirPath, {
                 withFileTypes: true,
             })) {
                 // match all storage entries, which may be reported in different cases
@@ -284,10 +374,7 @@ export function* yieldListEntriesForContract(
                 )
                 if (ledgerDirent.isFile() && matcher) {
                     const txHash = matcher[1]
-                    const filename = join(
-                        ledgerDirent.path,
-                        `entry-${txHash}.json`
-                    )
+                    const filename = join(dirPath, `entry-${txHash}.json`)
                     const contents = JSONbig.parse(
                         readFileSync(filename, 'utf-8')
                     )
@@ -351,8 +438,20 @@ export function saveFetcherState(home: string, state: FetcherState): string {
  * @returns the filename
  */
 function getEntryFilename(root: string, entry: ContractCallEntry) {
-    const dir = getOrCreateDirectory(root, entry)
+    const dir = getOrCreateEntryParentDir(root, entry)
     return join(dir, `entry-${entry.txHash}.json`)
+}
+
+/**
+ * Get the directory name to store contract state.
+ *
+ * @param root storage root
+ * @param contractId the contract id to retrieve the state for
+ * @returns the directory name
+ */
+function getFullStateFilename(root: string, contractId: string) {
+    const dir = getOrCreateContractDir(root, contractId)
+    return join(dir, 'state.json')
 }
 
 /**
@@ -374,8 +473,23 @@ function getFetcherStateFilename(root: string) {
  * @param entry call entry
  * @returns the directory name
  */
-function getOrCreateDirectory(root: string, entry: ContractCallEntry) {
-    const directory = join(root, entry.contractId, entry.height.toString())
+function getOrCreateEntryParentDir(root: string, entry: ContractCallEntry) {
+    const contractDir = getOrCreateContractDir(root, entry.contractId)
+    const directory = join(contractDir, entry.height.toString())
+    mkdirSync(directory, { recursive: true })
+    return directory
+}
+
+/**
+ * Return the contract directory.
+ * If this directory does not exist, create it recursively.
+ *
+ * @param root storage root
+ * @param contractId contract address
+ * @returns the directory name
+ */
+function getOrCreateContractDir(root: string, contractId: string) {
+    const directory = join(root, contractId)
     mkdirSync(directory, { recursive: true })
     return directory
 }
