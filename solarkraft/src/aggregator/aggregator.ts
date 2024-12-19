@@ -29,7 +29,7 @@ export function applyCallToState(
 ): FullState {
     if (callEntry.txSuccess !== true) {
         console.warn(
-            `Transaction ${callEntry.txHash} failed (${callEntry.txSuccess})`
+            `Skipping failed transaction ${callEntry.txHash}`
         )
         return state
     }
