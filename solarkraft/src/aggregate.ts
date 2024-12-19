@@ -4,9 +4,12 @@
  */
 /**
  * A command to aggregate the full contract state from the collected transactions.
- * This command is potentially expensive. In the long run, it makes sense to
- * collect the states from the history archives. For the time being, we aggregate
- * the states from the transactions directly, in order to evaluate the approach.
+ * This command is potentially expensive, as the full contract state potentially
+ * grows much faster than individual transactions (think of multiple pair-to-pair
+ * token transfers between a large number of accounts). In the long run, it makes
+ * sense to collect the states from the history archives. For the time being,
+ * we aggregate the states from the transactions directly, in order to evaluate
+ * the approach.
  *
  * We need this feature primarily for input generation. This is an experimental
  * feature in Phase 1. We always aggregate the state, starting with the minimal
