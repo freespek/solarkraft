@@ -22,11 +22,20 @@ XLM_TOKEN_SAC_TESTNET == "<%- storage[contractId].instance.TokenId %>"
 
 \* user-controlled addresses
 USER_ADDR == {
+    <%
+    const balanceAddrs =
+        Object.keys(storage[contractId].persistent)
+            .filter((key) => key.startsWith("Balance,"))
+            .map((key) => key.split(",")[1])
+    const tokenAddrs =
+        Object.keys(storage[storage[contractId].instance.TokenId].persistent)
+            .filter((key) => key.startsWith("Balance,"))
+            .filter((key) => key !== `Balance,${contractId}`)
+            .map((key) => key.split(",")[1])
+    %>
     <%-
-    Object.keys(storage[contractId].persistent)
-        .filter((key) => key.startsWith("Balance,"))
-        .map((key) => key.split(",")[1])
-        .map((addr) => `"${addr}"`)
+    [...new Set(balanceAddrs.concat(tokenAddrs))]
+        .map((addr) => `    "${addr}"`)
         .join(",\n    ")
     %>
   }
