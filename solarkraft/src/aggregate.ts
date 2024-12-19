@@ -5,7 +5,7 @@
 /**
  * A command to aggregate the full contract state from the collected transactions.
  * This command is potentially expensive. In the long run, it makes sense to
- * collect the states from the archival nodes. For the time being, we aggregate
+ * collect the states from the history archives. For the time being, we aggregate
  * the states from the transactions directly, in order to evaluate the approach.
  *
  * We need this feature primarily for input generation. This is an experimental
