@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Injest a counterexample produced by Apalache and produce the corresponding
+ * Ingest a counterexample produced by Apalache and produce the corresponding
  * command for stellar-cli.
  *
  * In this case study, we write the script manually.  In the future, this could
  * be automated. Alternatively, we could execute the counterexample with
- * stellar-sdk. However, we believe that the command line interface offers us
+ * js-stellar-sdk. However, we believe that the command line interface offers us
  * more flexibility.
  *
  * Igor Konnov, 2024
