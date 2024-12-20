@@ -131,7 +131,7 @@ Next ==
                 old_storage |-> storage
             ]
         IN
-        \E addr \in ADDR, amount \in AMOUNTS, success \in BOOLEAN:
+        \E addr \in USER_ADDR, amount \in AMOUNTS, success \in BOOLEAN:
             /\  \/ LET tx == [ env |-> env, call |-> Initialize(XLM_TOKEN_SAC_TESTNET), status |-> success ] IN
                    initialize(tx) /\ last_tx' = tx
                 \/ LET tx == [ env |-> env, call |-> Deposit(addr, amount), status |-> success ] IN
