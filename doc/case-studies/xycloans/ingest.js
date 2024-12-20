@@ -53,7 +53,7 @@ switch (callType) {
 
     case 'UpdateFeeRewards':
         signer = call.value.addr
-        callArgs = `deposit --addr ${signer}`
+        callArgs = `update_fee_rewards --addr ${signer}`
         break
 
     default:
