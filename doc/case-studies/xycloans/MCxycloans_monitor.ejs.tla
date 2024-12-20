@@ -20,35 +20,35 @@ XYCLOANS == "<%- contractId %>"
 \* the token address
 XLM_TOKEN_SAC_TESTNET == "<%- storage[contractId].instance.TokenId %>"
 
+<%
+const balanceAddrs =
+    Object.keys(storage[contractId].persistent)
+        .filter((key) => key.startsWith("Balance,"))
+        .map((key) => key.split(",")[1])
+%>
 \* user-controlled addresses
 USER_ADDR == {
-    <%
-    const balanceAddrs =
-        Object.keys(storage[contractId].persistent)
-            .filter((key) => key.startsWith("Balance,"))
-            .map((key) => key.split(",")[1])
-    %>
-    <%-
+<%-
     balanceAddrs
         .map((addr) => `    "${addr}"`)
-        .join(",\n    ")
-    %>
+        .join(",\n")
+%>
 }
 
+<%
+const tokenAddrs =
+    Object.keys(storage[storage[contractId].instance.TokenId].persistent)
+        .filter((key) => key.startsWith("Balance,"))
+        .filter((key) => key !== `Balance,${contractId}`)
+        .map((key) => key.split(",")[1])
+%>
 \* addresses that hold token balances
 TOKEN_ADDR == {
-    <%
-    const tokenAddrs =
-        Object.keys(storage[storage[contractId].instance.TokenId].persistent)
-            .filter((key) => key.startsWith("Balance,"))
-            .filter((key) => key !== `Balance,${contractId}`)
-            .map((key) => key.split(",")[1])
-    %>
-    <%-
+<%-
     tokenAddrs
         .map((addr) => `    "${addr}"`)
-        .join(",\n    ")
-    %>
+        .join(",\n")
+%>
 }
 
 \* the pool of addresses to draw the values from
@@ -70,6 +70,16 @@ VARIABLES
 
 INSTANCE xycloans_monitor
 
+<%
+function renderKVStore(storage, prefix, mapper = (x) => x) {
+    return Object.keys(storage)
+        .filter((key) => key.startsWith(prefix))
+        .map((key) => key.split(",")[1])
+        .map((addr) => `    <<"${addr}", ${mapper(storage[prefix + addr])}>>`)
+        .join(",\n")
+}
+%>
+
 Init ==
     LET init_stor == [
         self_instance |-> [
@@ -77,36 +87,27 @@ Init ==
             TokenId |-> "<%- storage[contractId].instance.TokenId %>"
         ],
         self_persistent |-> [
-            Balance |-> SetAsFun({<%-
-              Object.keys(storage[contractId].persistent)
-                .filter((key) => key.startsWith("Balance,"))
-                .map((key) => key.split(",")[1])
-                .map((addr) => `<<"${addr}", ${storage[contractId].persistent["Balance," + addr]}>>`)
-                .join(",\n              ")
-            %>}),
-            MaturedFeesParticular |-> SetAsFun({<%-
-              Object.keys(storage[contractId].persistent)
-                .filter((key) => key.startsWith("MaturedFeesParticular,"))
-                .map((key) => key.split(",")[1])
-                .map((addr) => `<<"${addr}", ${storage[contractId].persistent["MaturedFeesParticular," + addr]}>>`)
-                .join(",\n              ")
-            %>}),
-            FeePerShareParticular |-> SetAsFun({<%-
-              Object.keys(storage[contractId].persistent)
-                .filter((key) => key.startsWith("FeePerShareParticular,"))
-                .map((key) => key.split(",")[1])
-                .map((addr) => `<<"${addr}", ${storage[contractId].persistent["FeePerShareParticular," + addr]}>>`)
-                .join(",\n              ")
-            %>})
+            Balance |-> SetAsFun({
+<%-
+        renderKVStore(storage[contractId].persistent, "Balance,")
+%>
+            }),
+            MaturedFeesParticular |-> SetAsFun({
+<%-
+        renderKVStore(storage[contractId].persistent, "MaturedFeesParticular,")
+%>
+            }),
+            FeePerShareParticular |-> SetAsFun({
+<%-
+        renderKVStore(storage[contractId].persistent, "FeePerShareParticular,")
+%>
+            })
         ],
-        token_persistent |-> [ Balance |-> SetAsFun({<%-
-              Object.keys(storage[storage[contractId].instance.TokenId].persistent)
-                .filter((key) => key.startsWith("Balance,"))
-                .map((key) => key.split(",")[1])
-                .map((addr) =>
-                  `<<"${addr}", ${storage[storage[contractId].instance.TokenId].persistent["Balance," + addr].amount}>>`)
-                .join(",\n              ")
-        %>})]
+        token_persistent |-> [ Balance |-> SetAsFun({
+<%-
+        renderKVStore(storage[storage[contractId].instance.TokenId].persistent, "Balance,", (x) => x.amount)
+%>
+        })]
     ]
     IN
     \* initialize the monitor non-deterministically
