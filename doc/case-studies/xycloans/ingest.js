@@ -26,8 +26,15 @@ if (args.length < 2) {
 }
 
 // read the state and the trace from the JSON files
-const state = JSON.parse(fs.readFileSync(args[0], 'utf8'))
-const trace = JSON.parse(fs.readFileSync(args[1], 'utf8'))
+let state
+let trace
+try {
+    state = JSON.parse(fs.readFileSync(args[0], 'utf8'))
+    trace = JSON.parse(fs.readFileSync(args[1], 'utf8'))
+} catch (err) {
+    console.error(`Error reading the input files: ${err.message}`)
+    process.exit(1)
+}
 
 const call = trace.states[1].last_tx.call
 const callType = call.tag
