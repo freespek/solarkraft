@@ -27,6 +27,17 @@ USER_ADDR == {
         Object.keys(storage[contractId].persistent)
             .filter((key) => key.startsWith("Balance,"))
             .map((key) => key.split(",")[1])
+    %>
+    <%-
+    balanceAddrs
+        .map((addr) => `    "${addr}"`)
+        .join(",\n    ")
+    %>
+}
+
+\* addresses that hold token balances
+TOKEN_ADDR == {
+    <%
     const tokenAddrs =
         Object.keys(storage[storage[contractId].instance.TokenId].persistent)
             .filter((key) => key.startsWith("Balance,"))
@@ -34,14 +45,14 @@ USER_ADDR == {
             .map((key) => key.split(",")[1])
     %>
     <%-
-    [...new Set(balanceAddrs.concat(tokenAddrs))]
+    tokenAddrs
         .map((addr) => `    "${addr}"`)
         .join(",\n    ")
     %>
-  }
+}
 
 \* the pool of addresses to draw the values from
-ADDR == { XYCLOANS, XLM_TOKEN_SAC_TESTNET } \union USER_ADDR
+ADDR == { XYCLOANS, XLM_TOKEN_SAC_TESTNET } \union TOKEN_ADDR \union USER_ADDR
 
 VARIABLES
     \* @type: $tx;
