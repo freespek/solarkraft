@@ -70,7 +70,7 @@ initialize(tx) ==
 \* @type: $tx => Bool;
 deposit(tx) ==
     LET call == AsDeposit(tx.call)
-        token == tx.env.storage.self_instance.TokenId
+        token == tx.env.old_storage.self_instance.TokenId
         new_shares == [ shares EXCEPT ![call.from] = @ + call.amount ]
     IN
     /\ IsDeposit(tx.call)
@@ -86,9 +86,10 @@ deposit(tx) ==
     \* these conditions are not required by a monitor, but needed to avoid spurious generated values
     /\ succeeds_with(tx,
         \A other \in DOMAIN tx.env.storage.self_persistent.Balance \ {call.from}:
-            /\ other \in DOMAIN tx.env.old_storage.self_persistent.Balance
-            /\ tx.env.storage.self_persistent.Balance[other] = tx.env.old_storage.self_persistent.Balance[other])
+            other \in DOMAIN tx.env.old_storage.self_persistent.Balance
+                => tx.env.storage.self_persistent.Balance[other] = tx.env.old_storage.self_persistent.Balance[other])
     /\ succeeds_with(tx, call.amount > 0)
+    /\ succeeds_with(tx, tx.env.storage.self_instance.TokenId = token)
     \* update the monitor state
     /\ shares' = new_shares
     /\ total_shares' = total_shares + call.amount
@@ -97,6 +98,7 @@ deposit(tx) ==
 \* @type: $tx => Bool;
 borrow(tx) ==
     LET call == AsBorrow(tx.call)
+        token == tx.env.old_storage.self_instance.TokenId
         expected_fee == div_ceil(call.amount * STROOP, 12500000000)
         expected_fee_per_share_universal ==
             tx.env.old_storage.self_instance.FeePerShareUniversal
@@ -113,8 +115,9 @@ borrow(tx) ==
        /\ succeeds_with(tx, token_balance(tx.env, rcvr) = old_token_balance(tx.env, rcvr) - call.amount)
        /\ succeeds_with(tx, token_balance(tx.env, self) = old_token_balance(tx.env, self) + call.amount)
     \* these conditions are not required by a monitor, but needed to avoid spurious generated values
-    /\ succeeds_with(tx, tx.env.storage.self_persistent = tx.env.old_storage.self_persistent)
+    \*/\ succeeds_with(tx, tx.env.storage.self_persistent = tx.env.old_storage.self_persistent)
     /\ succeeds_with(tx, call.amount > 0)
+    /\ succeeds_with(tx, tx.env.storage.self_instance.TokenId = token)
     \* update the monitor state
     \* we update the fee per share to compute rewards later
     /\ fee_per_share_universal' = expected_fee_per_share_universal
@@ -123,6 +126,7 @@ borrow(tx) ==
 \* @type: $tx => Bool;
 update_fee_rewards(tx) ==
     LET call == AsUpdateFeeRewards(tx.call)
+        token == tx.env.old_storage.self_instance.TokenId
         fees_not_yet_considered ==
             fee_per_share_universal - get_or_else(tx.env.old_storage.self_persistent.FeePerShareParticular, call.addr, 0)
         expected_reward == div_floor(get_or_else(shares, call.addr, 0) * fees_not_yet_considered, STROOP)
@@ -137,8 +141,9 @@ update_fee_rewards(tx) ==
     \* delta of matured rewards for `addr` have been added
     /\ expected_reward = actual_reward
     \* these conditions are not required by a monitor, but needed to avoid spurious generated values
-    /\ succeeds_with(tx,
-        tx.env.storage.self_persistent.Balance = tx.env.old_storage.self_persistent.Balance)
+    \*/\ succeeds_with(tx,
+    \*    tx.env.storage.self_persistent.Balance = tx.env.old_storage.self_persistent.Balance)
+    /\ succeeds_with(tx, tx.env.storage.self_instance.TokenId = token)
     \* update the monitor state
     /\ UNCHANGED <<shares, total_shares, fee_per_share_universal>>
 

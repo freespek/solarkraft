@@ -12,6 +12,7 @@ import { verify } from './verify.js'
 import { list } from './list.js'
 import { SOLARKRAFT_DEFAULT_HOME } from './globals.js'
 import { aggregate } from './aggregate.js'
+import { extractAccounts } from './accounts.js'
 
 // The default options present in every command
 const defaultOpts = (yargs: any) =>
@@ -136,12 +137,27 @@ const listCmd = {
     handler: list,
 }
 
+// accounts: construct an accounts mapping
+const accountsCmd = {
+    command: ['accounts'],
+    desc: 'construct an accounts mapping, needed for input generation',
+    builder: (yargs: any) =>
+        defaultOpts(yargs).option('out', {
+            desc: 'The name of the file to output the accounts mapping to',
+            type: 'string',
+            require: false,
+            default: 'accounts.json',
+        }),
+    handler: extractAccounts,
+}
+
 function main() {
     return yargs(process.argv.slice(2))
         .command(fetchCmd)
         .command(aggregateCmd)
         .command(verifyCmd)
         .command(listCmd)
+        .command(accountsCmd)
         .demandCommand(1)
         .version(version)
         .strict()

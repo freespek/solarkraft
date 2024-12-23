@@ -13,7 +13,7 @@ fn test() {
     let env = Env::default();
     let addr = Address::generate(&env);
 
-    let contract_id = env.register_contract(None, MegaContract);
+    let contract_id = env.register(MegaContract, ());
     // <X>Client is automagically created.
     let client = MegaContractClient::new(&env, &contract_id);
 

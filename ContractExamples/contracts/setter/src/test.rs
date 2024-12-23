@@ -21,7 +21,7 @@ fn test() {
     let env = Env::default();
     let addr = Address::generate(&env);
 
-    let contract_id = env.register_contract(None, SetterContract);
+    let contract_id = env.register(SetterContract, ());
     // <X>Client is automagically created.
     let client = SetterContractClient::new(&env, &contract_id);
 
