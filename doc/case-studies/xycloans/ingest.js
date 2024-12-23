@@ -13,8 +13,24 @@
 
 const fs = require('fs')
 const assert = require('assert')
+const { execSync } = require('child_process')
 
 network = 'testnet'
+
+// Since stellar-cli does not let us sign a transaction by supplying a public key,
+// we have to extract account ids. Shall we add a command to solarkraft?
+function readOrFindAccounts() {
+    const accountsFile = 'accounts.json'
+    if (!fs.existsSync(accountsFile)) {
+        execSync('solarkraft accounts')
+    }
+    try {
+        return JSON.parse(fs.readFileSync(accountsFile, 'utf8'))
+    } catch (err) {
+        console.error(`Error reading ${accountsFile}: ${err.message}`)
+        process.exit(1)
+    }
+}
 
 // check that we have at least two arguments
 const args = process.argv.slice(2)
@@ -40,26 +56,28 @@ const call = trace.states[1].last_tx.call
 const callType = call.tag
 assert(callType !== undefined, 'traces.states[1].last_tx.call.tag is undefined')
 
+const accounts = readOrFindAccounts()
+
 // produce the arguments for the xycloans transaction
 let signer
 let callArgs
 switch (callType) {
     case 'Deposit': {
-        signer = call.value.from
+        signer = accounts[call.value.from]
         const amount = call.value.amount["#bigint"]
         callArgs = `deposit --from ${call.value.from} --amount ${amount}`
         break
     }
 
     case 'Borrow': {
-        signer = call.value.receiver_id
+        signer = accounts[call.value.receiver_id]
         const amount = call.value.amount["#bigint"]
         callArgs = `borrow --receiver_id ${call.value.receiver_id} --amount ${amount}`
         break
     }
 
     case 'UpdateFeeRewards':
-        signer = call.value.addr
+        signer = accounts[call.value.addr]
         callArgs = `update_fee_rewards --addr ${signer}`
         break
 
@@ -67,6 +85,8 @@ switch (callType) {
         console.error(`Unknown call type: ${callType}`)
         process.exit(1)
 }
+
+assert(signer !== undefined, 'signer is undefined')
 
 // produce the command for stellar-cli
 const cmd =
