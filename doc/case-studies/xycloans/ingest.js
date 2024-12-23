@@ -81,6 +81,17 @@ switch (callType) {
         callArgs = `update_fee_rewards --addr ${signer}`
         break
 
+    case 'WithdrawMatured':
+        signer = accounts[call.value.addr]
+        callArgs = `withdraw_matured --addr ${signer}`
+        break
+
+    case 'Withdraw':
+        signer = accounts[call.value.addr]
+        const amount = call.value.amount["#bigint"]
+        callArgs = `withdraw --addr ${signer} --amount ${amount}`
+        break
+
     default:
         console.error(`Unknown call type: ${callType}`)
         process.exit(1)
