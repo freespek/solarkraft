@@ -142,13 +142,12 @@ const accountsCmd = {
     command: ['accounts'],
     desc: 'construct an accounts mapping, needed for input generation',
     builder: (yargs: any) =>
-        defaultOpts(yargs)
-            .option('out', {
-                desc: 'The name of the file to output the accounts mapping to',
-                type: 'string',
-                require: false,
-                default: 'accounts.json',
-            }),
+        defaultOpts(yargs).option('out', {
+            desc: 'The name of the file to output the accounts mapping to',
+            type: 'string',
+            require: false,
+            default: 'accounts.json',
+        }),
     handler: extractAccounts,
 }
 
