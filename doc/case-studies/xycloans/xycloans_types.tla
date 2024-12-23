@@ -38,6 +38,8 @@ EXTENDS Variants
         | Deposit({ from: Str, amount: Int })
         | Borrow({ receiver_id: Str, amount: Int })
         | UpdateFeeRewards({ addr: Str})
+        | WithdrawMatured({ addr: Str})
+        | Withdraw({ addr: Str, amount: Int})
     ;
 
     Finally, a transaction is:
@@ -83,5 +85,19 @@ UpdateFeeRewards(addr) == Variant("UpdateFeeRewards", [ addr |-> addr ])
 IsUpdateFeeRewards(call) == VariantTag(call) = "UpdateFeeRewards"
 \* @type: $call => { addr: Str };
 AsUpdateFeeRewards(call) == VariantGetUnsafe("UpdateFeeRewards", call)
+
+\* @type: Str => $call;
+WithdrawMatured(addr) == Variant("WithdrawMatured", [ addr |-> addr ])
+\* @type: $call => Bool;
+IsWithdrawMatured(call) == VariantTag(call) = "WithdrawMatured"
+\* @type: $call => { addr: Str };
+AsWithdrawMatured(call) == VariantGetUnsafe("WithdrawMatured", call)
+
+\* @type: (Str, Int) => $call;
+Withdraw(addr, amount) == Variant("Withdraw", [ addr |-> addr, amount |-> amount ])
+\* @type: $call => Bool;
+IsWithdraw(call) == VariantTag(call) = "Withdraw"
+\* @type: $call => { addr: Str, amount: Int };
+AsWithdraw(call) == VariantGetUnsafe("Withdraw", call)
 
 ===============================================================================
