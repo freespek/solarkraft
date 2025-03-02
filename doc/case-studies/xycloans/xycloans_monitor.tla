@@ -12,7 +12,7 @@
  * Igor Konnov, 2024
  *)
 
-EXTENDS Integers, xycloans_types
+EXTENDS Integers, defs, xycloans_types
 
 STROOP == 10000000
 
@@ -32,24 +32,6 @@ VARIABLES
     \* Fee per share for the entire pool, in stroops.
     \* @type: Int;
     fee_per_share_universal
-
-(* The core logic of the monitor for the contract data *)
-
-\* @type: ($tx, Bool) => Bool;
-reverts_if(tx, cond) == cond => ~tx.status
-\* @type: ($tx, Bool) => Bool;
-succeeds_with(tx, cond) == tx.status => cond
-\* @type: (Str -> a, Str, a) => a;
-get_or_else(map, key, default) ==
-    IF key \in DOMAIN map THEN map[key] ELSE default
-\* integer division with rounding up
-div_ceil(a, b) == (a + (b - 1)) \div b
-\* integer division with rounding down
-div_floor(a, b) == a \div b
-\* @type: ($env, Str) => Int;
-token_balance(env, a) == get_or_else(env.storage.token_persistent.Balance, a, 0)
-\* @type: ($env, Str) => Int;
-old_token_balance(env, a) == get_or_else(env.old_storage.token_persistent.Balance, a, 0)
 
 \* @type: $tx => Bool;
 initialize(tx) ==
